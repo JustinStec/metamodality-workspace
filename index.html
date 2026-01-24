@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metamodality — Reading Group Workspace</title>
+    <title>Metamodality — Reading Group</title>
 
     <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -43,35 +43,59 @@
             flex-direction: column;
         }
 
-        /* ========== TOP BAR ========== */
-        .topbar {
-            height: 44px;
-            background: var(--bg-sidebar);
+        /* ========== HEADER ========== */
+        header {
+            height: 50px;
+            background: var(--bg-panel);
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            padding: 0 15px;
-            gap: 15px;
+            padding: 0 20px;
+            gap: 20px;
             flex-shrink: 0;
         }
-        .topbar h1 {
-            font-size: 14px;
+
+        .logo {
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            font-size: 16px;
             font-weight: 600;
             color: var(--text-bright);
-            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            cursor: pointer;
         }
-        .topbar .subtitle {
-            font-size: 11px;
+
+        nav {
+            display: flex;
+            gap: 5px;
+            margin-left: 20px;
+        }
+
+        .nav-tab {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
             color: var(--text-muted);
-            margin-left: -10px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
         }
-        .status-indicator {
+        .nav-tab:hover { background: var(--highlight); color: var(--text); }
+        .nav-tab.active { background: var(--accent); color: white; }
+
+        .header-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status {
             display: flex;
             align-items: center;
             gap: 6px;
             font-size: 11px;
             color: var(--text-muted);
-            margin-left: auto;
         }
         .status-dot {
             width: 8px;
@@ -80,531 +104,26 @@
             background: var(--text-muted);
         }
         .status-dot.connected { background: var(--success); }
-        .status-dot.syncing { background: var(--warning); animation: pulse 1s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        .topbar-actions { display: flex; gap: 8px; }
         .btn {
             background: var(--accent);
             color: white;
             border: none;
-            padding: 6px 14px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
         }
         .btn:hover { background: var(--accent-hover); }
         .btn.secondary {
-            background: var(--bg-panel);
+            background: var(--bg-dark);
             color: var(--text);
             border: 1px solid var(--border);
         }
         .btn.secondary:hover { background: var(--highlight); }
+
         .user-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: var(--accent);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        /* ========== MAIN LAYOUT ========== */
-        .main-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        /* ========== LEFT SIDEBAR - SCHEDULE ========== */
-        .sidebar {
-            width: 280px;
-            background: var(--bg-sidebar);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            transition: width 0.2s;
-        }
-        .sidebar.collapsed { width: 40px; }
-        .sidebar.collapsed .sidebar-content,
-        .sidebar.collapsed .sidebar-header span { display: none; }
-
-        .sidebar-header {
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--bg-dark);
-        }
-        .collapse-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 4px 8px;
-            font-size: 10px;
-            border-radius: 3px;
-        }
-        .collapse-btn:hover { background: var(--border); color: var(--text); }
-        .sidebar.collapsed .collapse-btn { transform: rotate(180deg); }
-
-        .sidebar-header span {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .sidebar-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 8px 0;
-        }
-
-        /* Unit headers */
-        .unit-group { margin-bottom: 4px; }
-        .unit-header {
-            display: flex;
-            align-items: center;
-            padding: 8px 12px;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-bright);
-            gap: 6px;
-            user-select: none;
-            background: var(--bg-dark);
-            border-bottom: 1px solid var(--border);
-        }
-        .unit-header:hover { background: var(--highlight); }
-        .unit-header .toggle {
-            font-size: 9px;
-            color: var(--text-muted);
-            transition: transform 0.2s;
-        }
-        .unit-header.collapsed .toggle { transform: rotate(-90deg); }
-        .unit-children { }
-        .unit-children.collapsed { display: none; }
-
-        /* Week items */
-        .week-item {
-            display: flex;
-            align-items: center;
-            padding: 8px 12px 8px 24px;
-            cursor: pointer;
-            font-size: 12px;
-            gap: 8px;
-            color: var(--text);
-            border-left: 2px solid transparent;
-        }
-        .week-item:hover { background: var(--highlight); }
-        .week-item.selected {
-            background: var(--highlight);
-            border-left-color: var(--accent);
-        }
-        .week-item .week-num {
-            font-size: 10px;
-            color: var(--text-muted);
-            min-width: 24px;
-        }
-        .week-item .week-title {
-            flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .week-item .week-date {
-            font-size: 10px;
-            color: var(--text-muted);
-        }
-
-        /* Reading items */
-        .reading-list { margin-left: 24px; }
-        .reading-list.collapsed { display: none; }
-        .reading-item {
-            display: flex;
-            align-items: center;
-            padding: 6px 12px;
-            cursor: pointer;
-            font-size: 11px;
-            gap: 6px;
-            color: var(--text-muted);
-            border-left: 2px solid transparent;
-        }
-        .reading-item:hover {
-            background: var(--highlight);
-            color: var(--text);
-        }
-        .reading-item.selected {
-            background: #e8f4fc;
-            border-left-color: var(--accent);
-            color: var(--text-bright);
-        }
-        .reading-item .icon { font-size: 10px; }
-        .reading-item .title {
-            flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .reading-item .pages {
-            font-size: 9px;
-            color: var(--text-muted);
-            background: var(--bg-dark);
-            padding: 1px 5px;
-            border-radius: 8px;
-        }
-
-        /* ========== CENTER - VIEWER ========== */
-        .viewer-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-editor);
-            min-width: 0;
-        }
-        .viewer-header {
-            padding: 10px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--bg-panel);
-        }
-        .viewer-title {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-bright);
-            flex: 1;
-            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-        }
-        .viewer-actions { display: flex; gap: 8px; }
-
-        .viewer-content {
-            flex: 1;
-            overflow: auto;
-            background: #e8e4dc;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            gap: 10px;
-        }
-        .viewer-content canvas {
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            max-width: 100%;
-        }
-
-        .viewer-empty {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            gap: 15px;
-        }
-        .viewer-empty-icon { font-size: 48px; opacity: 0.5; }
-        .viewer-empty-text { font-size: 14px; }
-
-        .pdf-controls {
-            position: sticky;
-            top: 0;
-            background: var(--bg-panel);
-            padding: 8px 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-radius: 5px;
-            z-index: 10;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .pdf-controls span { font-size: 12px; }
-        .pdf-controls button {
-            background: var(--bg-dark);
-            border: 1px solid var(--border);
-            padding: 4px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .pdf-controls button:hover { background: var(--highlight); }
-
-        /* ========== RIGHT PANEL - CONTEXT ========== */
-        .context-panel {
-            width: 320px;
-            background: var(--bg-panel);
-            border-left: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            transition: width 0.2s;
-        }
-        .context-panel.collapsed { width: 40px; }
-        .context-panel.collapsed .panel-content,
-        .context-panel.collapsed .context-tabs { display: none; }
-
-        .panel-header {
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--bg-dark);
-        }
-        .panel-header h3 {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-        .context-panel.collapsed .panel-header h3 { display: none; }
-
-        /* Context tabs */
-        .context-tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border);
-            background: var(--bg-dark);
-        }
-        .context-tab {
-            flex: 1;
-            padding: 10px 8px;
-            font-size: 11px;
-            border: none;
-            background: transparent;
-            color: var(--text-muted);
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-        }
-        .context-tab:hover { color: var(--text); background: var(--highlight); }
-        .context-tab.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
-            background: var(--bg-panel);
-        }
-
-        .panel-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
-        .tab-panel {
-            display: none;
-            flex: 1;
-            overflow: auto;
-            flex-direction: column;
-        }
-        .tab-panel.active { display: flex; }
-
-        /* Focus tab */
-        .focus-content { padding: 15px; }
-        .focus-week {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-bottom: 5px;
-        }
-        .focus-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-bright);
-            margin-bottom: 12px;
-            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-        }
-        .focus-text {
-            font-size: 13px;
-            line-height: 1.6;
-            color: var(--text);
-            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-        }
-        .focus-readings {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid var(--border);
-        }
-        .focus-readings h4 {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-        .focus-reading-item {
-            padding: 8px;
-            margin-bottom: 6px;
-            background: var(--bg-dark);
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .focus-reading-item:hover { background: var(--highlight); }
-
-        /* Annotations tab */
-        .annotations-list { flex: 1; overflow-y: auto; }
-        .annotation-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border);
-        }
-        .annotation-quote {
-            font-size: 12px;
-            font-style: italic;
-            color: var(--text);
-            margin-bottom: 6px;
-            padding-left: 10px;
-            border-left: 3px solid var(--accent);
-        }
-        .annotation-comment {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-        .annotation-meta {
-            font-size: 10px;
-            color: var(--text-muted);
-        }
-        .annotations-empty {
-            padding: 30px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 12px;
-        }
-
-        .annotation-form {
-            padding: 15px;
-            border-top: 1px solid var(--border);
-            background: var(--bg-dark);
-            display: none;
-        }
-        .annotation-form.active { display: block; }
-        .annotation-form textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            font-size: 12px;
-            resize: vertical;
-            min-height: 60px;
-            margin-bottom: 10px;
-        }
-        .annotation-form .selected-quote {
-            font-size: 11px;
-            font-style: italic;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-            padding: 8px;
-            background: var(--bg-panel);
-            border-radius: 4px;
-            max-height: 60px;
-            overflow-y: auto;
-        }
-        .color-picker {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 10px;
-        }
-        .color-dot {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid transparent;
-        }
-        .color-dot.selected { border-color: var(--text-bright); }
-        .color-dot.yellow { background: #fef3c7; }
-        .color-dot.green { background: #d1fae5; }
-        .color-dot.blue { background: #dbeafe; }
-        .color-dot.purple { background: #ede9fe; }
-        .form-buttons { display: flex; gap: 8px; justify-content: flex-end; }
-
-        /* Notes tab */
-        .notes-header {
-            padding: 10px 15px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .notes-list { flex: 1; overflow-y: auto; }
-        .note-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-        }
-        .note-item:hover { background: var(--highlight); }
-        .note-item.selected { background: var(--highlight); border-left: 2px solid var(--accent); }
-        .note-item-title { font-size: 13px; color: var(--text-bright); margin-bottom: 3px; }
-        .note-item-preview { font-size: 11px; color: var(--text-muted); }
-        .note-item-meta { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
-
-        .note-editor {
-            display: none;
-            flex-direction: column;
-            flex: 1;
-        }
-        .note-editor.active { display: flex; }
-        .note-editor-header {
-            padding: 10px 15px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .note-title-input {
-            flex: 1;
-            border: none;
-            font-size: 14px;
-            font-weight: 500;
-            background: transparent;
-            color: var(--text-bright);
-        }
-        .note-title-input:focus { outline: none; }
-        .note-content-input {
-            flex: 1;
-            border: none;
-            padding: 15px;
-            font-size: 13px;
-            line-height: 1.6;
-            resize: none;
-            font-family: 'Monaco', 'Consolas', monospace;
-        }
-        .note-content-input:focus { outline: none; }
-        .note-links {
-            padding: 10px 15px;
-            border-top: 1px solid var(--border);
-            background: var(--bg-dark);
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-        .note-link {
-            display: inline-block;
-            background: var(--bg-panel);
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-right: 5px;
-            cursor: pointer;
-        }
-        .note-link:hover { background: var(--highlight); }
-
-        /* Feed tab */
-        .feed-list { flex: 1; overflow-y: auto; }
-        .feed-item {
-            padding: 15px;
-            border-bottom: 1px solid var(--border);
-        }
-        .feed-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .feed-avatar {
             width: 32px;
             height: 32px;
             border-radius: 50%;
@@ -615,59 +134,654 @@
             justify-content: center;
             font-size: 14px;
             font-weight: 600;
-        }
-        .feed-author { font-size: 13px; font-weight: 500; color: var(--text-bright); }
-        .feed-date { font-size: 11px; color: var(--text-muted); }
-        .feed-title { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--text-bright); }
-        .feed-content { font-size: 13px; line-height: 1.5; color: var(--text); }
-        .feed-links {
-            margin-top: 10px;
-            font-size: 11px;
-        }
-        .feed-actions {
-            margin-top: 12px;
-            display: flex;
-            gap: 15px;
-        }
-        .feed-action {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 12px;
             cursor: pointer;
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        main {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .view {
+            display: none;
+            height: 100%;
+            overflow: auto;
+        }
+        .view.active { display: block; }
+
+        /* ========== HOME VIEW ========== */
+        .home-view {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .home-hero {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .home-hero h1 {
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            font-size: 32px;
+            font-weight: normal;
+            color: var(--text-bright);
+            margin-bottom: 8px;
+        }
+        .home-hero .subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+        }
+
+        .current-week {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .current-week-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        .current-week h2 {
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            font-size: 24px;
+            font-weight: normal;
+            color: var(--text-bright);
+            margin-bottom: 12px;
+        }
+        .current-week .focus {
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text);
+            margin-bottom: 20px;
+        }
+        .current-week-readings {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .reading-card {
             display: flex;
             align-items: center;
-            gap: 4px;
+            padding: 12px 16px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
         }
-        .feed-action:hover { color: var(--accent); }
-        .feed-empty {
+        .reading-card:hover { background: var(--highlight); transform: translateX(4px); }
+        .reading-card .icon { font-size: 18px; margin-right: 12px; }
+        .reading-card .info { flex: 1; }
+        .reading-card .title { font-size: 14px; color: var(--text-bright); }
+        .reading-card .pages { font-size: 12px; color: var(--text-muted); }
+        .reading-card .arrow { color: var(--text-muted); }
+
+        .home-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 700px) {
+            .home-grid { grid-template-columns: 1fr; }
+        }
+
+        .home-section {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .home-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .home-section h3 .icon { font-size: 16px; }
+
+        .activity-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-item .author { color: var(--accent); font-weight: 500; }
+        .activity-item .action { color: var(--text-muted); }
+        .activity-item .target { color: var(--text); }
+        .activity-item .time { font-size: 11px; color: var(--text-muted); display: block; margin-top: 4px; }
+
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* ========== SYLLABUS VIEW ========== */
+        .syllabus-view {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .syllabus-view h1 {
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            font-size: 28px;
+            font-weight: normal;
+            margin-bottom: 30px;
+            color: var(--text-bright);
+        }
+
+        .unit {
+            margin-bottom: 30px;
+        }
+        .unit-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .week-card {
+            background: var(--bg-panel);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .week-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .week-card-header {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .week-card .week-num {
+            font-size: 12px;
+            color: var(--text-muted);
+            min-width: 50px;
+        }
+        .week-card .week-title {
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            font-size: 18px;
+            color: var(--text-bright);
+        }
+        .week-card .week-date {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+        .week-card .week-focus {
+            font-size: 13px;
+            color: var(--text);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+        .week-card .week-readings {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .week-card .reading-tag {
+            font-size: 11px;
+            padding: 4px 10px;
+            background: var(--bg-dark);
+            border-radius: 12px;
+            color: var(--text-muted);
+        }
+
+        /* ========== READ VIEW ========== */
+        .read-view {
+            display: none;
+            height: 100%;
+            flex-direction: row;
+        }
+        .read-view.active { display: flex; }
+
+        .read-sidebar {
+            width: 280px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .read-sidebar-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .read-sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .reading-list-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.15s;
+        }
+        .reading-list-item:hover { background: var(--highlight); }
+        .reading-list-item.active {
+            background: var(--highlight);
+            border-left-color: var(--accent);
+        }
+        .reading-list-item .week-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .reading-list-item .reading-title {
+            font-size: 13px;
+            color: var(--text-bright);
+            line-height: 1.4;
+        }
+
+        .pdf-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #525659;
+            min-width: 0;
+        }
+        .pdf-header {
+            padding: 12px 20px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .pdf-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-bright);
+        }
+        .pdf-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .pdf-controls button {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .pdf-controls button:hover { background: var(--highlight); }
+        .pdf-controls span { font-size: 12px; color: var(--text-muted); }
+
+        .pdf-viewer {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            gap: 15px;
+        }
+        .pdf-viewer canvas {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            max-width: 100%;
+        }
+        .pdf-empty {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            gap: 15px;
+        }
+        .pdf-empty-icon { font-size: 48px; opacity: 0.5; }
+
+        .annotations-panel {
+            width: 320px;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .annotations-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .annotations-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-bright);
+        }
+        .annotations-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .annotation-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+        .annotation-quote {
+            font-size: 13px;
+            font-style: italic;
+            color: var(--text);
+            margin-bottom: 8px;
+            padding-left: 12px;
+            border-left: 3px solid var(--accent);
+            line-height: 1.5;
+        }
+        .annotation-comment {
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        .annotation-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .annotations-empty {
             padding: 30px;
             text-align: center;
             color: var(--text-muted);
-            font-size: 12px;
+            font-size: 13px;
         }
 
-        /* Selection popup */
+        .annotation-form {
+            padding: 15px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-dark);
+            display: none;
+        }
+        .annotation-form.active { display: block; }
+        .annotation-form .quote-preview {
+            font-size: 12px;
+            font-style: italic;
+            color: var(--text-muted);
+            padding: 10px;
+            background: var(--bg-panel);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+        .annotation-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            resize: none;
+            min-height: 80px;
+            margin-bottom: 10px;
+        }
+        .annotation-form textarea:focus { outline: none; border-color: var(--accent); }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        /* ========== DISCUSS VIEW ========== */
+        .discuss-view {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        .discuss-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .discuss-header h1 {
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            font-size: 24px;
+            font-weight: normal;
+            color: var(--text-bright);
+        }
+
+        .post-card {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .post-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .post-author { font-size: 14px; font-weight: 500; color: var(--text-bright); }
+        .post-date { font-size: 12px; color: var(--text-muted); }
+        .post-title {
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            font-size: 20px;
+            color: var(--text-bright);
+            margin-bottom: 12px;
+        }
+        .post-content {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--text);
+        }
+        .post-content p { margin-bottom: 12px; }
+        .post-links {
+            margin-top: 15px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .post-actions {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 20px;
+        }
+        .post-action {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .post-action:hover { color: var(--accent); }
+
+        /* ========== WRITE VIEW ========== */
+        .write-view {
+            display: none;
+            height: 100%;
+            flex-direction: row;
+        }
+        .write-view.active { display: flex; }
+
+        .notes-sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+        .notes-sidebar-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .notes-sidebar-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-bright);
+        }
+        .notes-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .note-list-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .note-list-item:hover { background: var(--highlight); }
+        .note-list-item.active { background: var(--highlight); border-left: 3px solid var(--accent); }
+        .note-list-item .note-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-bright);
+            margin-bottom: 4px;
+        }
+        .note-list-item .note-preview {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        .note-list-item .note-date {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-editor);
+        }
+        .editor-header {
+            padding: 15px 25px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-panel);
+        }
+        .editor-title-input {
+            font-size: 20px;
+            font-weight: 500;
+            border: none;
+            background: transparent;
+            color: var(--text-bright);
+            flex: 1;
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+        }
+        .editor-title-input:focus { outline: none; }
+        .editor-title-input::placeholder { color: var(--text-muted); }
+
+        .editor-body {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        .editor-textarea {
+            flex: 1;
+            padding: 25px;
+            border: none;
+            font-size: 15px;
+            line-height: 1.8;
+            resize: none;
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            background: var(--bg-editor);
+            color: var(--text);
+        }
+        .editor-textarea:focus { outline: none; }
+        .editor-textarea::placeholder { color: var(--text-muted); }
+
+        .editor-footer {
+            padding: 12px 25px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-panel);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .editor-links {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .editor-link {
+            display: inline-block;
+            background: var(--bg-dark);
+            padding: 3px 10px;
+            border-radius: 12px;
+            margin-right: 6px;
+            cursor: pointer;
+        }
+        .editor-link:hover { background: var(--highlight); }
+
+        .editor-empty {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            gap: 15px;
+        }
+        .editor-empty-icon { font-size: 48px; opacity: 0.5; }
+
+        /* ========== SELECTION POPUP ========== */
         .selection-popup {
             display: none;
             position: fixed;
             background: var(--bg-panel);
             border: 1px solid var(--border);
-            border-radius: 4px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            border-radius: 6px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             z-index: 1000;
+            overflow: hidden;
         }
         .selection-popup button {
-            padding: 8px 16px;
+            padding: 10px 18px;
             background: var(--accent);
             color: white;
             border: none;
-            font-size: 12px;
+            font-size: 13px;
             cursor: pointer;
         }
         .selection-popup button:hover { background: var(--accent-hover); }
 
-        /* Auth modal */
+        /* ========== AUTH MODAL ========== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -683,26 +797,26 @@
         .modal-overlay.active { display: flex; }
         .modal {
             background: var(--bg-panel);
-            border-radius: 8px;
+            border-radius: 12px;
             width: 400px;
             max-width: 90%;
-            padding: 25px;
+            padding: 30px;
         }
         .modal h3 {
-            font-size: 16px;
+            font-size: 18px;
             margin-bottom: 8px;
             color: var(--text-bright);
         }
         .modal p {
-            font-size: 13px;
+            font-size: 14px;
             color: var(--text-muted);
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         .modal input {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid var(--border);
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 14px;
             margin-bottom: 15px;
         }
@@ -713,154 +827,174 @@
             gap: 10px;
         }
         .modal .message {
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
             margin-bottom: 15px;
         }
         .modal .message.success { background: #d1fae5; color: #065f46; }
         .modal .message.error { background: #fee2e2; color: #991b1b; }
-
-        /* Responsive */
-        @media (max-width: 900px) {
-            .sidebar { width: 220px; }
-            .context-panel { width: 280px; }
-        }
-        @media (max-width: 700px) {
-            .sidebar { display: none; }
-            .context-panel {
-                position: fixed;
-                right: -100%;
-                top: 44px;
-                bottom: 0;
-                width: 100%;
-                transition: right 0.3s;
-            }
-            .context-panel.expanded { right: 0; }
-        }
     </style>
 </head>
 <body>
-    <!-- Top Bar -->
-    <div class="topbar">
-        <h1>Metamodality</h1>
-        <span class="subtitle">An Inquiry into Forms of the Possible</span>
-        <div class="status-indicator">
-            <span class="status-dot" id="statusDot"></span>
-            <span id="statusText">Connecting...</span>
-        </div>
-        <div class="topbar-actions">
+    <!-- Header -->
+    <header>
+        <div class="logo" onclick="switchView('home')">Metamodality</div>
+        <nav>
+            <button class="nav-tab active" data-view="home">Home</button>
+            <button class="nav-tab" data-view="syllabus">Syllabus</button>
+            <button class="nav-tab" data-view="read">Read</button>
+            <button class="nav-tab" data-view="discuss">Discuss</button>
+            <button class="nav-tab" data-view="write">Write</button>
+        </nav>
+        <div class="header-right">
+            <div class="status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Connecting...</span>
+            </div>
             <button class="btn" id="authBtn" onclick="showAuthModal()">Sign In</button>
         </div>
-    </div>
+    </header>
 
-    <!-- Main Container -->
-    <div class="main-container">
-        <!-- Left Sidebar: Schedule -->
-        <div class="sidebar" id="sidebarPanel">
-            <div class="sidebar-header">
-                <button class="collapse-btn" onclick="togglePanel('sidebarPanel')">◀</button>
-                <span>Schedule</span>
+    <!-- Main Content -->
+    <main>
+        <!-- HOME VIEW -->
+        <div class="view active" id="view-home">
+            <div class="home-view">
+                <div class="home-hero">
+                    <h1>An Inquiry into Forms of the Possible</h1>
+                    <p class="subtitle">Center for Possible Minds — Spring 2026</p>
+                </div>
+
+                <div class="current-week" id="currentWeekCard">
+                    <!-- Populated by JS -->
+                </div>
+
+                <div class="home-grid">
+                    <div class="home-section">
+                        <h3><span class="icon">💬</span> Recent Discussion</h3>
+                        <div id="recentPosts">
+                            <div class="empty-state">No posts yet. Be the first to share your thoughts.</div>
+                        </div>
+                    </div>
+                    <div class="home-section">
+                        <h3><span class="icon">✨</span> Recent Annotations</h3>
+                        <div id="recentAnnotations">
+                            <div class="empty-state">Annotations from the group will appear here.</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="sidebar-content" id="scheduleTree"></div>
         </div>
 
-        <!-- Center: Viewer -->
-        <div class="viewer-panel">
-            <div class="viewer-header">
-                <div class="viewer-title" id="viewerTitle">Select a reading</div>
-                <div class="viewer-actions">
-                    <button class="btn secondary" onclick="togglePanel('contextPanel')">Context ▶</button>
-                </div>
-            </div>
-            <div class="viewer-content" id="viewerContent">
-                <div class="viewer-empty">
-                    <div class="viewer-empty-icon">📚</div>
-                    <div class="viewer-empty-text">Select a reading from the schedule to begin</div>
+        <!-- SYLLABUS VIEW -->
+        <div class="view" id="view-syllabus">
+            <div class="syllabus-view">
+                <h1>Schedule of Readings</h1>
+                <div id="syllabusContent">
+                    <!-- Populated by JS -->
                 </div>
             </div>
         </div>
 
-        <!-- Right Panel: Context -->
-        <aside class="context-panel" id="contextPanel">
-            <div class="panel-header">
-                <button class="collapse-btn" onclick="togglePanel('contextPanel')">▶</button>
-                <h3>Context</h3>
+        <!-- READ VIEW -->
+        <div class="view read-view" id="view-read">
+            <div class="read-sidebar">
+                <div class="read-sidebar-header">This Week's Readings</div>
+                <div class="read-sidebar-content" id="readingsList">
+                    <!-- Populated by JS -->
+                </div>
             </div>
-            <div class="context-tabs">
-                <button class="context-tab active" data-tab="focus">Focus</button>
-                <button class="context-tab" data-tab="annotations">Notes</button>
-                <button class="context-tab" data-tab="notes">Write</button>
-                <button class="context-tab" data-tab="feed">Feed</button>
-            </div>
-            <div class="panel-content">
-                <!-- Focus Tab -->
-                <div class="tab-panel active" id="tab-focus">
-                    <div class="focus-content" id="focusContent">
-                        <div class="focus-week">Welcome</div>
-                        <div class="focus-title">Spring 2026</div>
-                        <div class="focus-text">
-                            Select a week from the schedule to see its focus question and readings.
-                        </div>
+            <div class="pdf-container">
+                <div class="pdf-header">
+                    <div class="pdf-title" id="pdfTitle">Select a reading</div>
+                    <div class="pdf-controls" id="pdfControls" style="display: none;">
+                        <button onclick="prevPage()">← Prev</button>
+                        <span>Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+                        <button onclick="nextPage()">Next →</button>
                     </div>
                 </div>
-
-                <!-- Annotations Tab -->
-                <div class="tab-panel" id="tab-annotations">
-                    <div class="annotations-list" id="annotationsList">
-                        <div class="annotations-empty">
-                            Select text in a reading to create annotations.
-                        </div>
-                    </div>
-                    <div class="annotation-form" id="annotationForm">
-                        <div class="selected-quote" id="selectedQuote"></div>
-                        <textarea id="annotationComment" placeholder="Add a comment..."></textarea>
-                        <div class="color-picker">
-                            <div class="color-dot yellow selected" data-color="yellow"></div>
-                            <div class="color-dot green" data-color="green"></div>
-                            <div class="color-dot blue" data-color="blue"></div>
-                            <div class="color-dot purple" data-color="purple"></div>
-                        </div>
-                        <div class="form-buttons">
-                            <button class="btn secondary" onclick="cancelAnnotation()">Cancel</button>
-                            <button class="btn" onclick="saveAnnotation()">Save</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Notes Tab -->
-                <div class="tab-panel" id="tab-notes">
-                    <div class="notes-header">
-                        <span style="font-size: 12px; color: var(--text-muted);">Your notes</span>
-                        <button class="btn" onclick="newNote()">+ New</button>
-                    </div>
-                    <div class="notes-list" id="notesList"></div>
-                    <div class="note-editor" id="noteEditor">
-                        <div class="note-editor-header">
-                            <input type="text" class="note-title-input" id="noteTitleInput" placeholder="Note title...">
-                            <button class="btn secondary" onclick="closeNoteEditor()">✕</button>
-                        </div>
-                        <textarea class="note-content-input" id="noteContentInput" placeholder="Write your note... Use [[Week 1: Parmenides]] to link to readings."></textarea>
-                        <div class="note-links" id="noteLinks"></div>
-                        <div style="padding: 10px 15px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end;">
-                            <button class="btn secondary" onclick="closeNoteEditor()">Cancel</button>
-                            <button class="btn" onclick="saveNote()">Save</button>
-                            <button class="btn" style="background: var(--success);" onclick="publishNote()">Publish</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Feed Tab -->
-                <div class="tab-panel" id="tab-feed">
-                    <div class="feed-list" id="feedList">
-                        <div class="feed-empty">
-                            No posts yet. Write a note and publish it to share with the group.
-                        </div>
+                <div class="pdf-viewer" id="pdfViewer">
+                    <div class="pdf-empty">
+                        <div class="pdf-empty-icon">📖</div>
+                        <div>Select a reading from the sidebar</div>
                     </div>
                 </div>
             </div>
-        </aside>
-    </div>
+            <div class="annotations-panel">
+                <div class="annotations-header">
+                    <h3>Annotations</h3>
+                    <span id="annotationsCount" style="font-size: 12px; color: var(--text-muted);"></span>
+                </div>
+                <div class="annotations-list" id="annotationsList">
+                    <div class="annotations-empty">
+                        Select text in the reading to create an annotation.
+                    </div>
+                </div>
+                <div class="annotation-form" id="annotationForm">
+                    <div class="quote-preview" id="quotePreview"></div>
+                    <textarea id="annotationComment" placeholder="Add your thoughts..."></textarea>
+                    <div class="form-actions">
+                        <button class="btn secondary" onclick="cancelAnnotation()">Cancel</button>
+                        <button class="btn" onclick="saveAnnotation()">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DISCUSS VIEW -->
+        <div class="view" id="view-discuss">
+            <div class="discuss-view">
+                <div class="discuss-header">
+                    <h1>Discussion</h1>
+                    <button class="btn" onclick="switchView('write')">+ New Post</button>
+                </div>
+                <div id="postsContainer">
+                    <div class="empty-state" style="padding: 60px 20px;">
+                        No posts yet. Switch to Write to share your thoughts with the group.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WRITE VIEW -->
+        <div class="view write-view" id="view-write">
+            <div class="notes-sidebar">
+                <div class="notes-sidebar-header">
+                    <h3>Your Notes</h3>
+                    <button class="btn" onclick="newNote()">+ New</button>
+                </div>
+                <div class="notes-list" id="notesList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+            <div class="editor-container" id="editorContainer">
+                <div class="editor-empty">
+                    <div class="editor-empty-icon">✍️</div>
+                    <div>Select a note or create a new one</div>
+                </div>
+            </div>
+            <div class="editor-active" id="editorActive" style="display: none; flex: 1; flex-direction: column;">
+                <div class="editor-header">
+                    <input type="text" class="editor-title-input" id="noteTitleInput" placeholder="Title...">
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn secondary" onclick="saveNote()">Save</button>
+                        <button class="btn" onclick="publishNote()">Publish</button>
+                    </div>
+                </div>
+                <div class="editor-body">
+                    <textarea class="editor-textarea" id="noteContentInput" placeholder="Write your thoughts...
+
+Use [[Week 1: Parmenides]] to link to readings."></textarea>
+                </div>
+                <div class="editor-footer">
+                    <div class="editor-links" id="editorLinks">
+                        Use [[Week Title]] to link to readings
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <!-- Selection Popup -->
     <div class="selection-popup" id="selectionPopup">
@@ -883,7 +1017,7 @@
 
     <script>
         // =============================================
-        // SUPABASE CONFIGURATION
+        // CONFIGURATION
         // =============================================
         const SUPABASE_URL = 'https://tnasxupoydyoxibccovm.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRuYXN4dXBveWR5b3hpYmNjb3ZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMDM5NjksImV4cCI6MjA4NDc3OTk2OX0.JTXSnyDDl5Ta3s7fDtnGfWcuicuchwP5A5WhRZ_exIg';
@@ -893,30 +1027,28 @@
 
         try {
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            updateStatus('connected', 'Connected');
         } catch (e) {
             console.warn('Supabase init failed:', e);
-            updateStatus('offline', 'Offline mode');
         }
 
         // =============================================
-        // COURSE DATA
+        // SCHEDULE DATA
         // =============================================
         const schedule = [
             {
                 unit: "Unit I: Ancient and Medieval Foundations",
                 weeks: [
                     { num: 1, date: "Feb 4", title: "Parmenides",
-                      focus: "How can we think or speak \"what is not\"? This problem drives subsequent responses from Aristotle through Heidegger. Kingsley's reading situates Parmenides within an initiatory tradition.",
+                      focus: "How can we think or speak \"what is not\"? This problem drives subsequent responses from Aristotle through Heidegger.",
                       readings: [
                         { id: "w01_parmenides", title: "Parmenides, \"On Nature\"", pages: "~10 pp.", file: "readings/week01_parmenides.pdf" },
                         { id: "w01_kingsley", title: "Kingsley, In the Dark Places of Wisdom, ch. 1-4", pages: "~30 pp.", file: "readings/week01_kingsley.pdf" }
                     ]},
                     { num: 2, date: "Feb 11", title: "Aristotle",
-                      focus: "Aristotle's potentiality (dynamis) answers Parmenides by locating possibility within beings themselves. The sea-battle problem asks whether future contingents have determinate truth values.",
+                      focus: "Aristotle's potentiality (dynamis) answers Parmenides by locating possibility within beings themselves.",
                       readings: [
-                        { id: "w02_meta", title: "Aristotle, Metaphysics Book Theta, ch. 1-3, 6-8", pages: "~30 pp.", file: "readings/week02_aristotle_metaphysics.pdf" },
-                        { id: "w02_di", title: "Aristotle, De Interpretatione, ch. 9", pages: "~5 pp.", file: "readings/week02_aristotle_de_interpretatione.pdf" },
+                        { id: "w02_meta", title: "Aristotle, Metaphysics Book Theta", pages: "~30 pp.", file: "readings/week02_aristotle_metaphysics.pdf" },
+                        { id: "w02_di", title: "Aristotle, De Interpretatione, ch. 9", pages: "~5 pp.", file: "readings/week02_aristotle_di.pdf" },
                         { id: "w02_witt", title: "Witt, \"The Priority of Actuality\"", pages: "~10 pp.", file: "readings/week02_witt.pdf" }
                     ]},
                     { num: 3, date: "Feb 18", title: "Avicenna",
@@ -928,7 +1060,7 @@
                     { num: 4, date: "Feb 25", title: "Nagarjuna",
                       focus: "Does \"possibility\" mean anything once inherent existence drops out? Nagarjuna's tetralemma refuses the logical options that Western frameworks take for granted.",
                       readings: [
-                        { id: "w04_nagarjuna", title: "Nagarjuna, Mulamadhyamakakarika, ch. 1, 15, 24", pages: "~20 pp.", file: "readings/week04_nagarjuna.pdf" },
+                        { id: "w04_nagarjuna", title: "Nagarjuna, Mulamadhyamakakarika", pages: "~20 pp.", file: "readings/week04_nagarjuna.pdf" },
                         { id: "w04_garfield", title: "Garfield, \"Dependent Arising and the Emptiness of Emptiness\"", pages: "~20 pp.", file: "readings/week04_garfield.pdf" }
                     ]}
                 ]
@@ -937,7 +1069,7 @@
                 unit: "Unit II: Rationalism, Transcendentalism, and the Imaginal",
                 weeks: [
                     { num: 5, date: "Mar 4", title: "Leibniz and Du Châtelet",
-                      focus: "Compossibility constrains which possibilities can coexist within a single world. The Monadology raises the question of what individuates possible worlds.",
+                      focus: "Compossibility constrains which possibilities can coexist within a single world.",
                       readings: [
                         { id: "w05_monad", title: "Leibniz, Monadology", pages: "~15 pp.", file: "readings/week05_leibniz_monadology.pdf" },
                         { id: "w05_duchat", title: "Du Châtelet, Institutions de physique, ch. 1-2", pages: "~15 pp.", file: "readings/week05_du_chatelet.pdf" },
@@ -950,7 +1082,7 @@
                         { id: "w06_leech", title: "Leech, \"The Function of Modal Judgment\"", pages: "~25 pp.", file: "readings/week06_leech.pdf" }
                     ]},
                     { num: 7, date: "Mar 18", title: "Sufi Metaphysics",
-                      focus: "Ibn Arabi's imaginal world occupies a realm between sensible and intelligible, where possibilities take on form.",
+                      focus: "Ibn Arabi's imaginal world occupies a realm between sensible and intelligible.",
                       readings: [
                         { id: "w07_rabia", title: "Rabia al-Adawiyya, selected sayings", pages: "~5 pp.", file: "readings/week07_rabia.pdf" },
                         { id: "w07_arabi", title: "Ibn Arabi, Fusus al-Hikam, \"Adam\"", pages: "~10 pp.", file: "readings/week07_ibn_arabi.pdf" },
@@ -968,22 +1100,22 @@
                         { id: "w08_derrida", title: "Derrida, Introduction to \"Origin of Geometry\"", pages: "~25 pp.", file: "readings/week08_derrida.pdf" }
                     ]},
                     { num: 9, date: "Apr 1", title: "Heidegger and Arendt",
-                      focus: "Possibility becomes constitutive of Dasein; death individualizes as the ownmost possibility. Arendt's natality offers a counter-emphasis.",
+                      focus: "Possibility becomes constitutive of Dasein; death individualizes as the ownmost possibility.",
                       readings: [
-                        { id: "w09_heid", title: "Heidegger, Being and Time, II.1 (§§46-53)", pages: "~30 pp.", file: "readings/week09_heidegger.pdf" },
-                        { id: "w09_arendt", title: "Arendt, Human Condition, ch. 5 §§24-26", pages: "~15 pp.", file: "readings/week09_arendt.pdf" }
+                        { id: "w09_heid", title: "Heidegger, Being and Time, II.1", pages: "~30 pp.", file: "readings/week09_heidegger.pdf" },
+                        { id: "w09_arendt", title: "Arendt, Human Condition, ch. 5", pages: "~15 pp.", file: "readings/week09_arendt.pdf" }
                     ]},
                     { num: 10, date: "Apr 8", title: "Peirce",
                       focus: "Firstness is pure qualitative possibility, prior to relation or resistance.",
                       readings: [
                         { id: "w10_incap", title: "Peirce, \"Some Consequences of Four Incapacities\"", pages: "~20 pp.", file: "readings/week10_peirce_incapacities.pdf" },
-                        { id: "w10_guess", title: "Peirce, \"A Guess at the Riddle\", ch. 1-3", pages: "~20 pp.", file: "readings/week10_peirce_guess.pdf" }
+                        { id: "w10_guess", title: "Peirce, \"A Guess at the Riddle\"", pages: "~20 pp.", file: "readings/week10_peirce_guess.pdf" }
                     ]},
                     { num: 11, date: "Apr 15", title: "Nishida and Women Mystics",
-                      focus: "Nishida's \"place of absolute nothingness\" holds particulars without being one itself. Lalla and Weil offer contemplative perspectives.",
+                      focus: "Nishida's \"place of absolute nothingness\" holds particulars without being one itself.",
                       readings: [
                         { id: "w11_lalla", title: "Lalla, selected vakhs", pages: "~5 pp.", file: "readings/week11_lalla.pdf" },
-                        { id: "w11_nishida", title: "Nishida, Inquiry into the Good, Part I ch. 1-3", pages: "~25 pp.", file: "readings/week11_nishida.pdf" },
+                        { id: "w11_nishida", title: "Nishida, Inquiry into the Good", pages: "~25 pp.", file: "readings/week11_nishida.pdf" },
                         { id: "w11_weil", title: "Weil, Gravity and Grace, selections", pages: "~15 pp.", file: "readings/week11_weil.pdf" }
                     ]}
                 ]
@@ -992,9 +1124,9 @@
                 unit: "Unit IV: Process, Contemplation, Emanation",
                 weeks: [
                     { num: 12, date: "Apr 22", title: "Whitehead and Conway",
-                      focus: "Eternal objects ingress into actual occasions as pure potentials. Conway's monist vitalism offers a 17th-century precursor.",
+                      focus: "Eternal objects ingress into actual occasions as pure potentials.",
                       readings: [
-                        { id: "w12_conway", title: "Conway, Principles of the Most Ancient Philosophy, ch. 6-7", pages: "~15 pp.", file: "readings/week12_conway.pdf" },
+                        { id: "w12_conway", title: "Conway, Principles of the Most Ancient Philosophy", pages: "~15 pp.", file: "readings/week12_conway.pdf" },
                         { id: "w12_white", title: "Whitehead, Science and the Modern World, ch. 11", pages: "~25 pp.", file: "readings/week12_whitehead.pdf" }
                     ]},
                     { num: 13, date: "Apr 29", title: "Contemplative Science",
@@ -1007,7 +1139,7 @@
                       focus: "Possibility flows from the One's inexhaustible superabundance.",
                       readings: [
                         { id: "w14_plotinus", title: "Plotinus, Enneads V.1", pages: "~25 pp.", file: "readings/week14_plotinus.pdf" },
-                        { id: "w14_proclus", title: "Proclus, Elements of Theology, Prop. 1-25", pages: "~15 pp.", file: "readings/week14_proclus.pdf" }
+                        { id: "w14_proclus", title: "Proclus, Elements of Theology", pages: "~15 pp.", file: "readings/week14_proclus.pdf" }
                     ]}
                 ]
             },
@@ -1015,13 +1147,13 @@
                 unit: "Unit V: Mathematical and Formal Possibility",
                 weeks: [
                     { num: 15, date: "May 13", title: "Hamkins and Barcan Marcus",
-                      focus: "Many distinct concepts of set exist in Hamkins's multiverse. Barcan Marcus's work on modal logic provides formal foundations.",
+                      focus: "Many distinct concepts of set exist in Hamkins's multiverse.",
                       readings: [
                         { id: "w15_marcus", title: "Barcan Marcus, \"Modalities and Intensional Languages\"", pages: "~15 pp.", file: "readings/week15_barcan_marcus.pdf" },
                         { id: "w15_hamkins", title: "Hamkins, \"The Set-Theoretic Multiverse\"", pages: "~25 pp.", file: "readings/week15_hamkins.pdf" }
                     ]},
                     { num: 16, date: "May 20", title: "Foster",
-                      focus: "How do possibility spaces themselves get produced? Tradition constrains what becomes thinkable while furnishing materials for innovation.",
+                      focus: "How do possibility spaces themselves get produced?",
                       readings: [
                         { id: "w16_foster1", title: "Foster, \"Culture and Computation\"", pages: "~15 pp.", file: "readings/week16_foster_culture.pdf" },
                         { id: "w16_foster2", title: "Foster et al., \"Tradition and Innovation\"", pages: "~25 pp.", file: "readings/week16_foster_tradition.pdf" }
@@ -1031,147 +1163,186 @@
         ];
 
         // State
-        let currentWeek = null;
+        let currentWeekNum = 1;
         let currentReading = null;
         let selectedText = '';
-        let selectedColor = 'yellow';
         let annotations = {};
         let notes = [];
         let posts = [];
         let editingNoteId = null;
 
         // =============================================
-        // UI FUNCTIONS
+        // INITIALIZATION
         // =============================================
+
+        function init() {
+            updateStatus('connected', 'Connected');
+            buildSyllabus();
+            buildReadingsList();
+            renderCurrentWeek();
+            loadFeed();
+            loadNotes();
+
+            // Auth state
+            if (supabase) {
+                supabase.auth.onAuthStateChange((event, session) => {
+                    if (session?.user) {
+                        currentUser = session.user;
+                        updateAuthUI(currentUser);
+                        hideAuthModal();
+                        loadNotes();
+                    } else {
+                        currentUser = null;
+                        updateAuthUI(null);
+                    }
+                });
+
+                supabase.auth.getSession().then(({ data: { session } }) => {
+                    if (session?.user) {
+                        currentUser = session.user;
+                        updateAuthUI(currentUser);
+                        loadNotes();
+                    }
+                });
+            }
+
+            // Tab navigation
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', () => switchView(tab.dataset.view));
+            });
+        }
 
         function updateStatus(status, text) {
-            const dot = document.getElementById('statusDot');
-            const txt = document.getElementById('statusText');
-            dot.className = 'status-dot ' + status;
-            txt.textContent = text;
-        }
-
-        function togglePanel(panelId) {
-            document.getElementById(panelId).classList.toggle('collapsed');
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.context-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-            document.getElementById('tab-' + tabName).classList.add('active');
+            document.getElementById('statusDot').className = 'status-dot ' + status;
+            document.getElementById('statusText').textContent = text;
         }
 
         // =============================================
-        // SCHEDULE RENDERING
+        // VIEW SWITCHING
         // =============================================
 
-        function buildSchedule() {
-            const container = document.getElementById('scheduleTree');
-            let html = '';
+        function switchView(viewName) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
 
-            schedule.forEach((unit, unitIdx) => {
-                html += `
-                    <div class="unit-group">
-                        <div class="unit-header" onclick="toggleUnit(${unitIdx})">
-                            <span class="toggle">▼</span>
-                            ${unit.unit}
-                        </div>
-                        <div class="unit-children" id="unit-${unitIdx}">
-                            ${unit.weeks.map(week => `
-                                <div class="week-item" data-week="${week.num}" onclick="selectWeek(${week.num})">
-                                    <span class="week-num">${week.num}</span>
-                                    <span class="week-title">${week.title}</span>
-                                    <span class="week-date">${week.date}</span>
-                                </div>
-                                <div class="reading-list" id="readings-${week.num}">
-                                    ${week.readings.map(r => `
-                                        <div class="reading-item" data-id="${r.id}" onclick="event.stopPropagation(); loadReading('${r.id}', '${r.file}', ${week.num})">
-                                            <span class="icon">📄</span>
-                                            <span class="title">${r.title}</span>
-                                            <span class="pages">${r.pages}</span>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
+            document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
+            document.getElementById('view-' + viewName).classList.add('active');
         }
 
-        function toggleUnit(unitIdx) {
-            const header = document.querySelectorAll('.unit-header')[unitIdx];
-            const children = document.getElementById('unit-' + unitIdx);
-            header.classList.toggle('collapsed');
-            children.classList.toggle('collapsed');
-        }
+        // =============================================
+        // HOME VIEW
+        // =============================================
 
-        function selectWeek(num) {
-            // Find week data
-            let weekData = null;
+        function getCurrentWeek() {
+            // For now, default to week 1. Could be date-based later.
+            let week = null;
             for (const unit of schedule) {
-                for (const week of unit.weeks) {
-                    if (week.num === num) {
-                        weekData = week;
+                for (const w of unit.weeks) {
+                    if (w.num === currentWeekNum) {
+                        week = w;
                         break;
                     }
                 }
             }
-            if (!weekData) return;
-
-            currentWeek = weekData;
-
-            // Update selection
-            document.querySelectorAll('.week-item').forEach(el => el.classList.remove('selected'));
-            document.querySelector(`.week-item[data-week="${num}"]`).classList.add('selected');
-
-            // Toggle readings
-            document.querySelectorAll('.reading-list').forEach(el => el.classList.add('collapsed'));
-            document.getElementById('readings-' + num).classList.remove('collapsed');
-
-            // Update focus panel
-            updateFocusPanel(weekData);
+            return week;
         }
 
-        function updateFocusPanel(week) {
-            const content = document.getElementById('focusContent');
-            content.innerHTML = `
-                <div class="focus-week">Week ${week.num} — ${week.date}</div>
-                <div class="focus-title">${week.title}</div>
-                <div class="focus-text">${week.focus}</div>
-                <div class="focus-readings">
-                    <h4>Readings</h4>
+        function renderCurrentWeek() {
+            const week = getCurrentWeek();
+            if (!week) return;
+
+            document.getElementById('currentWeekCard').innerHTML = `
+                <div class="current-week-label">Week ${week.num} — ${week.date}</div>
+                <h2>${week.title}</h2>
+                <p class="focus">${week.focus}</p>
+                <div class="current-week-readings">
                     ${week.readings.map(r => `
-                        <div class="focus-reading-item" onclick="loadReading('${r.id}', '${r.file}', ${week.num})">
-                            ${r.title} <span style="color: var(--text-muted);">${r.pages}</span>
+                        <div class="reading-card" onclick="openReading('${r.id}')">
+                            <span class="icon">📄</span>
+                            <div class="info">
+                                <div class="title">${r.title}</div>
+                                <div class="pages">${r.pages}</div>
+                            </div>
+                            <span class="arrow">→</span>
                         </div>
                     `).join('')}
                 </div>
             `;
         }
 
+        function openReading(readingId) {
+            switchView('read');
+            loadReading(readingId);
+        }
+
         // =============================================
-        // PDF VIEWER
+        // SYLLABUS VIEW
         // =============================================
+
+        function buildSyllabus() {
+            const container = document.getElementById('syllabusContent');
+            let html = '';
+
+            schedule.forEach(unit => {
+                html += `<div class="unit">
+                    <div class="unit-title">${unit.unit}</div>
+                    ${unit.weeks.map(week => `
+                        <div class="week-card" onclick="goToWeek(${week.num})">
+                            <div class="week-card-header">
+                                <span class="week-num">Week ${week.num}</span>
+                                <span class="week-title">${week.title}</span>
+                                <span class="week-date">${week.date}</span>
+                            </div>
+                            <div class="week-focus">${week.focus}</div>
+                            <div class="week-readings">
+                                ${week.readings.map(r => `<span class="reading-tag">${r.title.split(',')[0]}</span>`).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function goToWeek(num) {
+            currentWeekNum = num;
+            buildReadingsList();
+            switchView('read');
+        }
+
+        // =============================================
+        // READ VIEW
+        // =============================================
+
+        function buildReadingsList() {
+            const week = getCurrentWeek();
+            if (!week) return;
+
+            const container = document.getElementById('readingsList');
+            container.innerHTML = week.readings.map(r => `
+                <div class="reading-list-item" data-id="${r.id}" onclick="loadReading('${r.id}')">
+                    <div class="week-label">Week ${week.num}: ${week.title}</div>
+                    <div class="reading-title">${r.title}</div>
+                </div>
+            `).join('');
+        }
 
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        async function loadReading(id, file, weekNum) {
-            currentReading = id;
+        async function loadReading(readingId) {
+            currentReading = readingId;
 
-            // Update selection
-            document.querySelectorAll('.reading-item').forEach(el => el.classList.remove('selected'));
-            document.querySelector(`.reading-item[data-id="${id}"]`)?.classList.add('selected');
+            // Update sidebar selection
+            document.querySelectorAll('.reading-list-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.reading-list-item[data-id="${readingId}"]`)?.classList.add('active');
 
             // Find reading info
             let readingInfo = null;
             for (const unit of schedule) {
                 for (const week of unit.weeks) {
                     for (const r of week.readings) {
-                        if (r.id === id) {
+                        if (r.id === readingId) {
                             readingInfo = r;
                             break;
                         }
@@ -1179,45 +1350,44 @@
                 }
             }
 
-            document.getElementById('viewerTitle').textContent = readingInfo ? readingInfo.title : 'Loading...';
-            document.getElementById('viewerContent').innerHTML = '<div class="viewer-empty"><div class="viewer-empty-icon">⏳</div><div class="viewer-empty-text">Loading PDF...</div></div>';
-
-            // Select the week too
-            if (weekNum) selectWeek(weekNum);
+            document.getElementById('pdfTitle').textContent = readingInfo?.title || 'Loading...';
+            document.getElementById('pdfViewer').innerHTML = '<div class="pdf-empty"><div class="pdf-empty-icon">⏳</div><div>Loading...</div></div>';
+            document.getElementById('pdfControls').style.display = 'none';
 
             // Load annotations
-            await loadAnnotations(id);
+            await loadAnnotations(readingId);
 
             // Try to load PDF
             try {
-                const response = await fetch(file);
-                if (!response.ok) throw new Error('PDF not found');
+                const response = await fetch(readingInfo.file);
+                if (!response.ok) throw new Error('Not found');
 
                 const arrayBuffer = await response.arrayBuffer();
                 const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-                let html = `
-                    <div class="pdf-controls">
-                        <span>Page <span id="currentPage">1</span> of ${pdf.numPages}</span>
-                        <button onclick="prevPage()">◀</button>
-                        <button onclick="nextPage()">▶</button>
-                    </div>
-                `;
-
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    html += `<canvas id="page-${i}" style="display: ${i === 1 ? 'block' : 'none'};"></canvas>`;
-                }
-
-                document.getElementById('viewerContent').innerHTML = html;
                 window.currentPdf = pdf;
                 window.currentPageNum = 1;
 
+                document.getElementById('totalPages').textContent = pdf.numPages;
+                document.getElementById('pdfControls').style.display = 'flex';
+
+                const viewer = document.getElementById('pdfViewer');
+                viewer.innerHTML = '';
+
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const canvas = document.createElement('canvas');
+                    canvas.id = 'page-' + i;
+                    canvas.style.display = i === 1 ? 'block' : 'none';
+                    viewer.appendChild(canvas);
+                }
+
                 renderPage(1);
             } catch (e) {
-                document.getElementById('viewerContent').innerHTML = `
-                    <div class="viewer-empty">
-                        <div class="viewer-empty-icon">📄</div>
-                        <div class="viewer-empty-text">PDF not yet available<br><small style="color: var(--text-muted);">${file}</small></div>
+                document.getElementById('pdfViewer').innerHTML = `
+                    <div class="pdf-empty">
+                        <div class="pdf-empty-icon">📄</div>
+                        <div>PDF not yet available</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 8px;">${readingInfo?.file}</div>
                     </div>
                 `;
             }
@@ -1236,7 +1406,6 @@
 
             await page.render({ canvasContext: context, viewport }).promise;
 
-            // Show/hide pages
             for (let i = 1; i <= window.currentPdf.numPages; i++) {
                 const c = document.getElementById('page-' + i);
                 if (c) c.style.display = i === num ? 'block' : 'none';
@@ -1261,22 +1430,18 @@
         // =============================================
 
         async function loadAnnotations(readingId) {
-            if (supabase && currentUser) {
+            if (supabase) {
                 try {
-                    const { data, error } = await supabase
+                    const { data } = await supabase
                         .from('annotations')
                         .select('*')
                         .eq('reading_id', readingId)
                         .order('created_at', { ascending: false });
 
-                    if (!error && data) {
-                        annotations[readingId] = data;
-                    }
+                    if (data) annotations[readingId] = data;
                 } catch (e) {
                     console.warn('Failed to load annotations:', e);
                 }
-            } else {
-                annotations = JSON.parse(localStorage.getItem('metamodality_annotations') || '{}');
             }
             renderAnnotations();
         }
@@ -1285,31 +1450,47 @@
             const list = document.getElementById('annotationsList');
             const items = annotations[currentReading] || [];
 
+            document.getElementById('annotationsCount').textContent = items.length > 0 ? `(${items.length})` : '';
+
             if (items.length === 0) {
-                list.innerHTML = '<div class="annotations-empty">Select text in a reading to create annotations.</div>';
+                list.innerHTML = '<div class="annotations-empty">Select text in the reading to create an annotation.</div>';
                 return;
             }
 
             list.innerHTML = items.map(a => `
-                <div class="annotation-item" style="border-left: 3px solid ${getColorHex(a.color)};">
+                <div class="annotation-item">
                     <div class="annotation-quote">${a.quote}</div>
                     ${a.comment ? `<div class="annotation-comment">${a.comment}</div>` : ''}
-                    <div class="annotation-meta">${a.author_email || 'You'} · ${new Date(a.created_at).toLocaleDateString()}</div>
+                    <div class="annotation-meta">${a.author_email || 'Anonymous'} · ${new Date(a.created_at).toLocaleDateString()}</div>
                 </div>
             `).join('');
         }
 
-        function getColorHex(color) {
-            const colors = { yellow: '#fbbf24', green: '#34d399', blue: '#60a5fa', purple: '#a78bfa' };
-            return colors[color] || colors.yellow;
-        }
+        // Text selection
+        document.addEventListener('mouseup', e => {
+            const selection = window.getSelection();
+            const text = selection.toString().trim();
+
+            if (text.length > 10 && currentReading && e.target.closest('.pdf-viewer')) {
+                selectedText = text;
+                const popup = document.getElementById('selectionPopup');
+                popup.style.left = e.pageX + 'px';
+                popup.style.top = (e.pageY + 10) + 'px';
+                popup.style.display = 'block';
+            }
+        });
+
+        document.addEventListener('mousedown', e => {
+            if (!e.target.closest('.selection-popup')) {
+                document.getElementById('selectionPopup').style.display = 'none';
+            }
+        });
 
         function startAnnotation() {
             document.getElementById('selectionPopup').style.display = 'none';
-            document.getElementById('selectedQuote').textContent = selectedText;
+            document.getElementById('quotePreview').textContent = selectedText;
             document.getElementById('annotationComment').value = '';
             document.getElementById('annotationForm').classList.add('active');
-            switchTab('annotations');
         }
 
         function cancelAnnotation() {
@@ -1325,9 +1506,8 @@
                 reading_id: currentReading,
                 quote: selectedText,
                 comment: comment,
-                color: selectedColor,
                 created_at: new Date().toISOString(),
-                author_email: currentUser?.email || 'You'
+                author_email: currentUser?.email || 'Anonymous'
             };
 
             if (supabase && currentUser) {
@@ -1335,98 +1515,129 @@
                 try {
                     await supabase.from('annotations').insert([annotation]);
                 } catch (e) {
-                    console.warn('Failed to save annotation:', e);
+                    console.warn('Failed to save:', e);
                 }
             }
 
-            // Local update
             if (!annotations[currentReading]) annotations[currentReading] = [];
             annotations[currentReading].unshift(annotation);
-
-            if (!supabase || !currentUser) {
-                localStorage.setItem('metamodality_annotations', JSON.stringify(annotations));
-            }
 
             renderAnnotations();
             cancelAnnotation();
         }
 
-        // Text selection
-        document.addEventListener('mouseup', e => {
-            const selection = window.getSelection();
-            const text = selection.toString().trim();
+        // =============================================
+        // DISCUSS VIEW
+        // =============================================
 
-            if (text.length > 10 && currentReading && e.target.closest('.viewer-content')) {
-                selectedText = text;
-                const popup = document.getElementById('selectionPopup');
-                popup.style.left = e.pageX + 'px';
-                popup.style.top = (e.pageY + 10) + 'px';
-                popup.style.display = 'block';
+        async function loadFeed() {
+            if (supabase) {
+                try {
+                    const { data } = await supabase
+                        .from('posts')
+                        .select('*')
+                        .order('published_at', { ascending: false });
+
+                    if (data) posts = data;
+                } catch (e) {
+                    console.warn('Failed to load posts:', e);
+                }
             }
-        });
+            renderFeed();
+        }
 
-        document.addEventListener('mousedown', e => {
-            if (!e.target.closest('.selection-popup')) {
-                document.getElementById('selectionPopup').style.display = 'none';
+        function renderFeed() {
+            const container = document.getElementById('postsContainer');
+
+            if (posts.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 60px 20px;">No posts yet. Switch to Write to share your thoughts.</div>';
+                return;
             }
-        });
 
-        // Color picker
-        document.querySelectorAll('.color-dot').forEach(dot => {
-            dot.addEventListener('click', () => {
-                document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
-                dot.classList.add('selected');
-                selectedColor = dot.dataset.color;
-            });
-        });
+            container.innerHTML = posts.map(p => `
+                <div class="post-card">
+                    <div class="post-header">
+                        <div class="post-avatar">${(p.author_email || 'A')[0].toUpperCase()}</div>
+                        <div>
+                            <div class="post-author">${p.author_email || 'Anonymous'}</div>
+                            <div class="post-date">${new Date(p.published_at).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+                    <div class="post-title">${p.title}</div>
+                    <div class="post-content">${marked.parse(p.content || '')}</div>
+                    ${p.linked_readings?.length ? `<div class="post-links">📎 ${p.linked_readings.join(', ')}</div>` : ''}
+                </div>
+            `).join('');
+
+            // Also update home view
+            renderRecentPosts();
+        }
+
+        function renderRecentPosts() {
+            const container = document.getElementById('recentPosts');
+            const recent = posts.slice(0, 3);
+
+            if (recent.length === 0) {
+                container.innerHTML = '<div class="empty-state">No posts yet.</div>';
+                return;
+            }
+
+            container.innerHTML = recent.map(p => `
+                <div class="activity-item" onclick="switchView('discuss')" style="cursor: pointer;">
+                    <span class="author">${p.author_email?.split('@')[0] || 'Someone'}</span>
+                    <span class="action">posted</span>
+                    <span class="target">"${p.title}"</span>
+                    <span class="time">${new Date(p.published_at).toLocaleDateString()}</span>
+                </div>
+            `).join('');
+        }
 
         // =============================================
-        // NOTES
+        // WRITE VIEW
         // =============================================
 
         async function loadNotes() {
             if (supabase && currentUser) {
                 try {
-                    const { data, error } = await supabase
+                    const { data } = await supabase
                         .from('notes')
                         .select('*')
                         .eq('user_id', currentUser.id)
                         .order('updated_at', { ascending: false });
 
-                    if (!error && data) notes = data;
+                    if (data) notes = data;
                 } catch (e) {
                     console.warn('Failed to load notes:', e);
                 }
             } else {
                 notes = JSON.parse(localStorage.getItem('metamodality_notes') || '[]');
             }
-            renderNotes();
+            renderNotesList();
         }
 
-        function renderNotes() {
-            const list = document.getElementById('notesList');
+        function renderNotesList() {
+            const container = document.getElementById('notesList');
+
             if (notes.length === 0) {
-                list.innerHTML = '<div class="annotations-empty">No notes yet. Click "+ New" to create one.</div>';
+                container.innerHTML = '<div class="empty-state" style="padding: 30px;">No notes yet. Click "+ New" to start writing.</div>';
                 return;
             }
 
-            list.innerHTML = notes.map(n => `
-                <div class="note-item" onclick="editNote('${n.id}')">
-                    <div class="note-item-title">${n.title || 'Untitled'}</div>
-                    <div class="note-item-preview">${(n.content || '').substring(0, 80)}...</div>
-                    <div class="note-item-meta">${new Date(n.updated_at).toLocaleDateString()}</div>
+            container.innerHTML = notes.map(n => `
+                <div class="note-list-item ${editingNoteId === n.id ? 'active' : ''}" onclick="editNote('${n.id}')">
+                    <div class="note-title">${n.title || 'Untitled'}</div>
+                    <div class="note-preview">${(n.content || '').substring(0, 60)}...</div>
+                    <div class="note-date">${new Date(n.updated_at).toLocaleDateString()}</div>
                 </div>
             `).join('');
         }
 
         function newNote() {
             editingNoteId = null;
+            showEditor();
             document.getElementById('noteTitleInput').value = '';
             document.getElementById('noteContentInput').value = '';
-            document.getElementById('noteLinks').innerHTML = '';
-            document.getElementById('notesList').style.display = 'none';
-            document.getElementById('noteEditor').classList.add('active');
-            document.querySelector('.notes-header').style.display = 'none';
+            document.getElementById('editorLinks').innerHTML = 'Use [[Week Title]] to link to readings';
         }
 
         function editNote(id) {
@@ -1434,37 +1645,34 @@
             if (!note) return;
 
             editingNoteId = id;
+            showEditor();
             document.getElementById('noteTitleInput').value = note.title || '';
             document.getElementById('noteContentInput').value = note.content || '';
             parseNoteLinks(note.content || '');
-            document.getElementById('notesList').style.display = 'none';
-            document.getElementById('noteEditor').classList.add('active');
-            document.querySelector('.notes-header').style.display = 'none';
+            renderNotesList();
         }
 
-        function closeNoteEditor() {
-            document.getElementById('noteEditor').classList.remove('active');
-            document.getElementById('notesList').style.display = 'block';
-            document.querySelector('.notes-header').style.display = 'flex';
-            editingNoteId = null;
+        function showEditor() {
+            document.getElementById('editorContainer').style.display = 'none';
+            document.getElementById('editorActive').style.display = 'flex';
         }
 
         function parseNoteLinks(content) {
             const links = content.match(/\[\[([^\]]+)\]\]/g) || [];
-            const linksEl = document.getElementById('noteLinks');
+            const linksEl = document.getElementById('editorLinks');
 
             if (links.length === 0) {
-                linksEl.innerHTML = 'Use [[Week 1: Parmenides]] to link to readings';
+                linksEl.innerHTML = 'Use [[Week Title]] to link to readings';
                 return;
             }
 
             linksEl.innerHTML = 'Links: ' + links.map(l => {
                 const text = l.replace(/\[\[|\]\]/g, '');
-                return `<span class="note-link">${text}</span>`;
+                return `<span class="editor-link">${text}</span>`;
             }).join('');
         }
 
-        document.getElementById('noteContentInput').addEventListener('input', e => {
+        document.getElementById('noteContentInput')?.addEventListener('input', e => {
             parseNoteLinks(e.target.value);
         });
 
@@ -1489,10 +1697,13 @@
                         if (idx >= 0) notes[idx] = { ...notes[idx], ...note };
                     } else {
                         const { data } = await supabase.from('notes').insert([note]).select();
-                        if (data?.[0]) notes.unshift(data[0]);
+                        if (data?.[0]) {
+                            notes.unshift(data[0]);
+                            editingNoteId = data[0].id;
+                        }
                     }
                 } catch (e) {
-                    console.warn('Failed to save note:', e);
+                    console.warn('Failed to save:', e);
                 }
             } else {
                 if (editingNoteId) {
@@ -1502,12 +1713,12 @@
                     note.id = Date.now().toString();
                     note.created_at = note.updated_at;
                     notes.unshift(note);
+                    editingNoteId = note.id;
                 }
                 localStorage.setItem('metamodality_notes', JSON.stringify(notes));
             }
 
-            renderNotes();
-            closeNoteEditor();
+            renderNotesList();
         }
 
         async function publishNote() {
@@ -1541,57 +1752,10 @@
             } else {
                 post.id = Date.now().toString();
                 posts.unshift(post);
-                localStorage.setItem('metamodality_posts', JSON.stringify(posts));
             }
 
             renderFeed();
-            closeNoteEditor();
-            switchTab('feed');
-        }
-
-        // =============================================
-        // FEED
-        // =============================================
-
-        async function loadFeed() {
-            if (supabase) {
-                try {
-                    const { data, error } = await supabase
-                        .from('posts')
-                        .select('*')
-                        .order('published_at', { ascending: false });
-
-                    if (!error && data) posts = data;
-                } catch (e) {
-                    console.warn('Failed to load feed:', e);
-                }
-            } else {
-                posts = JSON.parse(localStorage.getItem('metamodality_posts') || '[]');
-            }
-            renderFeed();
-        }
-
-        function renderFeed() {
-            const list = document.getElementById('feedList');
-            if (posts.length === 0) {
-                list.innerHTML = '<div class="feed-empty">No posts yet. Write a note and publish it to share with the group.</div>';
-                return;
-            }
-
-            list.innerHTML = posts.map(p => `
-                <div class="feed-item">
-                    <div class="feed-header">
-                        <div class="feed-avatar">${(p.author_email || 'A')[0].toUpperCase()}</div>
-                        <div>
-                            <div class="feed-author">${p.author_email || 'Anonymous'}</div>
-                            <div class="feed-date">${new Date(p.published_at).toLocaleDateString()}</div>
-                        </div>
-                    </div>
-                    <div class="feed-title">${p.title}</div>
-                    <div class="feed-content">${marked.parse(p.content || '')}</div>
-                    ${p.linked_readings?.length ? `<div class="feed-links">📎 ${p.linked_readings.join(', ')}</div>` : ''}
-                </div>
-            `).join('');
+            switchView('discuss');
         }
 
         // =============================================
@@ -1618,7 +1782,7 @@
                 try {
                     const { error } = await supabase.auth.signInWithOtp({
                         email,
-                        options: { emailRedirectTo: window.location.origin + window.location.pathname }
+                        options: { emailRedirectTo: window.location.href }
                     });
 
                     if (error) throw error;
@@ -1637,11 +1801,12 @@
         function updateAuthUI(user) {
             const btn = document.getElementById('authBtn');
             if (user) {
-                btn.innerHTML = `<span class="user-avatar">${user.email[0].toUpperCase()}</span>`;
-                btn.onclick = signOut;
+                btn.outerHTML = `<div class="user-avatar" onclick="signOut()" title="Sign out">${user.email[0].toUpperCase()}</div>`;
             } else {
-                btn.textContent = 'Sign In';
-                btn.onclick = showAuthModal;
+                const existing = document.querySelector('.user-avatar');
+                if (existing) {
+                    existing.outerHTML = `<button class="btn" id="authBtn" onclick="showAuthModal()">Sign In</button>`;
+                }
             }
         }
 
@@ -1650,56 +1815,11 @@
                 await supabase.auth.signOut();
             }
             currentUser = null;
-            updateAuthUI(null);
+            location.reload();
         }
 
-        // =============================================
-        // TABS
-        // =============================================
-
-        document.querySelectorAll('.context-tab').forEach(tab => {
-            tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-        });
-
-        // =============================================
-        // INITIALIZATION
-        // =============================================
-
-        buildSchedule();
-        loadFeed();
-
-        if (supabase) {
-            supabase.auth.onAuthStateChange((event, session) => {
-                if (session?.user) {
-                    currentUser = session.user;
-                    updateAuthUI(currentUser);
-                    hideAuthModal();
-                    updateStatus('connected', 'Synced');
-                    loadNotes();
-                    if (currentReading) loadAnnotations(currentReading);
-                } else {
-                    currentUser = null;
-                    updateAuthUI(null);
-                    updateStatus('offline', 'Sign in to sync');
-                }
-            });
-
-            supabase.auth.getSession().then(({ data: { session } }) => {
-                if (session?.user) {
-                    currentUser = session.user;
-                    updateAuthUI(currentUser);
-                    updateStatus('connected', 'Synced');
-                    loadNotes();
-                }
-            });
-        } else {
-            updateStatus('offline', 'Offline mode');
-            notes = JSON.parse(localStorage.getItem('metamodality_notes') || '[]');
-            renderNotes();
-        }
-
-        // Select first week by default
-        selectWeek(1);
+        // Start
+        init();
     </script>
 </body>
 </html>
