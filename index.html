@@ -1022,11 +1022,11 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
         const SUPABASE_URL = 'https://tnasxupoydyoxibccovm.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRuYXN4dXBveWR5b3hpYmNjb3ZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMDM5NjksImV4cCI6MjA4NDc3OTk2OX0.JTXSnyDDl5Ta3s7fDtnGfWcuicuchwP5A5WhRZ_exIg';
 
-        let supabase = null;
+        let db = null;
         let currentUser = null;
 
         try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         } catch (e) {
             console.warn('Supabase init failed:', e);
         }
@@ -1184,8 +1184,8 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             loadNotes();
 
             // Auth state
-            if (supabase) {
-                supabase.auth.onAuthStateChange((event, session) => {
+            if (db) {
+                db.auth.onAuthStateChange((event, session) => {
                     if (session?.user) {
                         currentUser = session.user;
                         updateAuthUI(currentUser);
@@ -1197,7 +1197,7 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                     }
                 });
 
-                supabase.auth.getSession().then(({ data: { session } }) => {
+                db.auth.getSession().then(({ data: { session } }) => {
                     if (session?.user) {
                         currentUser = session.user;
                         updateAuthUI(currentUser);
@@ -1430,9 +1430,9 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
         // =============================================
 
         async function loadAnnotations(readingId) {
-            if (supabase) {
+            if (db) {
                 try {
-                    const { data } = await supabase
+                    const { data } = await db
                         .from('annotations')
                         .select('*')
                         .eq('reading_id', readingId)
@@ -1510,10 +1510,10 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 author_email: currentUser?.email || 'Anonymous'
             };
 
-            if (supabase && currentUser) {
+            if (db && currentUser) {
                 annotation.user_id = currentUser.id;
                 try {
-                    await supabase.from('annotations').insert([annotation]);
+                    await db.from('annotations').insert([annotation]);
                 } catch (e) {
                     console.warn('Failed to save:', e);
                 }
@@ -1531,9 +1531,9 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
         // =============================================
 
         async function loadFeed() {
-            if (supabase) {
+            if (db) {
                 try {
-                    const { data } = await supabase
+                    const { data } = await db
                         .from('posts')
                         .select('*')
                         .order('published_at', { ascending: false });
@@ -1597,9 +1597,9 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
         // =============================================
 
         async function loadNotes() {
-            if (supabase && currentUser) {
+            if (db && currentUser) {
                 try {
-                    const { data } = await supabase
+                    const { data } = await db
                         .from('notes')
                         .select('*')
                         .eq('user_id', currentUser.id)
@@ -1688,15 +1688,15 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 updated_at: new Date().toISOString()
             };
 
-            if (supabase && currentUser) {
+            if (db && currentUser) {
                 note.user_id = currentUser.id;
                 try {
                     if (editingNoteId) {
-                        await supabase.from('notes').update(note).eq('id', editingNoteId);
+                        await db.from('notes').update(note).eq('id', editingNoteId);
                         const idx = notes.findIndex(n => n.id === editingNoteId);
                         if (idx >= 0) notes[idx] = { ...notes[idx], ...note };
                     } else {
-                        const { data } = await supabase.from('notes').insert([note]).select();
+                        const { data } = await db.from('notes').insert([note]).select();
                         if (data?.[0]) {
                             notes.unshift(data[0]);
                             editingNoteId = data[0].id;
@@ -1741,10 +1741,10 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 reactions: {}
             };
 
-            if (supabase && currentUser) {
+            if (db && currentUser) {
                 post.author_id = currentUser.id;
                 try {
-                    const { data } = await supabase.from('posts').insert([post]).select();
+                    const { data } = await db.from('posts').insert([post]).select();
                     if (data?.[0]) posts.unshift(data[0]);
                 } catch (e) {
                     console.warn('Failed to publish:', e);
@@ -1778,9 +1778,9 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
 
             const msgEl = document.getElementById('authMessage');
 
-            if (supabase) {
+            if (db) {
                 try {
-                    const { error } = await supabase.auth.signInWithOtp({
+                    const { error } = await db.auth.signInWithOtp({
                         email,
                         options: { emailRedirectTo: window.location.href }
                     });
@@ -1811,8 +1811,8 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
         }
 
         async function signOut() {
-            if (supabase) {
-                await supabase.auth.signOut();
+            if (db) {
+                await db.auth.signOut();
             }
             currentUser = null;
             location.reload();
