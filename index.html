@@ -1478,14 +1478,15 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             textLayerDiv.innerHTML = '';
             textLayerDiv.style.width = viewport.width + 'px';
             textLayerDiv.style.height = viewport.height + 'px';
+            textLayerDiv.style.setProperty('--scale-factor', '1.5');
 
             const textContent = await page.getTextContent();
-            pdfjsLib.renderTextLayer({
+            const textLayer = new pdfjsLib.TextLayer({
                 textContentSource: textContent,
                 container: textLayerDiv,
-                viewport: viewport,
-                textDivs: []
+                viewport: viewport
             });
+            await textLayer.render();
 
             for (let i = 1; i <= window.currentPdf.numPages; i++) {
                 const container = document.getElementById('page-container-' + i);
