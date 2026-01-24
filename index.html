@@ -8,6 +8,9 @@
     <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
+    <!-- Tesseract.js for OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -289,15 +292,146 @@
         .activity-item .time { font-size: 11px; color: var(--text-muted); display: block; margin-top: 4px; }
 
         .empty-state {
-            text-align: center;
+            text-align: left;
             padding: 20px;
             color: var(--text-muted);
             font-size: 13px;
+            font-style: italic;
         }
+
+        /* Activity Stream */
+        .home-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        @media (max-width: 900px) {
+            .home-layout { grid-template-columns: 1fr; }
+            .activity-sidebar { order: -1; }
+        }
+
+        .activity-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .activity-card {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        .activity-card-header {
+            padding: 15px 18px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-bright);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .activity-card-header .icon { font-size: 14px; }
+        .activity-card-body {
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .stream-item {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            transition: background 0.15s;
+            cursor: pointer;
+        }
+        .stream-item:last-child { border-bottom: none; }
+        .stream-item:hover { background: var(--highlight); }
+        .stream-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .stream-avatar.system { background: var(--text-muted); font-size: 14px; }
+        .stream-content { flex: 1; min-width: 0; }
+        .stream-text {
+            font-size: 13px;
+            color: var(--text);
+            line-height: 1.4;
+        }
+        .stream-text .author { color: var(--accent); font-weight: 500; }
+        .stream-text .target { color: var(--text-bright); font-weight: 500; }
+        .stream-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .upcoming-item {
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .upcoming-item:last-child { border-bottom: none; }
+        .upcoming-item:hover { background: var(--highlight); }
+        .upcoming-date {
+            width: 44px;
+            height: 44px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .upcoming-date .month {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent);
+            font-weight: 600;
+        }
+        .upcoming-date .day {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-bright);
+            line-height: 1;
+        }
+        .upcoming-info { flex: 1; }
+        .upcoming-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-bright);
+            margin-bottom: 2px;
+        }
+        .upcoming-detail {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .upcoming-item.current .upcoming-date {
+            background: var(--accent);
+        }
+        .upcoming-item.current .upcoming-date .month,
+        .upcoming-item.current .upcoming-date .day { color: white; }
 
         /* ========== SYLLABUS VIEW ========== */
         .syllabus-view {
-            max-width: 800px;
+            max-width: 850px;
             margin: 0 auto;
             padding: 40px 20px;
         }
@@ -310,67 +444,151 @@
         }
 
         .unit {
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+        }
+        .unit-header {
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--accent);
+        }
+        .unit-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 4px;
         }
         .unit-title {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--accent);
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            font-size: 20px;
+            color: var(--text-bright);
+            font-weight: normal;
         }
 
         .week-card {
             background: var(--bg-panel);
             border-radius: 10px;
-            padding: 20px;
             margin-bottom: 12px;
-            cursor: pointer;
-            transition: all 0.15s;
             box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            overflow: hidden;
+            border-left: 3px solid transparent;
+            transition: all 0.15s;
         }
-        .week-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .week-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .week-card.current { border-left-color: var(--accent); background: rgba(218, 119, 86, 0.03); }
+        .week-card.completed { border-left-color: var(--success); }
+        .week-card-main {
+            padding: 20px;
+            cursor: pointer;
+        }
         .week-card-header {
             display: flex;
-            align-items: baseline;
+            align-items: center;
             gap: 12px;
             margin-bottom: 8px;
         }
         .week-card .week-num {
-            font-size: 12px;
-            color: var(--text-muted);
-            min-width: 50px;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+            background: var(--text-muted);
+            padding: 3px 8px;
+            border-radius: 4px;
+            min-width: 55px;
+            text-align: center;
         }
+        .week-card.current .week-num { background: var(--accent); }
+        .week-card.completed .week-num { background: var(--success); }
         .week-card .week-title {
             font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
             font-size: 18px;
             color: var(--text-bright);
+            flex: 1;
         }
         .week-card .week-date {
             font-size: 12px;
             color: var(--text-muted);
-            margin-left: auto;
         }
+        .week-card .week-status {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: var(--bg-dark);
+            color: var(--text-muted);
+        }
+        .week-card.current .week-status { background: rgba(218, 119, 86, 0.15); color: var(--accent); }
         .week-card .week-focus {
             font-size: 13px;
             color: var(--text);
             line-height: 1.5;
             margin-bottom: 12px;
         }
-        .week-card .week-readings {
+        .week-card .week-summary {
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .week-card .reading-tag {
-            font-size: 11px;
-            padding: 4px 10px;
-            background: var(--bg-dark);
-            border-radius: 12px;
+            align-items: center;
+            gap: 15px;
+            font-size: 12px;
             color: var(--text-muted);
         }
+        .week-card .expand-icon {
+            margin-left: auto;
+            transition: transform 0.2s;
+            color: var(--text-muted);
+        }
+        .week-card.expanded .expand-icon { transform: rotate(180deg); }
+
+        .week-readings-list {
+            display: none;
+            padding: 0 20px 20px;
+            border-top: 1px solid var(--border);
+            margin-top: 0;
+        }
+        .week-card.expanded .week-readings-list { display: block; }
+        .week-reading-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .week-reading-item:last-child { border-bottom: none; }
+        .week-reading-item:hover { padding-left: 8px; }
+        .week-reading-item .reading-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-dark);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 14px;
+        }
+        .week-reading-item .reading-info { flex: 1; }
+        .week-reading-item .reading-title {
+            font-size: 14px;
+            color: var(--text-bright);
+            margin-bottom: 2px;
+        }
+        .week-reading-item .reading-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .week-reading-item .reading-progress {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: transparent;
+        }
+        .week-reading-item .reading-progress.started { border-color: var(--warning); background: rgba(184, 134, 11, 0.1); }
+        .week-reading-item .reading-progress.complete { border-color: var(--success); background: var(--success); color: white; }
 
         /* ========== READ VIEW ========== */
         .read-view {
@@ -502,6 +720,33 @@
         .pdf-controls span { font-size: 12px; color: var(--text-muted); }
         .fullscreen-btn { margin-left: auto; }
 
+        .ocr-btn { position: relative; }
+        .ocr-btn.loading { opacity: 0.7; pointer-events: none; }
+        .ocr-btn .spinner {
+            display: none;
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 4px;
+        }
+        .ocr-btn.loading .spinner { display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .ocr-status {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(90, 154, 110, 0.15);
+            color: var(--success);
+        }
+        .ocr-status.warning {
+            background: rgba(184, 134, 11, 0.15);
+            color: var(--warning);
+        }
+
         /* Fullscreen mode */
         .read-view.fullscreen {
             position: fixed;
@@ -568,18 +813,26 @@
             overflow: hidden;
             line-height: 1;
             z-index: 2;
-            pointer-events: auto;
+            pointer-events: none;
         }
         .pdf-text-layer > span {
             color: transparent;
             position: absolute;
             white-space: pre;
             transform-origin: 0% 0%;
-            pointer-events: all;
+            pointer-events: auto;
             cursor: text;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
         }
-        .pdf-text-layer ::selection {
+        .pdf-text-layer > span::selection {
             background: rgba(218, 119, 86, 0.4);
+            color: transparent;
+        }
+        .pdf-text-layer > span::-moz-selection {
+            background: rgba(218, 119, 86, 0.4);
+            color: transparent;
         }
         .pdf-empty {
             flex: 1;
@@ -1012,21 +1265,47 @@
                     From Parmenides through contemporary set theory, thinkers have asked what it means for something to be possible. This reading group traces possibility across traditions—Greek, Islamic, Buddhist, phenomenological, pragmatist—asking how each configures the space between what is and what might be.
                 </p>
 
-                <div class="current-week" id="currentWeekCard">
-                    <!-- Populated by JS -->
-                </div>
+                <div class="home-layout">
+                    <div class="home-main">
+                        <div class="current-week" id="currentWeekCard">
+                            <!-- Populated by JS -->
+                        </div>
 
-                <div class="home-grid">
-                    <div class="home-section">
-                        <h3><span class="icon">💬</span> Recent Discussion</h3>
-                        <div id="recentPosts">
-                            <div class="empty-state">No posts yet. Be the first to share your thoughts.</div>
+                        <div class="home-grid">
+                            <div class="home-section">
+                                <h3><span class="icon">💬</span> Recent Discussion</h3>
+                                <div id="recentPosts">
+                                    <div class="empty-state">No posts yet. Be the first to share your thoughts.</div>
+                                </div>
+                            </div>
+                            <div class="home-section">
+                                <h3><span class="icon">✨</span> Recent Annotations</h3>
+                                <div id="recentAnnotations">
+                                    <div class="empty-state">Annotations from the group will appear here.</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="home-section">
-                        <h3><span class="icon">✨</span> Recent Annotations</h3>
-                        <div id="recentAnnotations">
-                            <div class="empty-state">Annotations from the group will appear here.</div>
+
+                    <div class="activity-sidebar">
+                        <!-- Upcoming Weeks -->
+                        <div class="activity-card">
+                            <div class="activity-card-header">
+                                <span class="icon">📅</span> Schedule
+                            </div>
+                            <div class="activity-card-body" id="upcomingWeeks">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Activity Stream -->
+                        <div class="activity-card">
+                            <div class="activity-card-header">
+                                <span class="icon">⚡</span> Recent Activity
+                            </div>
+                            <div class="activity-card-body" id="activityStream">
+                                <div class="empty-state">Activity from the group will appear here.</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1059,6 +1338,11 @@
                     <div class="pdf-title" id="pdfTitle">Select a reading</div>
                     <div class="pdf-controls" id="pdfControls" style="display: none;">
                         <span><span id="totalPages">0</span> pages</span>
+                        <span class="ocr-status" id="ocrStatus" style="display: none;"></span>
+                        <button class="ocr-btn" id="ocrBtn" onclick="runOcrOnCurrentPage()" style="display: none;">
+                            <span class="spinner"></span>
+                            Run OCR
+                        </button>
                         <button class="fullscreen-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
                     </div>
                 </div>
@@ -1187,124 +1471,127 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             {
                 unit: "Unit I: Ancient and Medieval Foundations",
                 weeks: [
-                    { num: 1, date: "Feb 4", title: "Parmenides",
-                      focus: "How can we think or speak \"what is not\"? This problem drives subsequent responses from Aristotle through Heidegger.",
+                    { num: 1, date: "Feb 4", title: "Being and Non-Being",
+                      focus: "How can we think or speak \"what is not\"? This problem drives subsequent responses from Aristotle through Heidegger. Kingsley's reading situates Parmenides within an initiatory tradition.",
                       readings: [
-                        { id: "w01_parmenides", title: "Parmenides, \"On Nature\"", pages: "~10 pp.", file: "readings/Week 1_Parmenides/Week 1_Parmenides.pdf" },
-                        { id: "w01_kingsley", title: "Kingsley, In the Dark Places of Wisdom, ch. 1-4", pages: "~30 pp.", file: "readings/Week 1_Parmenides/Week 1_Kingsley.pdf" }
+                        { id: "w01_parmenides", title: "Parmenides, \"On Nature\" (complete fragments)", pages: "~10 pp.", file: "readings/Week 1_Parmenides/Week 1_Parmenides.pdf" },
+                        { id: "w01_kingsley", title: "Kingsley, In the Dark Places of Wisdom (Parts One and Two most essential)", pages: "~30 pp.", file: "readings/Week 1_Parmenides/Week 1_Kingsley.pdf" }
                     ]},
-                    { num: 2, date: "Feb 11", title: "Aristotle",
-                      focus: "Aristotle's potentiality (dynamis) answers Parmenides by locating possibility within beings themselves.",
+                    { num: 2, date: "Feb 11", title: "Potentiality and Actuality",
+                      focus: "Aristotle's potentiality (dynamis) answers Parmenides by locating possibility within beings themselves. The sea-battle problem asks whether future contingents have determinate truth values.",
                       readings: [
-                        { id: "w02_meta", title: "Aristotle, Metaphysics Book Theta", pages: "~30 pp.", file: "readings/week02_aristotle_metaphysics.pdf" },
-                        { id: "w02_di", title: "Aristotle, De Interpretatione, ch. 9", pages: "~5 pp.", file: "readings/week02_aristotle_di.pdf" },
-                        { id: "w02_witt", title: "Witt, \"The Priority of Actuality\"", pages: "~10 pp.", file: "readings/week02_witt.pdf" }
+                        { id: "w02_meta", title: "Aristotle, Metaphysics Book Theta, ch. 1–3 and 6–8", pages: "~30 pp.", file: "readings/Week 2_Aristotle/Week 2_Aristotle.pdf" },
+                        { id: "w02_di", title: "Aristotle, De Interpretatione, ch. 9", pages: "~5 pp.", file: "readings/Week 2_Aristotle/Week 2_Conway.pdf" },
+                        { id: "w02_witt", title: "Witt, \"The Priority of Actuality in Aristotle\"", pages: "~10 pp.", file: "readings/Week 2_Aristotle/Week 2_Witt.pdf" }
                     ]},
-                    { num: 3, date: "Feb 18", title: "Avicenna",
-                      focus: "Separating essence from existence, Avicenna makes contingency fundamental to everything except the Necessary Existent.",
+                    { num: 3, date: "Feb 18", title: "Essence and Existence",
+                      focus: "Separating essence from existence, Avicenna makes contingency fundamental to everything except the Necessary Existent. This reconfiguration of Aristotle shapes Leibniz's later work on possible worlds.",
                       readings: [
-                        { id: "w03_avicenna", title: "Avicenna, Metaphysics of The Healing", pages: "~25 pp.", file: "readings/Week 3_Avicenna/Week 3_Avicenna.pdf" },
+                        { id: "w03_avicenna", title: "Avicenna, The Metaphysics of The Healing, selections", pages: "~25 pp.", file: "readings/Week 3_Avicenna/Week 3_Avicenna.pdf" },
                         { id: "w03_adamson", title: "Adamson, \"From the Necessary Existent to God\"", pages: "~15 pp.", file: "readings/Week 3_Avicenna/Week 3_Adamson.pdf" }
                     ]},
-                    { num: 4, date: "Feb 25", title: "Nagarjuna",
+                    { num: 4, date: "Feb 25", title: "Emptiness and Dependent Arising",
                       focus: "Does \"possibility\" mean anything once inherent existence drops out? Nagarjuna's tetralemma refuses the logical options that Western frameworks take for granted.",
                       readings: [
-                        { id: "w04_nagarjuna", title: "Nagarjuna, Mulamadhyamakakarika", pages: "~20 pp.", file: "readings/Week 4_Nagarjuna/Week 4_Nagarjuna.pdf" },
-                        { id: "w04_garfield", title: "Garfield, \"Dependent Arising and the Emptiness of Emptiness\"", pages: "~20 pp.", file: "readings/Week 4_Nagarjuna/Week 4_Garfield (Essay).pdf" }
+                        { id: "w04_nagarjuna", title: "Nagarjuna, Mulamadhyamakakarika, ch. 1, 2, 15, 24, 25", pages: "~15 pp.", file: "readings/Week 4_Nagarjuna/Week 4_Nagarjuna.pdf" },
+                        { id: "w04_garfield", title: "Garfield, \"Dependent Arising and the Emptiness of Emptiness\"", pages: "~20 pp.", file: "readings/Week 4_Nagarjuna/Week 4_Garfield (Essay).pdf" },
+                        { id: "w04_commentary", title: "Garfield, Commentary (optional)", pages: "optional", file: "readings/Week 4_Nagarjuna/Week 4_Garfield (Commentary).pdf" }
                     ]}
                 ]
             },
             {
                 unit: "Unit II: Rationalism, Transcendentalism, and the Imaginal",
                 weeks: [
-                    { num: 5, date: "Mar 4", title: "Leibniz and Du Châtelet",
-                      focus: "Compossibility constrains which possibilities can coexist within a single world.",
+                    { num: 5, date: "Mar 4", title: "Compossibility and Possible Worlds",
+                      focus: "Compossibility constrains which possibilities can coexist within a single world. The Monadology raises the question of what individuates possible worlds.",
                       readings: [
-                        { id: "w05_monad", title: "Leibniz, Monadology", pages: "~15 pp.", file: "readings/week05_leibniz_monadology.pdf" },
-                        { id: "w05_duchat", title: "Du Châtelet, Institutions de physique, ch. 1-2", pages: "~15 pp.", file: "readings/week05_du_chatelet.pdf" },
-                        { id: "w05_orig", title: "Leibniz, \"On the Ultimate Origination of Things\"", pages: "~5 pp.", file: "readings/week05_leibniz_origination.pdf" }
+                        { id: "w05_monad", title: "Leibniz, Monadology", pages: "~15 pp.", file: "readings/Week 5_Leibniz and Du Châtelet/Week 5_Leibniz (Monadology).pdf" },
+                        { id: "w05_duchat", title: "Du Châtelet, Institutions de physique, ch. 1–2", pages: "~15 pp.", file: "readings/Week 5_Leibniz and Du Châtelet/Week 5_Du Chatelet.pdf" },
+                        { id: "w05_orig", title: "Leibniz, \"On the Ultimate Origination of Things\"", pages: "~5 pp.", file: "readings/Week 5_Leibniz and Du Châtelet/Week 5_Leibniz (Origination).pdf" }
                     ]},
-                    { num: 6, date: "Mar 11", title: "Kant",
-                      focus: "What must any possible experience conform to? Kant's Postulates distinguish logical from real possibility.",
+                    { num: 6, date: "Mar 11", title: "Real and Logical Possibility",
+                      focus: "What must any possible experience conform to? Kant's Postulates distinguish logical possibility from real possibility.",
                       readings: [
-                        { id: "w06_kant", title: "Kant, CPR: \"Postulates of Empirical Thought\"", pages: "~20 pp.", file: "readings/Week 6_Kant and Leech/Week 6_Kant.pdf" },
-                        { id: "w06_leech", title: "Leech, \"The Function of Modal Judgment\"", pages: "~25 pp.", file: "readings/Week 6_Kant and Leech/Week 6_Leech.pdf" }
+                        { id: "w06_kant", title: "Kant, Critique of Pure Reason: \"Postulates of Empirical Thought\"", pages: "~20 pp.", file: "readings/Week 6_Kant and Leech/Week 6_Kant.pdf" },
+                        { id: "w06_leech", title: "Leech, \"The Function of Modal Judgment and the Kantian Gap\"", pages: "~25 pp.", file: "readings/Week 6_Kant and Leech/Week 6_Leech.pdf" }
                     ]},
-                    { num: 7, date: "Mar 18", title: "Sufi Metaphysics",
-                      focus: "Ibn Arabi's imaginal world occupies a realm between sensible and intelligible.",
+                    { num: 7, date: "Mar 18", title: "The Imaginal World",
+                      focus: "Ibn Arabi's imaginal world (alam al-mithal) occupies a realm between sensible and intelligible, where possibilities take on form. (Spring Break – informal)",
                       readings: [
-                        { id: "w07_rabia", title: "Rabia al-Adawiyya, selected sayings", pages: "~5 pp.", file: "readings/week07_rabia.pdf" },
-                        { id: "w07_arabi", title: "Ibn Arabi, Fusus al-Hikam, \"Adam\"", pages: "~10 pp.", file: "readings/week07_ibn_arabi.pdf" },
-                        { id: "w07_chittick", title: "Chittick, Sufi Path of Knowledge, ch. 1", pages: "~20 pp.", file: "readings/week07_chittick.pdf" }
+                        { id: "w07_rabia", title: "Rabia al-Adawiyya, selected sayings and poems", pages: "~5 pp.", file: "readings/Week 7_al-Adawiyya and Ibn Arabi/Week 7_Rabia.pdf" },
+                        { id: "w07_arabi", title: "Ibn Arabi, Fusus al-Hikam, \"Adam\" chapter", pages: "~10 pp.", file: "readings/Week 7_al-Adawiyya and Ibn Arabi/Week 7_Ibn Arabi.pdf" },
+                        { id: "w07_chittick", title: "Chittick, The Sufi Path of Knowledge, ch. 1", pages: "~20 pp.", file: "readings/Week 7_al-Adawiyya and Ibn Arabi/Week 7_Chittick.pdf" }
                     ]}
                 ]
             },
             {
                 unit: "Unit III: Phenomenology, Pragmatism, and Nothingness",
                 weeks: [
-                    { num: 8, date: "Mar 25", title: "Husserl and Derrida",
-                      focus: "Can a condition of possibility also be a condition of impossibility?",
+                    { num: 8, date: "Mar 25", title: "Conditions of Possibility",
+                      focus: "Can a condition of possibility also be a condition of impossibility? Derrida's introduction examines how ideal objects arise in history yet claim eternal validity.",
                       readings: [
-                        { id: "w08_combined", title: "Husserl & Derrida, Origin of Geometry", pages: "~45 pp.", file: "readings/Week 8_Husserl and Derrida/Week 8_Husserl and Derrida.pdf" }
+                        { id: "w08_husserl", title: "Husserl, \"The Origin of Geometry\"", pages: "~20 pp.", file: "readings/Week 8_Husserl and Derrida/Week 8_Husserl and Derrida.pdf" },
+                        { id: "w08_derrida", title: "Derrida, Introduction to \"The Origin of Geometry\", selections", pages: "~25 pp.", file: "readings/Week 8_Husserl and Derrida/Week 8_Husserl and Derrida.pdf" }
                     ]},
-                    { num: 9, date: "Apr 1", title: "Heidegger and Arendt",
-                      focus: "Possibility becomes constitutive of Dasein; death individualizes as the ownmost possibility.",
+                    { num: 9, date: "Apr 1", title: "Death and Natality",
+                      focus: "Heidegger transforms the Aristotelian vocabulary so that possibility becomes constitutive of Dasein; death individualizes as the ownmost possibility. Arendt's natality offers a counter-emphasis.",
                       readings: [
-                        { id: "w09_heid", title: "Heidegger, Being and Time, II.1", pages: "~30 pp.", file: "readings/Week 9_Heidegger and Arendt/Week 9_Heidegger.pdf" },
-                        { id: "w09_arendt", title: "Arendt, Human Condition, ch. 5", pages: "~15 pp.", file: "readings/Week 9_Heidegger and Arendt/Week 9_Arendt.pdf" }
+                        { id: "w09_heid", title: "Heidegger, Being and Time, Division II ch. 1 (§46–53)", pages: "~30 pp.", file: "readings/Week 9_Heidegger and Arendt/Week 9_Heidegger.pdf" },
+                        { id: "w09_arendt", title: "Arendt, The Human Condition, ch. 5 §24–26", pages: "~15 pp.", file: "readings/Week 9_Heidegger and Arendt/Week 9_Arendt.pdf" }
                     ]},
-                    { num: 10, date: "Apr 8", title: "Peirce",
-                      focus: "Firstness is pure qualitative possibility, prior to relation or resistance.",
+                    { num: 10, date: "Apr 8", title: "Firstness and Continuity",
+                      focus: "Firstness is pure qualitative possibility, prior to relation or resistance. Peirce's continuum allows possibility to grade into actuality.",
                       readings: [
-                        { id: "w10_peirce", title: "Peirce, Essential Peirce selections", pages: "~40 pp.", file: "readings/Week 10_Peirce/Week 10_Peirce.pdf" }
+                        { id: "w10_peirce", title: "Peirce, \"A Guess at the Riddle\"", pages: "~34 pp.", file: "readings/Week 10_Peirce/Week 10_Peirce.pdf" },
+                        { id: "w10_continuity", title: "\"The Continuity of Life: On Peirce's Objective Idealism\"", pages: "~16 pp.", file: "readings/Week 10_Peirce/Week 10_Continuity.pdf" }
                     ]},
-                    { num: 11, date: "Apr 15", title: "Nishida and Women Mystics",
-                      focus: "Nishida's \"place of absolute nothingness\" holds particulars without being one itself.",
+                    { num: 11, date: "Apr 15", title: "Nothingness East and West",
+                      focus: "Nishida's \"place of absolute nothingness\" (zettai mu no basho) holds particulars without being one itself. Lalla's Kashmiri Shaivite poetry pursues nothingness through a different idiom.",
                       readings: [
-                        { id: "w11_lalla", title: "Lalla, selected vakhs", pages: "~5 pp.", file: "readings/Week 11_Nishida and Lalla/Week 11_Lalla.pdf" },
-                        { id: "w11_nishida", title: "Nishida, Inquiry into the Good", pages: "~25 pp.", file: "readings/Week 11_Nishida and Lalla/Week 11_Nishida.pdf" },
-                        { id: "w11_abe", title: "Abe, Introduction to Nishida", pages: "~15 pp.", file: "readings/Week 11_Nishida and Lalla/Week 11_Abe (Into to Nishida).pdf" }
+                        { id: "w11_nishida", title: "Nishida, An Inquiry into the Good, Part I ch. 1–3", pages: "~25 pp.", file: "readings/Week 11_Nishida and Lalla/Week 11_Nishida.pdf" },
+                        { id: "w11_lalla", title: "Lalla, Naked Song, selections", pages: "~10 pp.", file: "readings/Week 11_Nishida and Lalla/Week 11_Lalla.pdf" }
                     ]}
                 ]
             },
             {
                 unit: "Unit IV: Process, Contemplation, Emanation",
                 weeks: [
-                    { num: 12, date: "Apr 22", title: "Whitehead and Conway",
-                      focus: "Eternal objects ingress into actual occasions as pure potentials.",
+                    { num: 12, date: "Apr 22", title: "Eternal Objects and Ingression",
+                      focus: "Eternal objects ingress into actual occasions as pure potentials. Whitehead's God functions as the primordial envisagement of possibility.",
                       readings: [
-                        { id: "w12_conway", title: "Conway, Principles of the Most Ancient Philosophy", pages: "~15 pp.", file: "readings/week12_conway.pdf" },
-                        { id: "w12_white", title: "Whitehead, Science and the Modern World, ch. 11", pages: "~25 pp.", file: "readings/week12_whitehead.pdf" }
+                        { id: "w12_white", title: "Whitehead, Science and the Modern World, ch. 11", pages: "~25 pp.", file: "readings/Week 12_Whitehead/Week 12_Whitehead.pdf" },
+                        { id: "w12_shaviro", title: "Shaviro, Without Criteria, ch. 2: \"Actual Entities and Eternal Objects\"", pages: "~20 pp.", file: "readings/Week 12_Whitehead/Week 12_Shaviro.pdf" }
                     ]},
-                    { num: 13, date: "Apr 29", title: "Contemplative Science",
-                      focus: "Thompson and Varela bridge first-person contemplative methods and third-person neuroscience.",
+                    { num: 13, date: "Apr 29", title: "Attention and Awareness",
+                      focus: "Thompson and Varela bridge first-person contemplative methods and third-person neuroscience. Weil's account of attention resonates with contemplative approaches.",
                       readings: [
-                        { id: "w13_thompson", title: "Thompson, Waking, Dreaming, Being, ch. 1", pages: "~25 pp.", file: "readings/week13_thompson.pdf" },
-                        { id: "w13_varela", title: "Varela, \"Neurophenomenology\"", pages: "~20 pp.", file: "readings/week13_varela.pdf" }
+                        { id: "w13_thompson", title: "Thompson, Waking, Dreaming, Being, ch. 1", pages: "~20 pp.", file: "readings/Week 13_Thompson, Weil, Varela /Week 13_Thompson.pdf" },
+                        { id: "w13_weil", title: "Weil, \"Reflections on the Right Use of School Studies\"", pages: "~10 pp.", file: "readings/Week 13_Thompson, Weil, Varela /Week 13_Weil.pdf" },
+                        { id: "w13_varela", title: "Varela, \"Neurophenomenology: A Methodological Remedy for the Hard Problem\"", pages: "~15 pp.", file: "readings/Week 13_Thompson, Weil, Varela /Week 13_Varela.pdf" }
                     ]},
-                    { num: 14, date: "May 6", title: "Neoplatonism",
-                      focus: "Possibility flows from the One's inexhaustible superabundance.",
+                    { num: 14, date: "May 6", title: "Emanation and Superabundance",
+                      focus: "Possibility flows from the One's inexhaustible superabundance. This emanationist framework shaped Avicenna and passed into German Idealism.",
                       readings: [
-                        { id: "w14_plotinus", title: "Plotinus, Enneads V.1", pages: "~25 pp.", file: "readings/week14_plotinus.pdf" },
-                        { id: "w14_proclus", title: "Proclus, Elements of Theology", pages: "~15 pp.", file: "readings/week14_proclus.pdf" }
+                        { id: "w14_plotinus", title: "Plotinus, Enneads V.1", pages: "~25 pp.", file: "readings/Week 14_Plotinus, Conway/Week 14_Plotinus.pdf" },
+                        { id: "w14_conway", title: "Conway, Principles of the Most Ancient and Modern Philosophy, ch. 5–7", pages: "~15 pp.", file: "readings/Week 14_Plotinus, Conway/Week 14_Conway.pdf" }
                     ]}
                 ]
             },
             {
                 unit: "Unit V: Mathematical and Formal Possibility",
                 weeks: [
-                    { num: 15, date: "May 13", title: "Hamkins and Barcan Marcus",
-                      focus: "Many distinct concepts of set exist in Hamkins's multiverse.",
+                    { num: 15, date: "May 13", title: "Set-Theoretic Potentialism",
+                      focus: "Ruth Barcan Marcus founded quantified modal logic. Hamkins's multiverse holds many distinct concepts of set, each instantiated in a corresponding universe.",
                       readings: [
                         { id: "w15_marcus", title: "Barcan Marcus, \"Modalities and Intensional Languages\"", pages: "~15 pp.", file: "readings/Week 15_Hamkins, Barcon Marcus/Week 15_Marcus.pdf" },
                         { id: "w15_hamkins", title: "Hamkins, \"The Set-Theoretic Multiverse\"", pages: "~25 pp.", file: "readings/Week 15_Hamkins, Barcon Marcus/Week 15_Hamkins (multiverse).pdf" },
                         { id: "w15_linnebo", title: "Hamkins & Linnebo, \"The Modal Logic of Set-Theoretic Potentialism\"", pages: "~20 pp.", file: "readings/Week 15_Hamkins, Barcon Marcus/Week 15_Hamkins and Linnebo.pdf" }
                     ]},
-                    { num: 16, date: "May 20", title: "Foster",
-                      focus: "How do possibility spaces themselves get produced?",
+                    { num: 16, date: "May 20", title: "Producing the Possible",
+                      focus: "How do possibility spaces themselves get produced? Foster's work shows tradition constraining what becomes thinkable while furnishing materials for innovation.",
                       readings: [
-                        { id: "w16_foster1", title: "Foster, \"Culture and Computation\"", pages: "~15 pp.", file: "readings/week16_foster_culture.pdf" },
-                        { id: "w16_foster2", title: "Foster et al., \"Tradition and Innovation\"", pages: "~25 pp.", file: "readings/week16_foster_tradition.pdf" }
+                        { id: "w16_metal", title: "Koch, Silvestro & Foster, \"The Evolutionary Dynamics of Cultural Change\" (Metal Music)", pages: "~40 pp.", file: "readings/Week 16_Foster/Week 16_Koch Foster.pdf" },
+                        { id: "w16_borges", title: "Borges, \"The Garden of Forking Paths\"", pages: "~10 pp.", file: "readings/Week 16_Foster/Week 16_Borges.pdf" }
                     ]}
                 ]
             }
@@ -1399,6 +1686,9 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             const week = getCurrentWeek();
             if (!week) return;
 
+            const progress = JSON.parse(localStorage.getItem('metamodality_progress') || '{}');
+            const weekProgress = progress[`week_${week.num}`] || {};
+
             document.getElementById('currentWeekCard').innerHTML = `
                 <div class="current-week-label">Week ${week.num} — ${week.date}</div>
                 <h2>${week.title}</h2>
@@ -1406,7 +1696,7 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 <div class="current-week-readings">
                     ${week.readings.map(r => `
                         <div class="reading-card" onclick="openReading('${r.id}')">
-                            <span class="icon">📄</span>
+                            <span class="icon">${weekProgress[r.id] ? '✓' : '📄'}</span>
                             <div class="info">
                                 <div class="title">${r.title}</div>
                                 <div class="pages">${r.pages}</div>
@@ -1416,6 +1706,133 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                     `).join('')}
                 </div>
             `;
+
+            // Also render sidebar components
+            renderUpcomingWeeks();
+            renderActivityStream();
+        }
+
+        function renderUpcomingWeeks() {
+            const container = document.getElementById('upcomingWeeks');
+            if (!container) return;
+
+            // Get all weeks flattened
+            const allWeeks = [];
+            schedule.forEach(unit => {
+                unit.weeks.forEach(week => allWeeks.push(week));
+            });
+
+            // Show current + next 4 weeks
+            const startIdx = Math.max(0, currentWeekNum - 1);
+            const visibleWeeks = allWeeks.slice(startIdx, startIdx + 5);
+
+            container.innerHTML = visibleWeeks.map(week => {
+                const isCurrent = week.num === currentWeekNum;
+                // Parse date like "Feb 4" into month and day
+                const dateParts = week.date.split(' ');
+                const month = dateParts[0] || '';
+                const day = dateParts[1] || '';
+
+                return `
+                    <div class="upcoming-item ${isCurrent ? 'current' : ''}" onclick="goToWeek(${week.num})">
+                        <div class="upcoming-date">
+                            <span class="month">${month}</span>
+                            <span class="day">${day}</span>
+                        </div>
+                        <div class="upcoming-info">
+                            <div class="upcoming-title">Week ${week.num}: ${week.title}</div>
+                            <div class="upcoming-detail">${week.readings.length} readings</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderActivityStream() {
+            const container = document.getElementById('activityStream');
+            if (!container) return;
+
+            // Combine recent posts and annotations into a single stream
+            const activities = [];
+
+            // Add posts
+            posts.slice(0, 5).forEach(p => {
+                activities.push({
+                    type: 'post',
+                    author: p.author_email || 'Anonymous',
+                    title: p.title,
+                    time: new Date(p.published_at),
+                    onClick: `switchView('discuss')`
+                });
+            });
+
+            // Add annotations from all readings
+            Object.entries(annotations).forEach(([readingId, items]) => {
+                (items || []).slice(0, 3).forEach(a => {
+                    activities.push({
+                        type: 'annotation',
+                        author: a.author_email || 'Anonymous',
+                        quote: a.quote?.substring(0, 50) + '...',
+                        readingId: readingId,
+                        time: new Date(a.created_at),
+                        onClick: `openReading('${readingId}')`
+                    });
+                });
+            });
+
+            // Sort by time, most recent first
+            activities.sort((a, b) => b.time - a.time);
+
+            if (activities.length === 0) {
+                container.innerHTML = '<div class="empty-state">Activity from the group will appear here.</div>';
+                return;
+            }
+
+            container.innerHTML = activities.slice(0, 8).map(a => {
+                const initial = (a.author.split('@')[0] || 'A')[0].toUpperCase();
+                const timeAgo = formatTimeAgo(a.time);
+
+                if (a.type === 'post') {
+                    return `
+                        <div class="stream-item" onclick="${a.onClick}">
+                            <div class="stream-avatar">${initial}</div>
+                            <div class="stream-content">
+                                <div class="stream-text">
+                                    <span class="author">${a.author.split('@')[0]}</span> posted
+                                    <span class="target">"${a.title}"</span>
+                                </div>
+                                <div class="stream-meta">${timeAgo}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="stream-item" onclick="${a.onClick}">
+                            <div class="stream-avatar">${initial}</div>
+                            <div class="stream-content">
+                                <div class="stream-text">
+                                    <span class="author">${a.author.split('@')[0]}</span> annotated "${a.quote}"
+                                </div>
+                                <div class="stream-meta">${timeAgo}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            if (days < 7) return `${days}d ago`;
+            return date.toLocaleDateString();
         }
 
         function openReading(readingId) {
@@ -1429,28 +1846,94 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
 
         function buildSyllabus() {
             const container = document.getElementById('syllabusContent');
+            const progress = JSON.parse(localStorage.getItem('metamodality_progress') || '{}');
             let html = '';
 
-            schedule.forEach(unit => {
+            schedule.forEach((unit, unitIdx) => {
+                // Parse unit title: "Unit I: Ancient and Medieval Foundations"
+                const unitMatch = unit.unit.match(/^(Unit [IVX]+):\s*(.+)$/);
+                const unitLabel = unitMatch ? unitMatch[1] : `Unit ${unitIdx + 1}`;
+                const unitTitle = unitMatch ? unitMatch[2] : unit.unit;
+
                 html += `<div class="unit">
-                    <div class="unit-title">${unit.unit}</div>
-                    ${unit.weeks.map(week => `
-                        <div class="week-card" onclick="goToWeek(${week.num})">
-                            <div class="week-card-header">
-                                <span class="week-num">Week ${week.num}</span>
-                                <span class="week-title">${week.title}</span>
-                                <span class="week-date">${week.date}</span>
+                    <div class="unit-header">
+                        <div class="unit-label">${unitLabel}</div>
+                        <div class="unit-title">${unitTitle}</div>
+                    </div>
+                    ${unit.weeks.map(week => {
+                        const isCurrent = week.num === currentWeekNum;
+                        const weekProgress = progress[`week_${week.num}`] || {};
+                        const readingsComplete = week.readings.filter(r => weekProgress[r.id]).length;
+                        const isComplete = readingsComplete === week.readings.length && week.readings.length > 0;
+                        const totalPages = week.readings.reduce((sum, r) => {
+                            const match = r.pages.match(/(\d+)/);
+                            return sum + (match ? parseInt(match[1]) : 0);
+                        }, 0);
+
+                        return `
+                        <div class="week-card ${isCurrent ? 'current' : ''} ${isComplete ? 'completed' : ''}" id="syllabus-week-${week.num}">
+                            <div class="week-card-main" onclick="toggleSyllabusWeek(${week.num})">
+                                <div class="week-card-header">
+                                    <span class="week-num">Week ${week.num}</span>
+                                    <span class="week-title">${week.title}</span>
+                                    ${isCurrent ? '<span class="week-status">Current</span>' : ''}
+                                    <span class="week-date">${week.date}</span>
+                                </div>
+                                <div class="week-focus">${week.focus}</div>
+                                <div class="week-summary">
+                                    <span>📚 ${week.readings.length} readings</span>
+                                    <span>📄 ~${totalPages} pages</span>
+                                    ${readingsComplete > 0 ? `<span>✓ ${readingsComplete}/${week.readings.length} complete</span>` : ''}
+                                    <span class="expand-icon">▼</span>
+                                </div>
                             </div>
-                            <div class="week-focus">${week.focus}</div>
-                            <div class="week-readings">
-                                ${week.readings.map(r => `<span class="reading-tag">${r.title.split(',')[0]}</span>`).join('')}
+                            <div class="week-readings-list">
+                                ${week.readings.map(r => {
+                                    const isRead = weekProgress[r.id];
+                                    return `
+                                    <div class="week-reading-item" onclick="event.stopPropagation(); openReading('${r.id}')">
+                                        <div class="reading-icon">📄</div>
+                                        <div class="reading-info">
+                                            <div class="reading-title">${r.title}</div>
+                                            <div class="reading-meta">${r.pages}</div>
+                                        </div>
+                                        <div class="reading-progress ${isRead ? 'complete' : ''}">${isRead ? '✓' : ''}</div>
+                                    </div>
+                                `}).join('')}
                             </div>
                         </div>
-                    `).join('')}
+                    `}).join('')}
                 </div>`;
             });
 
             container.innerHTML = html;
+        }
+
+        function toggleSyllabusWeek(num) {
+            const card = document.getElementById('syllabus-week-' + num);
+            if (card) card.classList.toggle('expanded');
+        }
+
+        function markReadingComplete(readingId) {
+            // Find which week this reading belongs to
+            let weekNum = null;
+            for (const unit of schedule) {
+                for (const week of unit.weeks) {
+                    if (week.readings.some(r => r.id === readingId)) {
+                        weekNum = week.num;
+                        break;
+                    }
+                }
+            }
+            if (!weekNum) return;
+
+            const progress = JSON.parse(localStorage.getItem('metamodality_progress') || '{}');
+            if (!progress[`week_${weekNum}`]) progress[`week_${weekNum}`] = {};
+            progress[`week_${weekNum}`][readingId] = true;
+            localStorage.setItem('metamodality_progress', JSON.stringify(progress));
+
+            // Rebuild syllabus to reflect changes
+            buildSyllabus();
         }
 
         function goToWeek(num) {
@@ -1538,6 +2021,11 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
 
         async function loadReading(readingId) {
             currentReading = readingId;
+            pdfHasText = false; // Reset for new PDF
+
+            // Hide OCR controls until we know if text exists
+            document.getElementById('ocrStatus').style.display = 'none';
+            document.getElementById('ocrBtn').style.display = 'none';
 
             // Update sidebar selection
             document.querySelectorAll('.reading-list-item').forEach(el => el.classList.remove('active'));
@@ -1624,6 +2112,10 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             }
         }
 
+        // Track text layer status
+        let pdfHasText = false;
+        let ocrWorker = null;
+
         async function renderSinglePage(num, scale = 1.5) {
             if (!window.currentPdf) return;
 
@@ -1646,22 +2138,125 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                     textLayerDiv.innerHTML = '';
                     textLayerDiv.style.width = viewport.width + 'px';
                     textLayerDiv.style.height = viewport.height + 'px';
-                    textLayerDiv.style.setProperty('--scale-factor', scale.toString());
 
                     const textContent = await page.getTextContent();
 
-                    // Use the newer TextLayer API
-                    if (pdfjsLib.TextLayer) {
-                        const textLayer = new pdfjsLib.TextLayer({
-                            textContentSource: textContent,
-                            container: textLayerDiv,
-                            viewport: viewport
+                    // Check if PDF has meaningful text content
+                    const totalChars = textContent.items.reduce((sum, item) => sum + (item.str?.length || 0), 0);
+
+                    if (totalChars > 50) {
+                        pdfHasText = true;
+                        // Render text items manually for reliable selection
+                        textContent.items.forEach(item => {
+                            if (!item.str) return;
+
+                            const tx = pdfjsLib.Util.transform(
+                                viewport.transform,
+                                item.transform
+                            );
+
+                            const span = document.createElement('span');
+                            span.textContent = item.str;
+                            span.style.left = tx[4] + 'px';
+                            span.style.top = (viewport.height - tx[5]) + 'px';
+                            span.style.fontSize = Math.abs(tx[0]) + 'px';
+                            span.style.fontFamily = item.fontName || 'sans-serif';
+
+                            // Handle rotation if present
+                            if (tx[1] !== 0 || tx[2] !== 0) {
+                                const angle = Math.atan2(tx[1], tx[0]);
+                                span.style.transform = `rotate(${angle}rad)`;
+                            }
+
+                            textLayerDiv.appendChild(span);
                         });
-                        await textLayer.render();
+                    }
+
+                    // Update OCR status after first page
+                    if (num === 1) {
+                        updateOcrStatus();
                     }
                 }
             } catch (e) {
                 console.warn('Failed to render page', num, e);
+            }
+        }
+
+        function updateOcrStatus() {
+            const statusEl = document.getElementById('ocrStatus');
+            const btnEl = document.getElementById('ocrBtn');
+
+            if (pdfHasText) {
+                statusEl.textContent = 'Text layer detected';
+                statusEl.className = 'ocr-status';
+                statusEl.style.display = 'inline-block';
+                btnEl.style.display = 'none';
+            } else {
+                statusEl.textContent = 'No text layer';
+                statusEl.className = 'ocr-status warning';
+                statusEl.style.display = 'inline-block';
+                btnEl.style.display = 'inline-block';
+            }
+        }
+
+        async function runOcrOnCurrentPage() {
+            const btn = document.getElementById('ocrBtn');
+            const statusEl = document.getElementById('ocrStatus');
+            btn.classList.add('loading');
+
+            try {
+                const pdf = window.currentPdf;
+                if (!pdf) return;
+
+                // Initialize Tesseract worker if needed
+                if (!ocrWorker) {
+                    statusEl.textContent = 'Loading OCR engine...';
+                    ocrWorker = await Tesseract.createWorker('eng');
+                }
+
+                // Process all pages
+                for (let num = 1; num <= pdf.numPages; num++) {
+                    statusEl.textContent = `OCR: page ${num}/${pdf.numPages}`;
+
+                    const canvas = document.getElementById('page-' + num);
+                    const textLayerDiv = document.getElementById('text-layer-' + num);
+                    if (!canvas || !textLayerDiv) continue;
+
+                    // Get image data from canvas
+                    const imageData = canvas.toDataURL('image/png');
+
+                    // Run OCR
+                    const { data } = await ocrWorker.recognize(imageData);
+
+                    // Clear existing text layer and add OCR results
+                    textLayerDiv.innerHTML = '';
+
+                    // Create text spans from OCR words
+                    data.words.forEach(word => {
+                        if (!word.text || word.text.trim() === '') return;
+
+                        const span = document.createElement('span');
+                        span.textContent = word.text + ' ';
+                        span.style.left = word.bbox.x0 + 'px';
+                        span.style.top = word.bbox.y0 + 'px';
+                        span.style.fontSize = (word.bbox.y1 - word.bbox.y0) * 0.8 + 'px';
+                        span.style.letterSpacing = '0.5px';
+
+                        textLayerDiv.appendChild(span);
+                    });
+                }
+
+                // Update status
+                statusEl.textContent = 'OCR complete';
+                statusEl.className = 'ocr-status';
+                btn.style.display = 'none';
+
+            } catch (e) {
+                console.error('OCR failed:', e);
+                statusEl.textContent = 'OCR failed';
+                statusEl.className = 'ocr-status warning';
+            } finally {
+                btn.classList.remove('loading');
             }
         }
 
@@ -1670,15 +2265,25 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
         // =============================================
 
         async function loadAnnotations(readingId) {
-            if (db) {
+            // Always load from localStorage first as fallback
+            const localAnnotations = JSON.parse(localStorage.getItem('metamodality_annotations') || '{}');
+            annotations = { ...localAnnotations };
+
+            // Then try to load from Supabase
+            if (db && currentUser) {
                 try {
-                    const { data } = await db
+                    const { data, error } = await db
                         .from('annotations')
                         .select('*')
                         .eq('reading_id', readingId)
                         .order('created_at', { ascending: false });
 
-                    if (data) annotations[readingId] = data;
+                    if (error) {
+                        console.warn('Supabase annotations error:', error);
+                    } else if (data) {
+                        // Merge with local
+                        annotations[readingId] = data;
+                    }
                 } catch (e) {
                     console.warn('Failed to load annotations:', e);
                 }
@@ -1708,16 +2313,24 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
 
         // Text selection
         document.addEventListener('mouseup', e => {
-            const selection = window.getSelection();
-            const text = selection.toString().trim();
+            // Small delay to let selection finalize
+            setTimeout(() => {
+                const selection = window.getSelection();
+                const text = selection.toString().trim();
 
-            if (text.length > 10 && currentReading && e.target.closest('.pdf-viewer')) {
-                selectedText = text;
-                const popup = document.getElementById('selectionPopup');
-                popup.style.left = e.pageX + 'px';
-                popup.style.top = (e.pageY + 10) + 'px';
-                popup.style.display = 'block';
-            }
+                // Check if selection is in PDF area
+                const inPdfViewer = e.target.closest('.pdf-viewer') ||
+                                    e.target.closest('.pdf-text-layer') ||
+                                    e.target.closest('.pdf-page-container');
+
+                if (text.length > 5 && currentReading && inPdfViewer) {
+                    selectedText = text;
+                    const popup = document.getElementById('selectionPopup');
+                    popup.style.left = e.pageX + 'px';
+                    popup.style.top = (e.pageY + 10) + 'px';
+                    popup.style.display = 'block';
+                }
+            }, 10);
         });
 
         document.addEventListener('mousedown', e => {
@@ -1743,6 +2356,7 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
 
             const comment = document.getElementById('annotationComment').value;
             const annotation = {
+                id: Date.now().toString(),
                 reading_id: currentReading,
                 quote: selectedText,
                 comment: comment,
@@ -1750,17 +2364,23 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 author_email: currentUser?.email || 'Anonymous'
             };
 
+            // Add to local state
+            if (!annotations[currentReading]) annotations[currentReading] = [];
+            annotations[currentReading].unshift(annotation);
+
+            // Always save to localStorage as backup
+            localStorage.setItem('metamodality_annotations', JSON.stringify(annotations));
+
+            // Try to save to Supabase if logged in
             if (db && currentUser) {
                 annotation.user_id = currentUser.id;
                 try {
-                    await db.from('annotations').insert([annotation]);
+                    const { error } = await db.from('annotations').insert([annotation]);
+                    if (error) console.warn('Supabase save error:', error);
                 } catch (e) {
-                    console.warn('Failed to save:', e);
+                    console.warn('Failed to save to Supabase:', e);
                 }
             }
-
-            if (!annotations[currentReading]) annotations[currentReading] = [];
-            annotations[currentReading].unshift(annotation);
 
             renderAnnotations();
             cancelAnnotation();
