@@ -566,17 +566,20 @@
             right: 0;
             bottom: 0;
             overflow: hidden;
-            opacity: 0.2;
             line-height: 1;
+            z-index: 2;
+            pointer-events: auto;
         }
         .pdf-text-layer > span {
             color: transparent;
             position: absolute;
             white-space: pre;
             transform-origin: 0% 0%;
+            pointer-events: all;
+            cursor: text;
         }
         .pdf-text-layer ::selection {
-            background: rgba(0, 100, 200, 0.3);
+            background: rgba(218, 119, 86, 0.4);
         }
         .pdf-empty {
             flex: 1;
@@ -1201,13 +1204,13 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                       focus: "Separating essence from existence, Avicenna makes contingency fundamental to everything except the Necessary Existent.",
                       readings: [
                         { id: "w03_avicenna", title: "Avicenna, Metaphysics of The Healing", pages: "~25 pp.", file: "readings/week03_avicenna.pdf" },
-                        { id: "w03_adamson", title: "Adamson, \"From the Necessary Existent to God\"", pages: "~15 pp.", file: "readings/week03_adamson.pdf" }
+                        { id: "w03_adamson", title: "Adamson, \"From the Necessary Existent to God\"", pages: "~15 pp.", file: "readings/Week 3_Avicenna/week03_adamson.pdf" }
                     ]},
                     { num: 4, date: "Feb 25", title: "Nagarjuna",
                       focus: "Does \"possibility\" mean anything once inherent existence drops out? Nagarjuna's tetralemma refuses the logical options that Western frameworks take for granted.",
                       readings: [
-                        { id: "w04_nagarjuna", title: "Nagarjuna, Mulamadhyamakakarika", pages: "~20 pp.", file: "readings/week04_nagarjuna.pdf" },
-                        { id: "w04_garfield", title: "Garfield, \"Dependent Arising and the Emptiness of Emptiness\"", pages: "~20 pp.", file: "readings/week04_garfield.pdf" }
+                        { id: "w04_nagarjuna", title: "Nagarjuna, Mulamadhyamakakarika", pages: "~20 pp.", file: "readings/Week 4_Nagarjuna/Week 4_Nagarjuna.pdf" },
+                        { id: "w04_garfield", title: "Garfield, \"Dependent Arising and the Emptiness of Emptiness\"", pages: "~20 pp.", file: "readings/Week 4_Nagarjuna/Week 4_Garfield (Essay).pdf" }
                     ]}
                 ]
             },
@@ -1242,27 +1245,25 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                     { num: 8, date: "Mar 25", title: "Husserl and Derrida",
                       focus: "Can a condition of possibility also be a condition of impossibility?",
                       readings: [
-                        { id: "w08_husserl", title: "Husserl, \"The Origin of Geometry\"", pages: "~20 pp.", file: "readings/week08_husserl.pdf" },
-                        { id: "w08_derrida", title: "Derrida, Introduction to \"Origin of Geometry\"", pages: "~25 pp.", file: "readings/week08_derrida.pdf" }
+                        { id: "w08_combined", title: "Husserl & Derrida, Origin of Geometry", pages: "~45 pp.", file: "readings/Week 8_Husserl and Derrida/week08_husserl_derrida.pdf" }
                     ]},
                     { num: 9, date: "Apr 1", title: "Heidegger and Arendt",
                       focus: "Possibility becomes constitutive of Dasein; death individualizes as the ownmost possibility.",
                       readings: [
-                        { id: "w09_heid", title: "Heidegger, Being and Time, II.1", pages: "~30 pp.", file: "readings/week09_heidegger.pdf" },
-                        { id: "w09_arendt", title: "Arendt, Human Condition, ch. 5", pages: "~15 pp.", file: "readings/week09_arendt.pdf" }
+                        { id: "w09_heid", title: "Heidegger, Being and Time, II.1", pages: "~30 pp.", file: "readings/Week 9_Heidegger and Arendt/week09_heidegger.pdf" },
+                        { id: "w09_arendt", title: "Arendt, Human Condition, ch. 5", pages: "~15 pp.", file: "readings/Week 9_Heidegger and Arendt/week09_arendt.pdf" }
                     ]},
                     { num: 10, date: "Apr 8", title: "Peirce",
                       focus: "Firstness is pure qualitative possibility, prior to relation or resistance.",
                       readings: [
-                        { id: "w10_incap", title: "Peirce, \"Some Consequences of Four Incapacities\"", pages: "~20 pp.", file: "readings/week10_peirce_incapacities.pdf" },
-                        { id: "w10_guess", title: "Peirce, \"A Guess at the Riddle\"", pages: "~20 pp.", file: "readings/week10_peirce_guess.pdf" }
+                        { id: "w10_peirce", title: "Peirce, Essential Peirce selections", pages: "~40 pp.", file: "readings/Week 10_Peirce/Week 10_Peirce.pdf" }
                     ]},
                     { num: 11, date: "Apr 15", title: "Nishida and Women Mystics",
                       focus: "Nishida's \"place of absolute nothingness\" holds particulars without being one itself.",
                       readings: [
-                        { id: "w11_lalla", title: "Lalla, selected vakhs", pages: "~5 pp.", file: "readings/week11_lalla.pdf" },
-                        { id: "w11_nishida", title: "Nishida, Inquiry into the Good", pages: "~25 pp.", file: "readings/week11_nishida.pdf" },
-                        { id: "w11_weil", title: "Weil, Gravity and Grace, selections", pages: "~15 pp.", file: "readings/week11_weil.pdf" }
+                        { id: "w11_lalla", title: "Lalla, selected vakhs", pages: "~5 pp.", file: "readings/Week 11_Nishida and Lalla/Week 11_Lalla.pdf" },
+                        { id: "w11_nishida", title: "Nishida, Inquiry into the Good", pages: "~25 pp.", file: "readings/Week 11_Nishida and Lalla/Week 11_Nishida.pdf" },
+                        { id: "w11_abe", title: "Abe, Introduction to Nishida", pages: "~15 pp.", file: "readings/Week 11_Nishida and Lalla/Week 11_Abe (Into to Nishida).pdf" }
                     ]}
                 ]
             },
