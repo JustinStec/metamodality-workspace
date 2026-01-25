@@ -969,34 +969,57 @@
             -webkit-user-select: text;
             -moz-user-select: text;
         }
+        /* Line-based text layout for better selection */
+        .pdf-text-layer .text-line {
+            position: absolute;
+            white-space: nowrap;
+            pointer-events: auto;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        .pdf-text-layer .text-line > span {
+            color: transparent;
+            position: absolute;
+            white-space: pre;
+            transform-origin: 0% 0%;
+            pointer-events: auto;
+            cursor: text;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+        }
         .pdf-text-layer > span::selection,
-        .pdf-text-layer .column-container > span::selection {
+        .pdf-text-layer .column-container > span::selection,
+        .pdf-text-layer .text-line > span::selection {
             background: rgba(218, 119, 86, 0.4);
             color: transparent;
         }
         .pdf-text-layer > span::-moz-selection,
-        .pdf-text-layer .column-container > span::-moz-selection {
+        .pdf-text-layer .column-container > span::-moz-selection,
+        .pdf-text-layer .text-line > span::-moz-selection {
             background: rgba(218, 119, 86, 0.4);
             color: transparent;
         }
 
         /* Column selection mode */
-        .pdf-text-layer.column-mode-left .right-column {
+        .pdf-text-layer.column-mode-left .right-column,
+        .pdf-text-layer.column-mode-left .right-column .text-line {
             pointer-events: none;
             user-select: none;
             -webkit-user-select: none;
         }
-        .pdf-text-layer.column-mode-left .right-column > span {
+        .pdf-text-layer.column-mode-left .right-column .text-line > span {
             opacity: 0.3;
             pointer-events: none;
             user-select: none;
         }
-        .pdf-text-layer.column-mode-right .left-column {
+        .pdf-text-layer.column-mode-right .left-column,
+        .pdf-text-layer.column-mode-right .left-column .text-line {
             pointer-events: none;
             user-select: none;
             -webkit-user-select: none;
         }
-        .pdf-text-layer.column-mode-right .left-column > span {
+        .pdf-text-layer.column-mode-right .left-column .text-line > span {
             opacity: 0.3;
             pointer-events: none;
             user-select: none;
@@ -2702,71 +2725,82 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                         // Check if this is a two-column layout (significant items on both sides)
                         const isTwoColumn = leftItems.length > 10 && rightItems.length > 10;
 
+                        // Helper: group items into lines based on similar y-positions
+                        function groupIntoLines(items, threshold = 8) {
+                            if (items.length === 0) return [];
+
+                            // Sort by y first
+                            items.sort((a, b) => a.y - b.y);
+
+                            const lines = [];
+                            let currentLine = [items[0]];
+                            let currentY = items[0].y;
+
+                            for (let i = 1; i < items.length; i++) {
+                                if (Math.abs(items[i].y - currentY) < threshold) {
+                                    currentLine.push(items[i]);
+                                } else {
+                                    // Sort current line by x position
+                                    currentLine.sort((a, b) => a.x - b.x);
+                                    lines.push(currentLine);
+                                    currentLine = [items[i]];
+                                    currentY = items[i].y;
+                                }
+                            }
+                            // Don't forget the last line
+                            currentLine.sort((a, b) => a.x - b.x);
+                            lines.push(currentLine);
+
+                            return lines;
+                        }
+
+                        // Helper: render lines into a container
+                        function renderLines(lines, container, xOffset = 0) {
+                            lines.forEach(lineItems => {
+                                const lineDiv = document.createElement('div');
+                                lineDiv.className = 'text-line';
+                                // Position line at its y coordinate
+                                const lineY = lineItems[0].y;
+                                lineDiv.style.top = lineY + 'px';
+                                lineDiv.style.left = '0';
+                                lineDiv.style.right = '0';
+
+                                lineItems.forEach(item => {
+                                    const span = document.createElement('span');
+                                    span.textContent = item.str;
+                                    span.style.left = (item.x - xOffset) + 'px';
+                                    span.style.fontSize = item.fontSize + 'px';
+                                    span.style.fontFamily = item.fontName;
+                                    if (item.rotation) {
+                                        span.style.transform = `rotate(${item.rotation}rad)`;
+                                    }
+                                    lineDiv.appendChild(span);
+                                });
+
+                                container.appendChild(lineDiv);
+                            });
+                        }
+
                         if (isTwoColumn) {
                             // Create separate containers for each column
-                            // This ensures text selection flows naturally within each column
                             const leftContainer = document.createElement('div');
                             leftContainer.className = 'column-container left-column';
                             const rightContainer = document.createElement('div');
                             rightContainer.className = 'column-container right-column';
 
-                            // Sort each column by Y position (top to bottom)
-                            leftItems.sort((a, b) => a.y - b.y);
-                            rightItems.sort((a, b) => a.y - b.y);
+                            // Group into lines and render
+                            const leftLines = groupIntoLines(leftItems);
+                            const rightLines = groupIntoLines(rightItems);
 
-                            // Render left column items
-                            leftItems.forEach(item => {
-                                const span = document.createElement('span');
-                                span.textContent = item.str;
-                                span.style.left = item.x + 'px';
-                                span.style.top = item.y + 'px';
-                                span.style.fontSize = item.fontSize + 'px';
-                                span.style.fontFamily = item.fontName;
-                                if (item.rotation) {
-                                    span.style.transform = `rotate(${item.rotation}rad)`;
-                                }
-                                leftContainer.appendChild(span);
-                            });
+                            renderLines(leftLines, leftContainer, 0);
+                            renderLines(rightLines, rightContainer, midpoint);
 
-                            // Render right column items (adjust x position relative to container)
-                            rightItems.forEach(item => {
-                                const span = document.createElement('span');
-                                span.textContent = item.str;
-                                // Adjust x position since right container starts at midpoint
-                                span.style.left = (item.x - midpoint) + 'px';
-                                span.style.top = item.y + 'px';
-                                span.style.fontSize = item.fontSize + 'px';
-                                span.style.fontFamily = item.fontName;
-                                if (item.rotation) {
-                                    span.style.transform = `rotate(${item.rotation}rad)`;
-                                }
-                                rightContainer.appendChild(span);
-                            });
-
-                            // Add containers to text layer (left first, then right)
                             textLayerDiv.appendChild(leftContainer);
                             textLayerDiv.appendChild(rightContainer);
                         } else {
-                            // Single column or complex layout: sort by Y, then X
-                            const sortedItems = processedItems.sort((a, b) => {
-                                const yDiff = a.y - b.y;
-                                if (Math.abs(yDiff) > 5) return yDiff;
-                                return a.x - b.x;
-                            });
-
-                            // Render sorted text items directly to text layer
-                            sortedItems.forEach(item => {
-                                const span = document.createElement('span');
-                                span.textContent = item.str;
-                                span.style.left = item.x + 'px';
-                                span.style.top = item.y + 'px';
-                                span.style.fontSize = item.fontSize + 'px';
-                                span.style.fontFamily = item.fontName;
-                                if (item.rotation) {
-                                    span.style.transform = `rotate(${item.rotation}rad)`;
-                                }
-                                textLayerDiv.appendChild(span);
-                            });
+                            // Single column: group all items into lines
+                            const lines = groupIntoLines(processedItems);
+                            renderLines(lines, textLayerDiv, 0);
                         }
                     }
 
