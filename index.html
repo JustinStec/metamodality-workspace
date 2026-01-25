@@ -1001,22 +1001,30 @@
             bottom: 0;
             z-index: 1000;
             background: var(--bg-dark);
+            padding: 12px;
+            gap: 12px;
         }
         .read-view.fullscreen .read-sidebar { display: none; }
-        .read-view.fullscreen .pdf-container { flex: 1; }
+        .read-view.fullscreen .pdf-container {
+            flex: 1;
+            padding: 0;
+            min-width: 0;
+        }
+        .read-view.fullscreen .pdf-module {
+            border-radius: 12px;
+        }
         .read-view.fullscreen .pdf-viewer {
             align-items: center;
             padding: 20px;
         }
         .read-view.fullscreen .annotations-panel {
-            position: absolute;
-            right: 0;
-            top: 50px;
-            bottom: 0;
-            width: 400px;
-            z-index: 10;
-            border-left: 1px solid var(--border);
-            box-shadow: -4px 0 16px rgba(0,0,0,0.1);
+            position: relative;
+            width: 380px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            border: none;
+            margin: 0;
         }
         .read-view.fullscreen .annotations-panel.collapsed {
             width: 50px;
