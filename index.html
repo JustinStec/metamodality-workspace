@@ -1255,20 +1255,18 @@
             align-items: center;
             padding: 20px;
         }
+        .read-view.fullscreen .annotations-container {
+            padding: 0;
+            background: transparent;
+        }
         .read-view.fullscreen .annotations-panel {
-            position: relative;
             width: 380px;
-            flex-shrink: 0;
             border-radius: 12px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-            border: none;
-            margin: 0;
         }
         .read-view.fullscreen .annotations-panel.collapsed {
             width: 50px;
         }
-        .read-view.fullscreen .annotations-panel.collapsed .annotations-list,
-        .read-view.fullscreen .annotations-panel.collapsed .annotation-form { display: none; }
 
         .pdf-viewer {
             flex: 1;
@@ -1355,15 +1353,23 @@
         }
         .pdf-empty-icon { font-size: 48px; opacity: 0.5; }
 
+        .annotations-container {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-dark);
+            padding: 12px;
+            padding-left: 0;
+            flex-shrink: 0;
+        }
         .annotations-panel {
-            width: 400px;
+            width: 380px;
             background: var(--bg-panel);
-            border-left: 1px solid var(--border);
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
             transition: width 0.2s ease;
-            box-shadow: -2px 0 8px rgba(0,0,0,0.04);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             overflow: hidden;
         }
         .annotations-panel.collapsed {
@@ -1372,24 +1378,30 @@
         .annotations-panel.collapsed .annotations-list,
         .annotations-panel.collapsed .annotation-form,
         .annotations-panel.collapsed .annotations-header h3,
-        .annotations-panel.collapsed #annotationsCount {
+        .annotations-panel.collapsed #annotationsCount,
+        .annotations-panel.collapsed .add-note-btn {
             display: none;
         }
         .annotations-panel.collapsed .sidebar-toggle-btn {
             transform: rotate(180deg);
         }
         .annotations-header {
-            padding: 15px;
+            padding: 16px 18px;
             border-bottom: 1px solid var(--border);
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 12px;
         }
         .annotations-header h3 {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
             color: var(--text-bright);
             flex: 1;
+            margin: 0;
+        }
+        #annotationsCount {
+            font-size: 12px;
+            color: var(--text-muted);
         }
         .add-note-btn {
             font-size: 11px;
@@ -2037,13 +2049,14 @@
                     </div>
                 </div>
             </div>
-            <div class="annotations-panel" id="annotationsPanel">
-                <div class="annotations-header">
-                    <button class="sidebar-toggle-btn" onclick="toggleAnnotationsPanel()" title="Toggle annotations (⌘])">▶</button>
-                    <h3>Annotations</h3>
-                    <span id="annotationsCount" style="font-size: 12px; color: var(--text-muted);"></span>
-                    <button class="add-note-btn" onclick="startPinnedNote()" title="Add a note without highlighting">+ Note</button>
-                </div>
+            <div class="annotations-container">
+                <div class="annotations-panel" id="annotationsPanel">
+                    <div class="annotations-header">
+                        <button class="sidebar-toggle-btn" onclick="toggleAnnotationsPanel()" title="Toggle annotations (⌘])">▶</button>
+                        <h3>Annotations</h3>
+                        <span id="annotationsCount"></span>
+                        <button class="add-note-btn" onclick="startPinnedNote()" title="Add a note without highlighting">+ Note</button>
+                    </div>
                 <div class="annotations-list" id="annotationsList">
                     <div class="annotations-empty">
                         Select text to annotate, or click "+ Note" to add a pinned note.
@@ -2064,6 +2077,7 @@
                         <button class="btn secondary" onclick="cancelAnnotation()">Cancel</button>
                         <button class="btn" onclick="saveAnnotation()">Save</button>
                     </div>
+                </div>
                 </div>
             </div>
         </div>
