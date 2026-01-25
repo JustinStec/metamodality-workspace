@@ -1247,6 +1247,97 @@
             margin-bottom: 10px;
         }
         .annotation-form textarea:focus { outline: none; border-color: var(--accent); }
+
+        /* RTF Editor */
+        .rtf-toolbar {
+            display: flex;
+            gap: 2px;
+            padding: 4px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+        }
+        .rtf-toolbar button {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .rtf-toolbar button:hover {
+            background: var(--highlight);
+        }
+        .rtf-toolbar button.active {
+            background: var(--accent);
+            color: white;
+        }
+        .rtf-editor {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 0 0 6px 6px;
+            font-size: 13px;
+            min-height: 80px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            background: var(--bg-panel);
+            line-height: 1.5;
+        }
+        .rtf-editor:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .rtf-editor:empty:before {
+            content: attr(data-placeholder);
+            color: var(--text-muted);
+        }
+
+        /* Annotation replies */
+        .annotation-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .annotation-actions button {
+            font-size: 11px;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+        .annotation-actions button:hover {
+            color: var(--accent);
+        }
+        .annotation-replies {
+            margin-top: 12px;
+            padding-left: 15px;
+            border-left: 2px solid var(--border);
+        }
+        .annotation-reply {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .annotation-reply:last-child {
+            border-bottom: none;
+        }
+        .reply-form {
+            margin-top: 10px;
+            display: none;
+        }
+        .reply-form.active {
+            display: block;
+        }
+        .reply-form .rtf-editor {
+            min-height: 60px;
+        }
+
         .form-actions {
             display: flex;
             justify-content: flex-end;
@@ -1725,7 +1816,15 @@
                 </div>
                 <div class="annotation-form" id="annotationForm">
                     <div class="quote-preview" id="quotePreview"></div>
-                    <textarea id="annotationComment" placeholder="Add your thoughts..."></textarea>
+                    <div class="rtf-toolbar">
+                        <button onclick="rtfCommand('bold')" title="Bold (⌘B)"><b>B</b></button>
+                        <button onclick="rtfCommand('italic')" title="Italic (⌘I)"><i>I</i></button>
+                        <button onclick="rtfCommand('underline')" title="Underline (⌘U)"><u>U</u></button>
+                        <button onclick="rtfCommand('strikeThrough')" title="Strikethrough"><s>S</s></button>
+                        <button onclick="rtfCommand('insertUnorderedList')" title="Bullet list">•</button>
+                        <button onclick="rtfCommand('insertOrderedList')" title="Numbered list">1.</button>
+                    </div>
+                    <div class="rtf-editor" id="annotationComment" contenteditable="true" data-placeholder="Add your thoughts..."></div>
                     <div class="form-actions">
                         <button class="btn secondary" onclick="cancelAnnotation()">Cancel</button>
                         <button class="btn" onclick="saveAnnotation()">Save</button>
@@ -3159,16 +3258,101 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 return;
             }
 
-            list.innerHTML = items.map(a => `
-                <div class="annotation-item${a.pinned ? ' pinned' : ''}">
+            list.innerHTML = items.map((a, index) => `
+                <div class="annotation-item${a.pinned ? ' pinned' : ''}" data-id="${a.id}">
                     ${a.pinned
                         ? '<div class="annotation-quote">📌 Pinned note</div>'
-                        : `<div class="annotation-quote">${a.quote}</div>`
+                        : `<div class="annotation-quote">${escapeHtml(a.quote)}</div>`
                     }
                     ${a.comment ? `<div class="annotation-comment">${a.comment}</div>` : ''}
                     <div class="annotation-meta">${a.author_email || 'Anonymous'} · ${new Date(a.created_at).toLocaleDateString()}</div>
+                    <div class="annotation-actions">
+                        <button onclick="toggleReplyForm('${a.id}')">Reply</button>
+                        ${(a.replies?.length || 0) > 0 ? `<span>${a.replies.length} ${a.replies.length === 1 ? 'reply' : 'replies'}</span>` : ''}
+                    </div>
+                    ${a.replies?.length > 0 ? `
+                        <div class="annotation-replies">
+                            ${a.replies.map(r => `
+                                <div class="annotation-reply">
+                                    <div class="annotation-comment">${r.comment}</div>
+                                    <div class="annotation-meta">${r.author_email || 'Anonymous'} · ${new Date(r.created_at).toLocaleDateString()}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    <div class="reply-form" id="reply-form-${a.id}">
+                        <div class="rtf-toolbar">
+                            <button onclick="rtfCommandReply('${a.id}', 'bold')"><b>B</b></button>
+                            <button onclick="rtfCommandReply('${a.id}', 'italic')"><i>I</i></button>
+                            <button onclick="rtfCommandReply('${a.id}', 'underline')"><u>U</u></button>
+                        </div>
+                        <div class="rtf-editor" id="reply-editor-${a.id}" contenteditable="true" data-placeholder="Write a reply..."></div>
+                        <div class="form-actions">
+                            <button class="btn secondary" onclick="toggleReplyForm('${a.id}')">Cancel</button>
+                            <button class="btn" onclick="saveReply('${a.id}')">Reply</button>
+                        </div>
+                    </div>
                 </div>
             `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function toggleReplyForm(annotationId) {
+            const form = document.getElementById('reply-form-' + annotationId);
+            form.classList.toggle('active');
+            if (form.classList.contains('active')) {
+                document.getElementById('reply-editor-' + annotationId).focus();
+            }
+        }
+
+        function rtfCommandReply(annotationId, command) {
+            document.execCommand(command, false, null);
+            document.getElementById('reply-editor-' + annotationId).focus();
+        }
+
+        async function saveReply(annotationId) {
+            const editor = document.getElementById('reply-editor-' + annotationId);
+            const comment = editor.innerHTML.trim();
+            if (!comment || !editor.innerText.trim()) {
+                alert('Please enter a reply');
+                return;
+            }
+
+            const reply = {
+                id: Date.now().toString(),
+                comment: comment,
+                created_at: new Date().toISOString(),
+                author_email: currentUser?.email || 'Anonymous'
+            };
+
+            // Find the annotation and add the reply
+            const items = annotations[currentReading] || [];
+            const annotation = items.find(a => a.id === annotationId);
+            if (annotation) {
+                if (!annotation.replies) annotation.replies = [];
+                annotation.replies.push(reply);
+
+                // Save to localStorage
+                localStorage.setItem('metamodality_annotations', JSON.stringify(annotations));
+
+                // Try to save to Supabase
+                if (db && currentUser) {
+                    try {
+                        await db.from('annotations')
+                            .update({ replies: annotation.replies })
+                            .eq('id', annotationId);
+                    } catch (e) {
+                        console.warn('Failed to save reply to Supabase:', e);
+                    }
+                }
+            }
+
+            renderAnnotations();
         }
 
         // Text selection with column filtering
@@ -3250,7 +3434,9 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             const quotePreview = document.getElementById('quotePreview');
             quotePreview.textContent = selectedText;
             quotePreview.classList.remove('pinned-note');
-            document.getElementById('annotationComment').value = '';
+            const editor = document.getElementById('annotationComment');
+            editor.innerHTML = '';
+            editor.setAttribute('data-placeholder', 'Add your thoughts...');
             document.getElementById('annotationForm').classList.add('active');
         }
 
@@ -3264,26 +3450,37 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             const quotePreview = document.getElementById('quotePreview');
             quotePreview.textContent = '📌 Pinned note (no highlighted text)';
             quotePreview.classList.add('pinned-note');
-            document.getElementById('annotationComment').value = '';
-            document.getElementById('annotationComment').placeholder = 'Write your note about this reading...';
+            const editor = document.getElementById('annotationComment');
+            editor.innerHTML = '';
+            editor.setAttribute('data-placeholder', 'Write your note about this reading...');
             document.getElementById('annotationForm').classList.add('active');
-            document.getElementById('annotationComment').focus();
+            editor.focus();
         }
 
         function cancelAnnotation() {
             document.getElementById('annotationForm').classList.remove('active');
             document.getElementById('quotePreview').classList.remove('pinned-note');
-            document.getElementById('annotationComment').placeholder = 'Add your thoughts...';
+            const editor = document.getElementById('annotationComment');
+            editor.innerHTML = '';
+            editor.setAttribute('data-placeholder', 'Add your thoughts...');
             selectedText = '';
             isPinnedNote = false;
+        }
+
+        // RTF Editor commands
+        function rtfCommand(command, value = null) {
+            document.execCommand(command, false, value);
+            document.getElementById('annotationComment').focus();
         }
 
         async function saveAnnotation() {
             if (!currentReading) return;
             if (!isPinnedNote && !selectedText) return;
 
-            const comment = document.getElementById('annotationComment').value;
-            if (!comment.trim() && isPinnedNote) {
+            const editor = document.getElementById('annotationComment');
+            const comment = editor.innerHTML.trim();
+            const commentText = editor.innerText.trim();
+            if (!commentText && isPinnedNote) {
                 alert('Please enter a note');
                 return;
             }
@@ -3291,8 +3488,9 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 id: Date.now().toString(),
                 reading_id: currentReading,
                 quote: isPinnedNote ? '' : selectedText,
-                comment: comment,
+                comment: comment,  // Now stores HTML
                 pinned: isPinnedNote,
+                replies: [],  // Initialize empty replies array
                 created_at: new Date().toISOString(),
                 author_email: currentUser?.email || 'Anonymous'
             };
