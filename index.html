@@ -608,6 +608,32 @@
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
+            transition: width 0.2s ease;
+        }
+        .read-sidebar.collapsed {
+            width: 50px;
+            overflow: hidden;
+        }
+        .read-sidebar.collapsed .read-sidebar-content,
+        .read-sidebar.collapsed .read-sidebar-header span {
+            display: none;
+        }
+        .read-sidebar.collapsed .sidebar-toggle-btn {
+            transform: rotate(180deg);
+        }
+        .sidebar-toggle-btn {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+        .sidebar-toggle-btn:hover {
+            background: var(--highlight);
+            color: var(--text);
         }
         .read-sidebar-header {
             padding: 15px;
@@ -775,22 +801,6 @@
         .read-view.fullscreen .annotations-panel.collapsed .annotations-list,
         .read-view.fullscreen .annotations-panel.collapsed .annotation-form { display: none; }
 
-        .sidebar-toggle {
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-left: none;
-            padding: 20px 8px;
-            cursor: pointer;
-            border-radius: 0 4px 4px 0;
-            z-index: 5;
-        }
-        .read-sidebar.collapsed { width: 0; overflow: hidden; border: none; }
-        .read-sidebar.collapsed + .sidebar-toggle { display: block; }
-
         .pdf-viewer {
             flex: 1;
             overflow: auto;
@@ -849,12 +859,25 @@
         .pdf-empty-icon { font-size: 48px; opacity: 0.5; }
 
         .annotations-panel {
-            width: 320px;
+            width: 400px;
             background: var(--bg-panel);
             border-left: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
+            transition: width 0.2s ease;
+        }
+        .annotations-panel.collapsed {
+            width: 50px;
+        }
+        .annotations-panel.collapsed .annotations-list,
+        .annotations-panel.collapsed .annotation-form,
+        .annotations-panel.collapsed .annotations-header h3,
+        .annotations-panel.collapsed #annotationsCount {
+            display: none;
+        }
+        .annotations-panel.collapsed .sidebar-toggle-btn {
+            transform: rotate(180deg);
         }
         .annotations-header {
             padding: 15px;
@@ -1330,7 +1353,7 @@
             <div class="read-sidebar" id="readSidebar">
                 <div class="read-sidebar-header">
                     <span>Readings</span>
-                    <button class="btn" style="padding: 4px 8px; font-size: 11px;" onclick="toggleReadSidebar()">◀</button>
+                    <button class="sidebar-toggle-btn" onclick="toggleReadSidebar()" title="Toggle sidebar (⌘[)">◀</button>
                 </div>
                 <div class="read-sidebar-content" id="readingsList">
                     <!-- Populated by JS -->
@@ -1358,9 +1381,9 @@
             </div>
             <div class="annotations-panel" id="annotationsPanel">
                 <div class="annotations-header">
+                    <button class="sidebar-toggle-btn" onclick="toggleAnnotationsPanel()" title="Toggle annotations (⌘])">▶</button>
                     <h3>Annotations</h3>
                     <span id="annotationsCount" style="font-size: 12px; color: var(--text-muted);"></span>
-                    <button class="btn" style="margin-left: auto; padding: 4px 8px; font-size: 11px;" onclick="toggleAnnotationsPanel()">▶</button>
                 </div>
                 <div class="annotations-list" id="annotationsList">
                     <div class="annotations-empty">
@@ -1655,6 +1678,26 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             // Tab navigation
             document.querySelectorAll('.nav-tab').forEach(tab => {
                 tab.addEventListener('click', () => switchView(tab.dataset.view));
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Cmd/Ctrl + [ = toggle left sidebar
+                if ((e.metaKey || e.ctrlKey) && e.key === '[') {
+                    e.preventDefault();
+                    toggleReadSidebar();
+                }
+                // Cmd/Ctrl + ] = toggle right sidebar
+                if ((e.metaKey || e.ctrlKey) && e.key === ']') {
+                    e.preventDefault();
+                    toggleAnnotationsPanel();
+                }
+                // Cmd/Ctrl + \ = toggle both sidebars (focus mode)
+                if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
+                    e.preventDefault();
+                    toggleReadSidebar();
+                    toggleAnnotationsPanel();
+                }
             });
         }
 
@@ -2683,14 +2726,7 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
         }
 
         // Start
-        console.log('Metamodality: Starting init...');
-        try {
-            init();
-            console.log('Metamodality: Init completed successfully');
-        } catch (e) {
-            console.error('Metamodality: Init failed:', e);
-            alert('Init error: ' + e.message);
-        }
+        init();
     </script>
 </body>
 </html>
