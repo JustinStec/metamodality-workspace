@@ -903,7 +903,8 @@
 
         .pdf-viewer {
             flex: 1;
-            overflow: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -913,9 +914,12 @@
         .pdf-viewer canvas {
             box-shadow: 0 4px 20px rgba(0,0,0,0.4);
             max-width: 100%;
+            height: auto;
         }
         .pdf-page-container {
             position: relative;
+            max-width: 100%;
+            display: inline-block;
         }
         .pdf-text-layer {
             position: absolute;
@@ -946,6 +950,41 @@
         .pdf-text-layer > span::-moz-selection {
             background: rgba(218, 119, 86, 0.4);
             color: transparent;
+        }
+
+        /* Column selection mode */
+        .pdf-text-layer.column-mode-left > span[data-column="right"] {
+            pointer-events: none;
+            opacity: 0.3;
+        }
+        .pdf-text-layer.column-mode-right > span[data-column="left"] {
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        .column-toggle {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 2px;
+        }
+        .column-toggle button {
+            padding: 4px 8px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 11px;
+            border-radius: 3px;
+            color: var(--text-muted);
+        }
+        .column-toggle button:hover {
+            background: var(--highlight);
+        }
+        .column-toggle button.active {
+            background: var(--accent);
+            color: white;
         }
         .pdf-empty {
             flex: 1;
@@ -1467,6 +1506,11 @@
                     <div class="pdf-title" id="pdfTitle">Select a reading</div>
                     <div class="pdf-controls" id="pdfControls" style="display: none;">
                         <span><span id="totalPages">0</span> pages</span>
+                        <div class="column-toggle" id="columnToggle" style="display: none;">
+                            <button onclick="setColumnMode('all')" class="active" data-mode="all">All</button>
+                            <button onclick="setColumnMode('left')" data-mode="left">Left</button>
+                            <button onclick="setColumnMode('right')" data-mode="right">Right</button>
+                        </div>
                         <span class="ocr-status" id="ocrStatus" style="display: none;"></span>
                         <button class="ocr-btn" id="ocrBtn" onclick="runOcrOnCurrentPage()" style="display: none;">
                             <span class="spinner"></span>
@@ -2579,35 +2623,70 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
 
                     if (totalChars > 50) {
                         pdfHasText = true;
-                        // Render text items manually for reliable selection
-                        textContent.items.forEach(item => {
-                            if (!item.str) return;
 
-                            const tx = pdfjsLib.Util.transform(
-                                viewport.transform,
-                                item.transform
-                            );
+                        // Process text items with position info
+                        const processedItems = textContent.items
+                            .filter(item => item.str && item.str.trim())
+                            .map(item => {
+                                const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+                                return {
+                                    str: item.str,
+                                    x: tx[4],
+                                    y: viewport.height - tx[5],
+                                    fontSize: Math.abs(tx[0]),
+                                    fontName: item.fontName || 'sans-serif',
+                                    rotation: (tx[1] !== 0 || tx[2] !== 0) ? Math.atan2(tx[1], tx[0]) : 0,
+                                    width: item.width * Math.abs(tx[0])
+                                };
+                            });
 
+                        // Detect columns: find midpoint and check if text is clearly split
+                        const pageWidth = viewport.width;
+                        const midpoint = pageWidth / 2;
+                        const leftItems = processedItems.filter(item => item.x + item.width / 2 < midpoint);
+                        const rightItems = processedItems.filter(item => item.x + item.width / 2 >= midpoint);
+
+                        // Check if this is a two-column layout (significant items on both sides)
+                        const isTwoColumn = leftItems.length > 10 && rightItems.length > 10;
+
+                        let sortedItems;
+                        if (isTwoColumn) {
+                            // Sort each column by Y position (top to bottom), then render left column first
+                            leftItems.sort((a, b) => a.y - b.y);
+                            rightItems.sort((a, b) => a.y - b.y);
+                            sortedItems = [...leftItems, ...rightItems];
+                        } else {
+                            // Single column or complex layout: sort by Y, then X
+                            sortedItems = processedItems.sort((a, b) => {
+                                const yDiff = a.y - b.y;
+                                if (Math.abs(yDiff) > 5) return yDiff;
+                                return a.x - b.x;
+                            });
+                        }
+
+                        // Render sorted text items
+                        sortedItems.forEach((item, index) => {
                             const span = document.createElement('span');
                             span.textContent = item.str;
-                            span.style.left = tx[4] + 'px';
-                            span.style.top = (viewport.height - tx[5]) + 'px';
-                            span.style.fontSize = Math.abs(tx[0]) + 'px';
-                            span.style.fontFamily = item.fontName || 'sans-serif';
-
-                            // Handle rotation if present
-                            if (tx[1] !== 0 || tx[2] !== 0) {
-                                const angle = Math.atan2(tx[1], tx[0]);
-                                span.style.transform = `rotate(${angle}rad)`;
+                            span.style.left = item.x + 'px';
+                            span.style.top = item.y + 'px';
+                            span.style.fontSize = item.fontSize + 'px';
+                            span.style.fontFamily = item.fontName;
+                            if (item.rotation) {
+                                span.style.transform = `rotate(${item.rotation}rad)`;
                             }
-
+                            // Add column class for potential styling
+                            if (isTwoColumn) {
+                                span.dataset.column = item.x + item.width / 2 < midpoint ? 'left' : 'right';
+                            }
                             textLayerDiv.appendChild(span);
                         });
                     }
 
-                    // Update OCR status after first page
+                    // Update OCR status and column toggle after first page
                     if (num === 1) {
                         updateOcrStatus();
+                        showColumnToggleIfNeeded();
                     }
                 }
             } catch (e) {
@@ -2664,17 +2743,48 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                     // Clear existing text layer and add OCR results
                     textLayerDiv.innerHTML = '';
 
-                    // Create text spans from OCR words
-                    data.words.forEach(word => {
-                        if (!word.text || word.text.trim() === '') return;
+                    // Process OCR words with position info
+                    const words = data.words
+                        .filter(word => word.text && word.text.trim())
+                        .map(word => ({
+                            text: word.text,
+                            x: word.bbox.x0,
+                            y: word.bbox.y0,
+                            width: word.bbox.x1 - word.bbox.x0,
+                            height: word.bbox.y1 - word.bbox.y0
+                        }));
 
+                    // Detect columns
+                    const canvasWidth = canvas.width;
+                    const midpoint = canvasWidth / 2;
+                    const leftWords = words.filter(w => w.x + w.width / 2 < midpoint);
+                    const rightWords = words.filter(w => w.x + w.width / 2 >= midpoint);
+                    const isTwoColumn = leftWords.length > 10 && rightWords.length > 10;
+
+                    let sortedWords;
+                    if (isTwoColumn) {
+                        leftWords.sort((a, b) => a.y - b.y);
+                        rightWords.sort((a, b) => a.y - b.y);
+                        sortedWords = [...leftWords, ...rightWords];
+                    } else {
+                        sortedWords = words.sort((a, b) => {
+                            const yDiff = a.y - b.y;
+                            if (Math.abs(yDiff) > 10) return yDiff;
+                            return a.x - b.x;
+                        });
+                    }
+
+                    // Create text spans from sorted words
+                    sortedWords.forEach(word => {
                         const span = document.createElement('span');
                         span.textContent = word.text + ' ';
-                        span.style.left = word.bbox.x0 + 'px';
-                        span.style.top = word.bbox.y0 + 'px';
-                        span.style.fontSize = (word.bbox.y1 - word.bbox.y0) * 0.8 + 'px';
+                        span.style.left = word.x + 'px';
+                        span.style.top = word.y + 'px';
+                        span.style.fontSize = word.height * 0.8 + 'px';
                         span.style.letterSpacing = '0.5px';
-
+                        if (isTwoColumn) {
+                            span.dataset.column = word.x + word.width / 2 < midpoint ? 'left' : 'right';
+                        }
                         textLayerDiv.appendChild(span);
                     });
                 }
@@ -2690,6 +2800,40 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 statusEl.className = 'ocr-status warning';
             } finally {
                 btn.classList.remove('loading');
+            }
+        }
+
+        // =============================================
+        // COLUMN MODE
+        // =============================================
+
+        let currentColumnMode = 'all';
+
+        function setColumnMode(mode) {
+            currentColumnMode = mode;
+
+            // Update button states
+            document.querySelectorAll('#columnToggle button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+
+            // Apply mode to all text layers
+            document.querySelectorAll('.pdf-text-layer').forEach(layer => {
+                layer.classList.remove('column-mode-left', 'column-mode-right');
+                if (mode === 'left') {
+                    layer.classList.add('column-mode-left');
+                } else if (mode === 'right') {
+                    layer.classList.add('column-mode-right');
+                }
+            });
+        }
+
+        function showColumnToggleIfNeeded() {
+            // Check if any text layer has column data
+            const hasColumns = document.querySelector('.pdf-text-layer span[data-column]');
+            const toggle = document.getElementById('columnToggle');
+            if (toggle) {
+                toggle.style.display = hasColumns ? 'flex' : 'none';
             }
         }
 
