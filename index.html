@@ -759,8 +759,9 @@
         .read-view {
             display: none;
             height: 100%;
+            width: 100%;
             flex-direction: row;
-            overflow: hidden; /* Prevent any child overflow */
+            overflow: hidden;
         }
         .read-view.active { display: flex; }
 
@@ -876,12 +877,23 @@
         }
 
         .pdf-container {
+            flex: 1 1 0;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-dark);
+            min-width: 0;
+            overflow: hidden;
+            padding: 12px;
+        }
+        .pdf-module {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: #525659;
-            min-width: 0;
+            background: var(--bg-panel);
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             overflow: hidden;
+            min-width: 0;
         }
         .pdf-header {
             padding: 10px 15px;
@@ -1021,15 +1033,18 @@
             padding: 20px;
             gap: 10px;
             background: #e8e4dc;
+            width: 100%;
+            min-width: 0; /* Allow flex item to shrink below content size */
         }
         .pdf-viewer canvas {
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
             display: block;
-            max-width: 100%;
+            max-width: calc(100% - 40px); /* Account for padding */
+            height: auto;
         }
         .pdf-page-container {
             position: relative;
-            max-width: 100%;
+            max-width: calc(100% - 40px);
         }
         .pdf-text-layer {
             position: absolute;
@@ -1834,33 +1849,34 @@
                 </div>
             </div>
             <div class="pdf-container">
-                <div class="pdf-header">
-                    <div class="pdf-title" id="pdfTitle">Select a reading</div>
-                    <div class="pdf-controls" id="pdfControls" style="display: none;">
-                        <span><span id="totalPages">0</span> pages</span>
-                        <div class="zoom-controls">
-                            <button onclick="zoomOut()" title="Zoom out">−</button>
-                            <span id="zoomLevel">100%</span>
-                            <button onclick="zoomIn()" title="Zoom in">+</button>
-                            <button onclick="fitWidth()" title="Fit to width">↔</button>
+                <div class="pdf-module">
+                    <div class="pdf-header">
+                        <div class="pdf-title" id="pdfTitle">Select a reading</div>
+                        <div class="pdf-controls" id="pdfControls" style="display: none;">
+                            <span><span id="totalPages">0</span> pages</span>
+                            <div class="zoom-controls">
+                                <button onclick="zoomOut()" title="Zoom out">−</button>
+                                <span id="zoomLevel">100%</span>
+                                <button onclick="zoomIn()" title="Zoom in">+</button>
+                                <button onclick="fitWidth()" title="Reset">↔</button>
+                            </div>
+                            <div class="column-toggle" id="columnToggle" style="display: none;">
+                                <button onclick="setColumnMode('all')" class="active" data-mode="all">All</button>
+                                <button onclick="setColumnMode('left')" data-mode="left">Left</button>
+                                <button onclick="setColumnMode('right')" data-mode="right">Right</button>
+                            </div>
+                            <span class="ocr-status" id="ocrStatus" style="display: none;"></span>
+                            <button class="ocr-btn" id="ocrBtn" onclick="runOcrOnCurrentPage()" style="display: none;">
+                                <span class="spinner"></span>OCR
+                            </button>
+                            <button class="fullscreen-btn" onclick="toggleFullscreen()">⛶</button>
                         </div>
-                        <div class="column-toggle" id="columnToggle" style="display: none;">
-                            <button onclick="setColumnMode('all')" class="active" data-mode="all">All</button>
-                            <button onclick="setColumnMode('left')" data-mode="left">Left</button>
-                            <button onclick="setColumnMode('right')" data-mode="right">Right</button>
-                        </div>
-                        <span class="ocr-status" id="ocrStatus" style="display: none;"></span>
-                        <button class="ocr-btn" id="ocrBtn" onclick="runOcrOnCurrentPage()" style="display: none;">
-                            <span class="spinner"></span>
-                            Run OCR
-                        </button>
-                        <button class="fullscreen-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
                     </div>
-                </div>
-                <div class="pdf-viewer" id="pdfViewer">
-                    <div class="pdf-empty">
-                        <div class="pdf-empty-icon">📖</div>
-                        <div>Select a reading from the sidebar</div>
+                    <div class="pdf-viewer" id="pdfViewer">
+                        <div class="pdf-empty">
+                            <div class="pdf-empty-icon">📖</div>
+                            <div>Select a reading from the sidebar</div>
+                        </div>
                     </div>
                 </div>
             </div>
