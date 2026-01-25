@@ -1154,6 +1154,20 @@
             font-size: 14px;
             font-weight: 600;
             color: var(--text-bright);
+            flex: 1;
+        }
+        .add-note-btn {
+            font-size: 11px;
+            padding: 4px 8px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .add-note-btn:hover {
+            background: var(--accent-hover);
         }
         .annotations-list {
             flex: 1;
@@ -1205,6 +1219,22 @@
             margin-bottom: 10px;
             max-height: 80px;
             overflow-y: auto;
+        }
+        .annotation-form .quote-preview:empty {
+            display: none;
+        }
+        .annotation-form .quote-preview.pinned-note {
+            display: block;
+            font-style: normal;
+            color: var(--accent);
+            background: rgba(139,90,43,0.1);
+        }
+        /* Pinned annotation display */
+        .annotation-item.pinned .annotation-quote {
+            border-left-color: var(--text-muted);
+            font-style: normal;
+            color: var(--text-muted);
+            font-size: 11px;
         }
         .annotation-form textarea {
             width: 100%;
@@ -1686,10 +1716,11 @@
                     <button class="sidebar-toggle-btn" onclick="toggleAnnotationsPanel()" title="Toggle annotations (⌘])">▶</button>
                     <h3>Annotations</h3>
                     <span id="annotationsCount" style="font-size: 12px; color: var(--text-muted);"></span>
+                    <button class="add-note-btn" onclick="startPinnedNote()" title="Add a note without highlighting">+ Note</button>
                 </div>
                 <div class="annotations-list" id="annotationsList">
                     <div class="annotations-empty">
-                        Select text in the reading to create an annotation.
+                        Select text to annotate, or click "+ Note" to add a pinned note.
                     </div>
                 </div>
                 <div class="annotation-form" id="annotationForm">
@@ -3126,30 +3157,38 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             document.getElementById('annotationsCount').textContent = items.length > 0 ? `(${items.length})` : '';
 
             if (items.length === 0) {
-                list.innerHTML = '<div class="annotations-empty">Select text in the reading to create an annotation.</div>';
+                list.innerHTML = '<div class="annotations-empty">Select text to annotate, or click "+ Note" to add a pinned note.</div>';
                 return;
             }
 
             list.innerHTML = items.map(a => `
-                <div class="annotation-item">
-                    <div class="annotation-quote">${a.quote}</div>
+                <div class="annotation-item${a.pinned ? ' pinned' : ''}">
+                    ${a.pinned
+                        ? '<div class="annotation-quote">📌 Pinned note</div>'
+                        : `<div class="annotation-quote">${a.quote}</div>`
+                    }
                     ${a.comment ? `<div class="annotation-comment">${a.comment}</div>` : ''}
                     <div class="annotation-meta">${a.author_email || 'Anonymous'} · ${new Date(a.created_at).toLocaleDateString()}</div>
                 </div>
             `).join('');
         }
 
-        // Text selection
+        // Text selection with column filtering
         document.addEventListener('mouseup', e => {
             // Small delay to let selection finalize
             setTimeout(() => {
                 const selection = window.getSelection();
-                const text = selection.toString().trim();
+                let text = selection.toString().trim();
 
                 // Check if selection is in PDF area
                 const inPdfViewer = e.target.closest('.pdf-viewer') ||
                                     e.target.closest('.pdf-text-layer') ||
                                     e.target.closest('.pdf-page-container');
+
+                // If column mode is active, filter selection to only include text from that column
+                if (text.length > 5 && currentReading && inPdfViewer && currentColumnMode !== 'all') {
+                    text = filterSelectionByColumn(selection, currentColumnMode);
+                }
 
                 if (text.length > 5 && currentReading && inPdfViewer) {
                     selectedText = text;
@@ -3161,33 +3200,101 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             }, 10);
         });
 
+        // Filter selection to only include text from the specified column
+        function filterSelectionByColumn(selection, columnMode) {
+            const range = selection.getRangeAt(0);
+            const container = range.commonAncestorContainer;
+
+            // Find all text nodes in the selection
+            const textParts = [];
+            const walker = document.createTreeWalker(
+                container.nodeType === Node.TEXT_NODE ? container.parentElement : container,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+
+            let node;
+            while (node = walker.nextNode()) {
+                // Check if this node is in the selection
+                if (selection.containsNode(node, true)) {
+                    // Check if node is in the correct column
+                    const columnContainer = node.parentElement?.closest('.column-container');
+                    if (columnContainer) {
+                        const isLeftColumn = columnContainer.classList.contains('left-column');
+                        const isRightColumn = columnContainer.classList.contains('right-column');
+
+                        if ((columnMode === 'left' && isLeftColumn) ||
+                            (columnMode === 'right' && isRightColumn)) {
+                            textParts.push(node.textContent);
+                        }
+                    } else {
+                        // Not in a column container, include it
+                        textParts.push(node.textContent);
+                    }
+                }
+            }
+
+            return textParts.join(' ').replace(/\s+/g, ' ').trim();
+        }
+
         document.addEventListener('mousedown', e => {
             if (!e.target.closest('.selection-popup')) {
                 document.getElementById('selectionPopup').style.display = 'none';
             }
         });
 
+        let isPinnedNote = false;
+
         function startAnnotation() {
+            isPinnedNote = false;
             document.getElementById('selectionPopup').style.display = 'none';
-            document.getElementById('quotePreview').textContent = selectedText;
+            const quotePreview = document.getElementById('quotePreview');
+            quotePreview.textContent = selectedText;
+            quotePreview.classList.remove('pinned-note');
             document.getElementById('annotationComment').value = '';
             document.getElementById('annotationForm').classList.add('active');
         }
 
+        function startPinnedNote() {
+            if (!currentReading) {
+                alert('Please select a reading first');
+                return;
+            }
+            isPinnedNote = true;
+            selectedText = '';
+            const quotePreview = document.getElementById('quotePreview');
+            quotePreview.textContent = '📌 Pinned note (no highlighted text)';
+            quotePreview.classList.add('pinned-note');
+            document.getElementById('annotationComment').value = '';
+            document.getElementById('annotationComment').placeholder = 'Write your note about this reading...';
+            document.getElementById('annotationForm').classList.add('active');
+            document.getElementById('annotationComment').focus();
+        }
+
         function cancelAnnotation() {
             document.getElementById('annotationForm').classList.remove('active');
+            document.getElementById('quotePreview').classList.remove('pinned-note');
+            document.getElementById('annotationComment').placeholder = 'Add your thoughts...';
             selectedText = '';
+            isPinnedNote = false;
         }
 
         async function saveAnnotation() {
-            if (!selectedText || !currentReading) return;
+            if (!currentReading) return;
+            if (!isPinnedNote && !selectedText) return;
 
             const comment = document.getElementById('annotationComment').value;
+            if (!comment.trim() && isPinnedNote) {
+                alert('Please enter a note');
+                return;
+            }
             const annotation = {
                 id: Date.now().toString(),
                 reading_id: currentReading,
-                quote: selectedText,
+                quote: isPinnedNote ? '' : selectedText,
                 comment: comment,
+                pinned: isPinnedNote,
                 created_at: new Date().toISOString(),
                 author_email: currentUser?.email || 'Anonymous'
             };
