@@ -144,14 +144,114 @@
         main {
             flex: 1;
             overflow: hidden;
+            display: flex;
         }
 
         .view {
             display: none;
             height: 100%;
             overflow: auto;
+            flex: 1;
         }
         .view.active { display: block; }
+
+        /* ========== SPLIT VIEW ========== */
+        .split-container {
+            display: none;
+            flex: 1;
+            height: 100%;
+        }
+        .split-container.active {
+            display: flex;
+        }
+        .split-container.horizontal {
+            flex-direction: row;
+        }
+        .split-container.vertical {
+            flex-direction: column;
+        }
+        .split-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .split-pane:first-child {
+            border-right: none;
+        }
+        .split-container.vertical .split-pane:first-child {
+            border-right: 1px solid var(--border);
+            border-bottom: none;
+        }
+        .split-pane-header {
+            padding: 8px 12px;
+            background: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .split-pane-select {
+            padding: 4px 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--bg-panel);
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .split-pane-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-muted);
+            padding: 2px 6px;
+        }
+        .split-pane-close:hover {
+            color: var(--text);
+        }
+        .split-pane-content {
+            flex: 1;
+            overflow: auto;
+        }
+        .split-divider {
+            width: 6px;
+            background: var(--border);
+            cursor: col-resize;
+            flex-shrink: 0;
+        }
+        .split-divider:hover {
+            background: var(--accent);
+        }
+        .split-container.vertical .split-divider {
+            width: auto;
+            height: 6px;
+            cursor: row-resize;
+        }
+        .split-btn {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .split-btn:hover {
+            background: var(--highlight);
+            color: var(--text);
+        }
+        .split-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
 
         /* ========== HOME VIEW ========== */
         .home-view {
@@ -1262,6 +1362,9 @@
             <button class="nav-tab" data-view="write">Write</button>
         </nav>
         <div class="header-right">
+            <button class="split-btn" id="splitBtn" onclick="toggleSplitView()" title="Split view (⌘/)">
+                <span>⫿</span> Split
+            </button>
             <div class="status">
                 <span class="status-dot" id="statusDot"></span>
                 <span id="statusText">Connecting...</span>
@@ -1451,6 +1554,35 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                         Use [[Week Title]] to link to readings
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- SPLIT VIEW CONTAINER -->
+        <div class="split-container horizontal" id="splitContainer">
+            <div class="split-pane" id="splitPane1">
+                <div class="split-pane-header">
+                    <select class="split-pane-select" onchange="setSplitPaneContent(1, this.value)">
+                        <option value="read">Read</option>
+                        <option value="notes">Notes</option>
+                        <option value="discuss">Discuss</option>
+                        <option value="annotations">Annotations</option>
+                    </select>
+                    <button class="split-pane-close" onclick="closeSplitPane(1)" title="Close pane">✕</button>
+                </div>
+                <div class="split-pane-content" id="splitPane1Content"></div>
+            </div>
+            <div class="split-divider" id="splitDivider"></div>
+            <div class="split-pane" id="splitPane2">
+                <div class="split-pane-header">
+                    <select class="split-pane-select" onchange="setSplitPaneContent(2, this.value)">
+                        <option value="notes" selected>Notes</option>
+                        <option value="read">Read</option>
+                        <option value="discuss">Discuss</option>
+                        <option value="annotations">Annotations</option>
+                    </select>
+                    <button class="split-pane-close" onclick="closeSplitPane(2)" title="Close pane">✕</button>
+                </div>
+                <div class="split-pane-content" id="splitPane2Content"></div>
             </div>
         </div>
     </main>
@@ -1698,12 +1830,266 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                     toggleReadSidebar();
                     toggleAnnotationsPanel();
                 }
+                // Cmd/Ctrl + / = toggle split view
+                if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+                    e.preventDefault();
+                    toggleSplitView();
+                }
             });
         }
 
         function updateStatus(status, text) {
             document.getElementById('statusDot').className = 'status-dot ' + status;
             document.getElementById('statusText').textContent = text;
+        }
+
+        // =============================================
+        // SPLIT VIEW
+        // =============================================
+
+        let splitViewActive = false;
+
+        function toggleSplitView() {
+            splitViewActive = !splitViewActive;
+            const splitContainer = document.getElementById('splitContainer');
+            const splitBtn = document.getElementById('splitBtn');
+
+            if (splitViewActive) {
+                // Hide all regular views
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                // Show split container
+                splitContainer.classList.add('active');
+                splitBtn.classList.add('active');
+                // Initialize panes with default content
+                setSplitPaneContent(1, 'read');
+                setSplitPaneContent(2, 'notes');
+            } else {
+                // Hide split container
+                splitContainer.classList.remove('active');
+                splitBtn.classList.remove('active');
+                // Show home view (or last active view)
+                switchView('home');
+            }
+        }
+
+        function setSplitPaneContent(paneNum, contentType) {
+            const paneContent = document.getElementById(`splitPane${paneNum}Content`);
+            paneContent.innerHTML = '';
+
+            switch (contentType) {
+                case 'read':
+                    paneContent.innerHTML = `
+                        <div style="display: flex; height: 100%;">
+                            <div style="width: 200px; border-right: 1px solid var(--border); overflow-y: auto; background: var(--bg-sidebar);">
+                                <div style="padding: 10px; font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Readings</div>
+                                <div id="splitReadings${paneNum}"></div>
+                            </div>
+                            <div style="flex: 1; overflow: auto; padding: 20px;" id="splitPdfViewer${paneNum}">
+                                <div style="text-align: center; color: var(--text-muted); padding: 40px;">Select a reading</div>
+                            </div>
+                        </div>
+                    `;
+                    renderSplitReadingsList(paneNum);
+                    break;
+                case 'notes':
+                    paneContent.innerHTML = `
+                        <div style="display: flex; height: 100%;">
+                            <div style="width: 200px; border-right: 1px solid var(--border); overflow-y: auto; background: var(--bg-sidebar);">
+                                <div style="padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Notes</span>
+                                    <button class="btn" style="padding: 2px 8px; font-size: 11px;" onclick="newSplitNote(${paneNum})">+</button>
+                                </div>
+                                <div id="splitNotesList${paneNum}"></div>
+                            </div>
+                            <div style="flex: 1; display: flex; flex-direction: column;">
+                                <input type="text" id="splitNoteTitle${paneNum}" placeholder="Note title..." style="padding: 15px; border: none; border-bottom: 1px solid var(--border); font-size: 16px; font-weight: 500;">
+                                <textarea id="splitNoteContent${paneNum}" placeholder="Write your thoughts..." style="flex: 1; padding: 15px; border: none; resize: none; font-family: inherit; font-size: 14px; line-height: 1.6;"></textarea>
+                                <div style="padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end;">
+                                    <button class="btn" onclick="saveSplitNote(${paneNum})">Save</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    renderSplitNotesList(paneNum);
+                    break;
+                case 'discuss':
+                    paneContent.innerHTML = `
+                        <div style="padding: 20px; max-width: 700px; margin: 0 auto;">
+                            <h2 style="margin-bottom: 20px;">Discussion</h2>
+                            <div id="splitFeed${paneNum}"></div>
+                        </div>
+                    `;
+                    renderSplitFeed(paneNum);
+                    break;
+                case 'annotations':
+                    paneContent.innerHTML = `
+                        <div style="padding: 20px;">
+                            <h3 style="margin-bottom: 15px;">All Annotations</h3>
+                            <div id="splitAnnotations${paneNum}"></div>
+                        </div>
+                    `;
+                    renderSplitAnnotations(paneNum);
+                    break;
+            }
+        }
+
+        function renderSplitReadingsList(paneNum) {
+            const container = document.getElementById(`splitReadings${paneNum}`);
+            let html = '';
+            schedule.forEach(unit => {
+                unit.weeks.forEach(week => {
+                    html += `<div style="padding: 8px 10px; font-size: 11px; font-weight: 600; color: var(--text-muted); background: var(--bg-dark);">Week ${week.num}</div>`;
+                    week.readings.forEach(r => {
+                        html += `<div style="padding: 8px 10px; font-size: 12px; cursor: pointer; border-bottom: 1px solid var(--border);"
+                                     onclick="loadSplitReading(${paneNum}, '${r.id}')"
+                                     onmouseover="this.style.background='var(--highlight)'"
+                                     onmouseout="this.style.background=''">${r.title.split(',')[0]}</div>`;
+                    });
+                });
+            });
+            container.innerHTML = html;
+        }
+
+        async function loadSplitReading(paneNum, readingId) {
+            const viewer = document.getElementById(`splitPdfViewer${paneNum}`);
+            viewer.innerHTML = '<div style="text-align: center; padding: 40px;">Loading...</div>';
+
+            // Find the reading
+            let reading = null;
+            for (const unit of schedule) {
+                for (const week of unit.weeks) {
+                    for (const r of week.readings) {
+                        if (r.id === readingId) {
+                            reading = r;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!reading) return;
+
+            try {
+                const pdf = await pdfjsLib.getDocument(reading.file).promise;
+                let html = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const scale = 1.2;
+                    const viewport = page.getViewport({ scale });
+                    const canvas = document.createElement('canvas');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                    html += `<div style="margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);"><img src="${canvas.toDataURL()}" style="width: 100%;"></div>`;
+                }
+                viewer.innerHTML = html;
+            } catch (e) {
+                viewer.innerHTML = `<div style="color: red; padding: 20px;">Error loading PDF: ${e.message}</div>`;
+            }
+        }
+
+        function renderSplitNotesList(paneNum) {
+            const container = document.getElementById(`splitNotesList${paneNum}`);
+            if (notes.length === 0) {
+                container.innerHTML = '<div style="padding: 15px; color: var(--text-muted); font-size: 12px;">No notes yet</div>';
+                return;
+            }
+            container.innerHTML = notes.map(n => `
+                <div style="padding: 10px; border-bottom: 1px solid var(--border); cursor: pointer;"
+                     onclick="loadSplitNote(${paneNum}, '${n.id}')"
+                     onmouseover="this.style.background='var(--highlight)'"
+                     onmouseout="this.style.background=''">
+                    <div style="font-size: 13px; font-weight: 500;">${n.title || 'Untitled'}</div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">${new Date(n.created_at || n.createdAt).toLocaleDateString()}</div>
+                </div>
+            `).join('');
+        }
+
+        function loadSplitNote(paneNum, noteId) {
+            const note = notes.find(n => n.id === noteId);
+            if (!note) return;
+            document.getElementById(`splitNoteTitle${paneNum}`).value = note.title || '';
+            document.getElementById(`splitNoteContent${paneNum}`).value = note.content || '';
+            document.getElementById(`splitNoteTitle${paneNum}`).dataset.noteId = noteId;
+        }
+
+        function newSplitNote(paneNum) {
+            document.getElementById(`splitNoteTitle${paneNum}`).value = '';
+            document.getElementById(`splitNoteContent${paneNum}`).value = '';
+            delete document.getElementById(`splitNoteTitle${paneNum}`).dataset.noteId;
+        }
+
+        async function saveSplitNote(paneNum) {
+            const titleEl = document.getElementById(`splitNoteTitle${paneNum}`);
+            const contentEl = document.getElementById(`splitNoteContent${paneNum}`);
+            const title = titleEl.value;
+            const content = contentEl.value;
+            const noteId = titleEl.dataset.noteId;
+
+            if (noteId) {
+                // Update existing
+                const idx = notes.findIndex(n => n.id === noteId);
+                if (idx >= 0) {
+                    notes[idx].title = title;
+                    notes[idx].content = content;
+                }
+            } else {
+                // Create new
+                const note = { id: Date.now().toString(), title, content, createdAt: new Date().toISOString() };
+                notes.unshift(note);
+                titleEl.dataset.noteId = note.id;
+            }
+
+            renderSplitNotesList(paneNum);
+            // Also update main notes if loaded
+            renderNotesList();
+        }
+
+        function renderSplitFeed(paneNum) {
+            const container = document.getElementById(`splitFeed${paneNum}`);
+            if (posts.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-muted);">No posts yet</div>';
+                return;
+            }
+            container.innerHTML = posts.map(p => `
+                <div style="padding: 20px; background: var(--bg-panel); border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                    <h3 style="margin-bottom: 10px;">${p.title}</h3>
+                    <p style="color: var(--text); line-height: 1.6;">${p.content?.substring(0, 200)}...</p>
+                    <div style="margin-top: 10px; font-size: 12px; color: var(--text-muted);">${p.author_email || 'Anonymous'}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderSplitAnnotations(paneNum) {
+            const container = document.getElementById(`splitAnnotations${paneNum}`);
+            // Get all annotations from localStorage
+            const allAnnotations = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('metamodality_annotations_')) {
+                    const readingId = key.replace('metamodality_annotations_', '');
+                    const annotations = JSON.parse(localStorage.getItem(key) || '[]');
+                    annotations.forEach(a => allAnnotations.push({ ...a, readingId }));
+                }
+            }
+
+            if (allAnnotations.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-muted);">No annotations yet</div>';
+                return;
+            }
+
+            container.innerHTML = allAnnotations.map(a => `
+                <div style="padding: 15px; background: var(--bg-sidebar); border-radius: 8px; margin-bottom: 10px;">
+                    <div style="font-style: italic; color: var(--text); margin-bottom: 8px; padding-left: 10px; border-left: 3px solid var(--accent);">"${a.quote}"</div>
+                    <div style="font-size: 13px; color: var(--text);">${a.comment || ''}</div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">${a.readingId}</div>
+                </div>
+            `).join('');
+        }
+
+        function closeSplitPane(paneNum) {
+            // If closing a pane, exit split view
+            toggleSplitView();
         }
 
         // =============================================
