@@ -929,6 +929,7 @@
             z-index: 2;
             pointer-events: none;
         }
+        /* Single column layout */
         .pdf-text-layer > span {
             color: transparent;
             position: absolute;
@@ -940,23 +941,65 @@
             -webkit-user-select: text;
             -moz-user-select: text;
         }
-        .pdf-text-layer > span::selection {
+        /* Two-column layout: column containers */
+        .pdf-text-layer .column-container {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            pointer-events: auto;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        .pdf-text-layer .column-container.left-column {
+            left: 0;
+            right: 50%;
+        }
+        .pdf-text-layer .column-container.right-column {
+            left: 50%;
+            right: 0;
+        }
+        .pdf-text-layer .column-container > span {
+            color: transparent;
+            position: absolute;
+            white-space: pre;
+            transform-origin: 0% 0%;
+            pointer-events: auto;
+            cursor: text;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+        }
+        .pdf-text-layer > span::selection,
+        .pdf-text-layer .column-container > span::selection {
             background: rgba(218, 119, 86, 0.4);
             color: transparent;
         }
-        .pdf-text-layer > span::-moz-selection {
+        .pdf-text-layer > span::-moz-selection,
+        .pdf-text-layer .column-container > span::-moz-selection {
             background: rgba(218, 119, 86, 0.4);
             color: transparent;
         }
 
         /* Column selection mode */
-        .pdf-text-layer.column-mode-left > span[data-column="right"] {
+        .pdf-text-layer.column-mode-left .right-column {
             pointer-events: none;
-            opacity: 0.3;
+            user-select: none;
+            -webkit-user-select: none;
         }
-        .pdf-text-layer.column-mode-right > span[data-column="left"] {
-            pointer-events: none;
+        .pdf-text-layer.column-mode-left .right-column > span {
             opacity: 0.3;
+            pointer-events: none;
+            user-select: none;
+        }
+        .pdf-text-layer.column-mode-right .left-column {
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .pdf-text-layer.column-mode-right .left-column > span {
+            opacity: 0.3;
+            pointer-events: none;
+            user-select: none;
         }
 
         .column-toggle {
@@ -2659,38 +2702,72 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                         // Check if this is a two-column layout (significant items on both sides)
                         const isTwoColumn = leftItems.length > 10 && rightItems.length > 10;
 
-                        let sortedItems;
                         if (isTwoColumn) {
-                            // Sort each column by Y position (top to bottom), then render left column first
+                            // Create separate containers for each column
+                            // This ensures text selection flows naturally within each column
+                            const leftContainer = document.createElement('div');
+                            leftContainer.className = 'column-container left-column';
+                            const rightContainer = document.createElement('div');
+                            rightContainer.className = 'column-container right-column';
+
+                            // Sort each column by Y position (top to bottom)
                             leftItems.sort((a, b) => a.y - b.y);
                             rightItems.sort((a, b) => a.y - b.y);
-                            sortedItems = [...leftItems, ...rightItems];
+
+                            // Render left column items
+                            leftItems.forEach(item => {
+                                const span = document.createElement('span');
+                                span.textContent = item.str;
+                                span.style.left = item.x + 'px';
+                                span.style.top = item.y + 'px';
+                                span.style.fontSize = item.fontSize + 'px';
+                                span.style.fontFamily = item.fontName;
+                                if (item.rotation) {
+                                    span.style.transform = `rotate(${item.rotation}rad)`;
+                                }
+                                leftContainer.appendChild(span);
+                            });
+
+                            // Render right column items (adjust x position relative to container)
+                            rightItems.forEach(item => {
+                                const span = document.createElement('span');
+                                span.textContent = item.str;
+                                // Adjust x position since right container starts at midpoint
+                                span.style.left = (item.x - midpoint) + 'px';
+                                span.style.top = item.y + 'px';
+                                span.style.fontSize = item.fontSize + 'px';
+                                span.style.fontFamily = item.fontName;
+                                if (item.rotation) {
+                                    span.style.transform = `rotate(${item.rotation}rad)`;
+                                }
+                                rightContainer.appendChild(span);
+                            });
+
+                            // Add containers to text layer (left first, then right)
+                            textLayerDiv.appendChild(leftContainer);
+                            textLayerDiv.appendChild(rightContainer);
                         } else {
                             // Single column or complex layout: sort by Y, then X
-                            sortedItems = processedItems.sort((a, b) => {
+                            const sortedItems = processedItems.sort((a, b) => {
                                 const yDiff = a.y - b.y;
                                 if (Math.abs(yDiff) > 5) return yDiff;
                                 return a.x - b.x;
                             });
-                        }
 
-                        // Render sorted text items
-                        sortedItems.forEach((item, index) => {
-                            const span = document.createElement('span');
-                            span.textContent = item.str;
-                            span.style.left = item.x + 'px';
-                            span.style.top = item.y + 'px';
-                            span.style.fontSize = item.fontSize + 'px';
-                            span.style.fontFamily = item.fontName;
-                            if (item.rotation) {
-                                span.style.transform = `rotate(${item.rotation}rad)`;
-                            }
-                            // Add column class for potential styling
-                            if (isTwoColumn) {
-                                span.dataset.column = item.x + item.width / 2 < midpoint ? 'left' : 'right';
-                            }
-                            textLayerDiv.appendChild(span);
-                        });
+                            // Render sorted text items directly to text layer
+                            sortedItems.forEach(item => {
+                                const span = document.createElement('span');
+                                span.textContent = item.str;
+                                span.style.left = item.x + 'px';
+                                span.style.top = item.y + 'px';
+                                span.style.fontSize = item.fontSize + 'px';
+                                span.style.fontFamily = item.fontName;
+                                if (item.rotation) {
+                                    span.style.transform = `rotate(${item.rotation}rad)`;
+                                }
+                                textLayerDiv.appendChild(span);
+                            });
+                        }
                     }
 
                     // Update OCR status and column toggle after first page
@@ -2771,38 +2848,65 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                     const rightWords = words.filter(w => w.x + w.width / 2 >= midpoint);
                     const isTwoColumn = leftWords.length > 10 && rightWords.length > 10;
 
-                    let sortedWords;
                     if (isTwoColumn) {
+                        // Create separate containers for each column
+                        const leftContainer = document.createElement('div');
+                        leftContainer.className = 'column-container left-column';
+                        const rightContainer = document.createElement('div');
+                        rightContainer.className = 'column-container right-column';
+
                         leftWords.sort((a, b) => a.y - b.y);
                         rightWords.sort((a, b) => a.y - b.y);
-                        sortedWords = [...leftWords, ...rightWords];
+
+                        // Render left column
+                        leftWords.forEach(word => {
+                            const span = document.createElement('span');
+                            span.textContent = word.text + ' ';
+                            span.style.left = word.x + 'px';
+                            span.style.top = word.y + 'px';
+                            span.style.fontSize = word.height * 0.8 + 'px';
+                            span.style.letterSpacing = '0.5px';
+                            leftContainer.appendChild(span);
+                        });
+
+                        // Render right column (adjust x position relative to container)
+                        rightWords.forEach(word => {
+                            const span = document.createElement('span');
+                            span.textContent = word.text + ' ';
+                            span.style.left = (word.x - midpoint) + 'px';
+                            span.style.top = word.y + 'px';
+                            span.style.fontSize = word.height * 0.8 + 'px';
+                            span.style.letterSpacing = '0.5px';
+                            rightContainer.appendChild(span);
+                        });
+
+                        textLayerDiv.appendChild(leftContainer);
+                        textLayerDiv.appendChild(rightContainer);
                     } else {
-                        sortedWords = words.sort((a, b) => {
+                        // Single column
+                        const sortedWords = words.sort((a, b) => {
                             const yDiff = a.y - b.y;
                             if (Math.abs(yDiff) > 10) return yDiff;
                             return a.x - b.x;
                         });
-                    }
 
-                    // Create text spans from sorted words
-                    sortedWords.forEach(word => {
-                        const span = document.createElement('span');
-                        span.textContent = word.text + ' ';
-                        span.style.left = word.x + 'px';
-                        span.style.top = word.y + 'px';
-                        span.style.fontSize = word.height * 0.8 + 'px';
-                        span.style.letterSpacing = '0.5px';
-                        if (isTwoColumn) {
-                            span.dataset.column = word.x + word.width / 2 < midpoint ? 'left' : 'right';
-                        }
-                        textLayerDiv.appendChild(span);
-                    });
+                        sortedWords.forEach(word => {
+                            const span = document.createElement('span');
+                            span.textContent = word.text + ' ';
+                            span.style.left = word.x + 'px';
+                            span.style.top = word.y + 'px';
+                            span.style.fontSize = word.height * 0.8 + 'px';
+                            span.style.letterSpacing = '0.5px';
+                            textLayerDiv.appendChild(span);
+                        });
+                    }
                 }
 
                 // Update status
                 statusEl.textContent = 'OCR complete';
                 statusEl.className = 'ocr-status';
                 btn.style.display = 'none';
+                showColumnToggleIfNeeded();
 
             } catch (e) {
                 console.error('OCR failed:', e);
@@ -2839,8 +2943,8 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
         }
 
         function showColumnToggleIfNeeded() {
-            // Check if any text layer has column data
-            const hasColumns = document.querySelector('.pdf-text-layer span[data-column]');
+            // Check if any text layer has column containers
+            const hasColumns = document.querySelector('.pdf-text-layer .column-container');
             const toggle = document.getElementById('columnToggle');
             if (toggle) {
                 toggle.style.display = hasColumns ? 'flex' : 'none';
