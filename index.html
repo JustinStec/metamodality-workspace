@@ -493,6 +493,15 @@
         .orientation-section li {
             margin-bottom: 4px;
         }
+        .orientation-section kbd {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 1px 5px;
+            font-size: 11px;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-muted);
+        }
 
         .stream-item {
             padding: 14px 18px;
@@ -901,6 +910,41 @@
         .pdf-controls button:hover { background: var(--highlight); }
         .pdf-controls span { font-size: 12px; color: var(--text-muted); }
         .fullscreen-btn { margin-left: auto; }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 2px;
+        }
+        .zoom-controls button {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 500;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--text);
+        }
+        .zoom-controls button:hover {
+            background: var(--highlight);
+        }
+        .zoom-controls #zoomLevel {
+            min-width: 50px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text);
+        }
 
         .ocr-btn { position: relative; }
         .ocr-btn.loading { opacity: 0.7; pointer-events: none; }
@@ -1721,6 +1765,7 @@
                                 <div class="orientation-section">
                                     <h4>Tips</h4>
                                     <ul>
+                                        <li>Zoom: use <strong>+/−</strong> buttons or <kbd>⌘+</kbd>/<kbd>⌘−</kbd> to zoom; <kbd>⌘0</kbd> fits width</li>
                                         <li>Two-column PDFs: use <strong>Left/Right</strong> toggle to select one column</li>
                                         <li>Fullscreen hides sidebars for focused reading</li>
                                         <li>Split view: compare readings side-by-side</li>
@@ -1779,6 +1824,12 @@
                     <div class="pdf-title" id="pdfTitle">Select a reading</div>
                     <div class="pdf-controls" id="pdfControls" style="display: none;">
                         <span><span id="totalPages">0</span> pages</span>
+                        <div class="zoom-controls">
+                            <button onclick="zoomOut()" title="Zoom out">−</button>
+                            <span id="zoomLevel">100%</span>
+                            <button onclick="zoomIn()" title="Zoom in">+</button>
+                            <button onclick="fitWidth()" title="Fit to width">↔</button>
+                        </div>
                         <div class="column-toggle" id="columnToggle" style="display: none;">
                             <button onclick="setColumnMode('all')" class="active" data-mode="all">All</button>
                             <button onclick="setColumnMode('left')" data-mode="left">Left</button>
@@ -2160,6 +2211,21 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 if ((e.metaKey || e.ctrlKey) && e.key === '/') {
                     e.preventDefault();
                     toggleSplitView();
+                }
+                // Cmd/Ctrl + = or + = zoom in
+                if ((e.metaKey || e.ctrlKey) && (e.key === '=' || e.key === '+')) {
+                    e.preventDefault();
+                    zoomIn();
+                }
+                // Cmd/Ctrl + - = zoom out
+                if ((e.metaKey || e.ctrlKey) && e.key === '-') {
+                    e.preventDefault();
+                    zoomOut();
+                }
+                // Cmd/Ctrl + 0 = fit width
+                if ((e.metaKey || e.ctrlKey) && e.key === '0') {
+                    e.preventDefault();
+                    fitWidth();
                 }
             });
         }
@@ -2789,6 +2855,11 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             currentReading = readingId;
             pdfHasText = false; // Reset for new PDF
 
+            // Reset zoom to fit-width mode for new PDF
+            zoomMode = 'fit';
+            currentZoom = 1.0;
+            updateZoomDisplay();
+
             // Hide OCR controls until we know if text exists
             document.getElementById('ocrStatus').style.display = 'none';
             document.getElementById('ocrBtn').style.display = 'none';
@@ -2866,6 +2937,47 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             }
         }
 
+        // Zoom state
+        let currentZoom = 1.0; // 1.0 = fit width
+        let zoomMode = 'fit'; // 'fit' or 'manual'
+        const ZOOM_STEP = 0.25;
+        const MIN_ZOOM = 0.5;
+        const MAX_ZOOM = 3.0;
+
+        function updateZoomDisplay() {
+            const zoomPercent = Math.round(currentZoom * 100);
+            document.getElementById('zoomLevel').textContent = zoomMode === 'fit' ? 'Fit' : zoomPercent + '%';
+        }
+
+        function zoomIn() {
+            zoomMode = 'manual';
+            currentZoom = Math.min(MAX_ZOOM, currentZoom + ZOOM_STEP);
+            updateZoomDisplay();
+            rerenderAllPages();
+        }
+
+        function zoomOut() {
+            zoomMode = 'manual';
+            currentZoom = Math.max(MIN_ZOOM, currentZoom - ZOOM_STEP);
+            updateZoomDisplay();
+            rerenderAllPages();
+        }
+
+        function fitWidth() {
+            zoomMode = 'fit';
+            currentZoom = 1.0;
+            updateZoomDisplay();
+            rerenderAllPages();
+        }
+
+        async function rerenderAllPages() {
+            if (!window.currentPdf) return;
+            const pdf = window.currentPdf;
+            for (let num = 1; num <= pdf.numPages; num++) {
+                await renderSinglePage(num);
+            }
+        }
+
         async function renderAllPages() {
             if (!window.currentPdf) return;
 
@@ -2893,13 +3005,16 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 const context = canvas.getContext('2d');
                 const textLayerDiv = document.getElementById('text-layer-' + num);
 
-                // Calculate optimal scale based on available width
+                // Calculate fit-width scale as baseline
                 const viewer = document.getElementById('pdfViewer');
-                const availableWidth = viewer.clientWidth - 60;
+                const availableWidth = viewer.clientWidth - 40; // Less padding for better use of space
                 const baseViewport = page.getViewport({ scale: 1.0 });
-                const optimalScale = availableWidth / baseViewport.width;
-                // Use optimal scale, capped between 1.0 and 3.0 for readability
-                const scale = Math.min(3.0, Math.max(1.0, optimalScale));
+                const fitWidthScale = availableWidth / baseViewport.width;
+
+                // Apply user zoom: in 'fit' mode use fitWidthScale, in 'manual' mode multiply by currentZoom
+                const scale = zoomMode === 'fit'
+                    ? fitWidthScale
+                    : fitWidthScale * currentZoom;
 
                 const viewport = page.getViewport({ scale });
                 canvas.height = viewport.height;
