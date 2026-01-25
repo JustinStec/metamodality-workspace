@@ -7,6 +7,7 @@
 
     <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
 
     <!-- Tesseract.js for OCR -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -1052,108 +1053,31 @@
             position: relative;
             flex-shrink: 0;
         }
-        .pdf-text-layer {
+        /* Text layer - uses PDF.js textLayer class with pdf_viewer.css */
+        .pdf-page-container .textLayer {
             position: absolute;
             left: 0;
             top: 0;
+            right: 0;
+            bottom: 0;
             overflow: hidden;
             line-height: 1;
             z-index: 2;
-            pointer-events: none;
         }
-        /* Single column layout */
-        .pdf-text-layer > span {
-            color: transparent;
-            position: absolute;
-            white-space: pre;
-            transform-origin: 0% 0%;
-            pointer-events: auto;
-            cursor: text;
-            user-select: text;
-            -webkit-user-select: text;
-            -moz-user-select: text;
-        }
-        /* Two-column layout: column containers */
-        .pdf-text-layer .column-container {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            pointer-events: auto;
-            user-select: contain;
-            -webkit-user-select: contain;
-        }
-        .pdf-text-layer .column-container.left-column {
-            left: 0;
-            right: 50%;
-            clip-path: inset(0 50% 0 0);
-        }
-        .pdf-text-layer .column-container.right-column {
-            left: 0;
-            right: 0;
-            clip-path: inset(0 0 0 50%);
-        }
-        .pdf-text-layer .column-container > span {
-            color: transparent;
-            position: absolute;
-            white-space: pre;
-            transform-origin: 0% 0%;
-            pointer-events: auto;
-            cursor: text;
-            user-select: text;
-            -webkit-user-select: text;
-            -moz-user-select: text;
-        }
-        /* Line-based text layout for better selection */
-        .pdf-text-layer .text-line {
-            position: absolute;
-            white-space: nowrap;
-            pointer-events: auto;
-            user-select: text;
-            -webkit-user-select: text;
-        }
-        .pdf-text-layer .text-line > span {
-            color: transparent;
-            position: absolute;
-            white-space: pre;
-            transform-origin: 0% 0%;
-            pointer-events: auto;
-            cursor: text;
-            user-select: text;
-            -webkit-user-select: text;
-            -moz-user-select: text;
-        }
-        .pdf-text-layer > span::selection,
-        .pdf-text-layer .column-container > span::selection,
-        .pdf-text-layer .text-line > span::selection {
+        /* Custom selection color */
+        .textLayer ::selection {
             background: rgba(218, 119, 86, 0.4);
-            color: transparent;
         }
-        .pdf-text-layer > span::-moz-selection,
-        .pdf-text-layer .column-container > span::-moz-selection,
-        .pdf-text-layer .text-line > span::-moz-selection {
+        .textLayer ::-moz-selection {
             background: rgba(218, 119, 86, 0.4);
-            color: transparent;
         }
-
-        /* Column selection mode */
-        .pdf-text-layer.column-mode-left .right-column,
-        .pdf-text-layer.column-mode-left .right-column .text-line {
-            pointer-events: none;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        .pdf-text-layer.column-mode-left .right-column .text-line > span {
+        /* Column selection mode - dim opposite column */
+        .textLayer.column-mode-left span[data-column="right"] {
             opacity: 0.3;
             pointer-events: none;
             user-select: none;
         }
-        .pdf-text-layer.column-mode-right .left-column,
-        .pdf-text-layer.column-mode-right .left-column .text-line {
-            pointer-events: none;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        .pdf-text-layer.column-mode-right .left-column .text-line > span {
+        .textLayer.column-mode-right span[data-column="left"] {
             opacity: 0.3;
             pointer-events: none;
             user-select: none;
@@ -3065,107 +2989,42 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                     if (totalChars > 50) {
                         pdfHasText = true;
 
-                        // Process text items with position info
-                        const processedItems = textContent.items
-                            .filter(item => item.str && item.str.trim())
-                            .map(item => {
-                                const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
-                                return {
-                                    str: item.str,
-                                    x: tx[4],
-                                    y: viewport.height - tx[5],
-                                    fontSize: Math.abs(tx[0]),
-                                    fontName: item.fontName || 'sans-serif',
-                                    rotation: (tx[1] !== 0 || tx[2] !== 0) ? Math.atan2(tx[1], tx[0]) : 0,
-                                    width: item.width * Math.abs(tx[0])
-                                };
-                            });
+                        // Use PDF.js built-in text layer rendering for proper alignment
+                        textLayerDiv.classList.add('textLayer');
 
-                        // Detect columns: find midpoint and check if text is clearly split
+                        // Set the CSS variable for scale factor (required by pdf_viewer.css)
+                        textLayerDiv.style.setProperty('--scale-factor', scale);
+
+                        // Use PDF.js renderTextLayer for proper font metrics and positioning
+                        await pdfjsLib.renderTextLayer({
+                            textContent: textContent,
+                            container: textLayerDiv,
+                            viewport: viewport,
+                            textDivs: []
+                        }).promise;
+
+                        // Detect two-column layout for column toggle feature
                         const pageWidth = viewport.width;
                         const midpoint = pageWidth / 2;
-                        const leftItems = processedItems.filter(item => item.x + item.width / 2 < midpoint);
-                        const rightItems = processedItems.filter(item => item.x + item.width / 2 >= midpoint);
+                        const spans = textLayerDiv.querySelectorAll('span');
+                        let leftCount = 0, rightCount = 0;
+                        spans.forEach(span => {
+                            const rect = span.getBoundingClientRect();
+                            const containerRect = textLayerDiv.getBoundingClientRect();
+                            const relativeX = rect.left - containerRect.left + rect.width / 2;
+                            if (relativeX < midpoint) leftCount++;
+                            else rightCount++;
+                        });
+                        const isTwoColumn = leftCount > 10 && rightCount > 10;
 
-                        // Check if this is a two-column layout (significant items on both sides)
-                        const isTwoColumn = leftItems.length > 10 && rightItems.length > 10;
-
-                        // Helper: group items into lines based on similar y-positions
-                        function groupIntoLines(items, threshold = 8) {
-                            if (items.length === 0) return [];
-
-                            // Sort by y first
-                            items.sort((a, b) => a.y - b.y);
-
-                            const lines = [];
-                            let currentLine = [items[0]];
-                            let currentY = items[0].y;
-
-                            for (let i = 1; i < items.length; i++) {
-                                if (Math.abs(items[i].y - currentY) < threshold) {
-                                    currentLine.push(items[i]);
-                                } else {
-                                    // Sort current line by x position
-                                    currentLine.sort((a, b) => a.x - b.x);
-                                    lines.push(currentLine);
-                                    currentLine = [items[i]];
-                                    currentY = items[i].y;
-                                }
-                            }
-                            // Don't forget the last line
-                            currentLine.sort((a, b) => a.x - b.x);
-                            lines.push(currentLine);
-
-                            return lines;
-                        }
-
-                        // Helper: render lines into a container
-                        function renderLines(lines, container, xOffset = 0) {
-                            lines.forEach(lineItems => {
-                                const lineDiv = document.createElement('div');
-                                lineDiv.className = 'text-line';
-                                // Position line at its y coordinate
-                                const lineY = lineItems[0].y;
-                                lineDiv.style.top = lineY + 'px';
-                                lineDiv.style.left = '0';
-                                lineDiv.style.right = '0';
-
-                                lineItems.forEach(item => {
-                                    const span = document.createElement('span');
-                                    span.textContent = item.str;
-                                    span.style.left = (item.x - xOffset) + 'px';
-                                    span.style.fontSize = item.fontSize + 'px';
-                                    span.style.fontFamily = item.fontName;
-                                    if (item.rotation) {
-                                        span.style.transform = `rotate(${item.rotation}rad)`;
-                                    }
-                                    lineDiv.appendChild(span);
-                                });
-
-                                container.appendChild(lineDiv);
-                            });
-                        }
-
+                        // Mark spans with column data for filtering
                         if (isTwoColumn) {
-                            // Create separate containers for each column
-                            const leftContainer = document.createElement('div');
-                            leftContainer.className = 'column-container left-column';
-                            const rightContainer = document.createElement('div');
-                            rightContainer.className = 'column-container right-column';
-
-                            // Group into lines and render
-                            const leftLines = groupIntoLines(leftItems);
-                            const rightLines = groupIntoLines(rightItems);
-
-                            renderLines(leftLines, leftContainer, 0);
-                            renderLines(rightLines, rightContainer, 0);  // No offset needed with clip-path
-
-                            textLayerDiv.appendChild(leftContainer);
-                            textLayerDiv.appendChild(rightContainer);
-                        } else {
-                            // Single column: group all items into lines
-                            const lines = groupIntoLines(processedItems);
-                            renderLines(lines, textLayerDiv, 0);
+                            spans.forEach(span => {
+                                const rect = span.getBoundingClientRect();
+                                const containerRect = textLayerDiv.getBoundingClientRect();
+                                const relativeX = rect.left - containerRect.left + rect.width / 2;
+                                span.dataset.column = relativeX < midpoint ? 'left' : 'right';
+                            });
                         }
                     }
 
@@ -3331,7 +3190,7 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             });
 
             // Apply mode to all text layers
-            document.querySelectorAll('.pdf-text-layer').forEach(layer => {
+            document.querySelectorAll('.textLayer').forEach(layer => {
                 layer.classList.remove('column-mode-left', 'column-mode-right');
                 if (mode === 'left') {
                     layer.classList.add('column-mode-left');
@@ -3342,8 +3201,8 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
         }
 
         function showColumnToggleIfNeeded() {
-            // Check if any text layer has column containers
-            const hasColumns = document.querySelector('.pdf-text-layer .column-container');
+            // Check if any text layer has column-marked spans
+            const hasColumns = document.querySelector('.textLayer span[data-column]');
             const toggle = document.getElementById('columnToggle');
             if (toggle) {
                 toggle.style.display = hasColumns ? 'flex' : 'none';
