@@ -1616,6 +1616,16 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             loadFeed();
             loadNotes();
 
+            // Handle URL parameters for deep linking
+            const params = new URLSearchParams(window.location.search);
+            const weekParam = params.get('week');
+            if (weekParam) {
+                const weekNum = parseInt(weekParam, 10);
+                if (weekNum >= 1 && weekNum <= 16) {
+                    goToWeek(weekNum);
+                }
+            }
+
             // Auth state
             if (db) {
                 db.auth.onAuthStateChange((event, session) => {
