@@ -558,14 +558,18 @@
             font-style: italic;
         }
 
-        /* Home Layout - Course stream on left, main content right */
+        /* Home Layout - Three columns: Schedule | Main | Sidebar */
         .home-layout {
             display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 40px;
+            grid-template-columns: 260px 1fr 320px;
+            gap: 24px;
             margin-top: 30px;
         }
-        @media (max-width: 1000px) {
+        @media (max-width: 1200px) {
+            .home-layout { grid-template-columns: 240px 1fr; }
+            .home-sidebar { display: none; }
+        }
+        @media (max-width: 900px) {
             .home-layout { grid-template-columns: 1fr; }
             .course-stream-sidebar { display: none; }
         }
@@ -650,6 +654,16 @@
             display: flex;
             flex-direction: column;
             gap: 24px;
+            min-width: 0;
+        }
+
+        .home-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .home-sidebar .activity-card {
+            flex-shrink: 0;
         }
 
         .activity-sidebar {
@@ -1938,9 +1952,25 @@
                         </div>
                     </div>
 
-                    <!-- Main Content -->
+                    <!-- Center: Current Week + Discussion -->
                     <div class="home-main">
-                        <!-- Orientation -->
+                        <!-- Current Week (Featured) -->
+                        <div class="current-week" id="currentWeekCard">
+                            <!-- Populated by JS -->
+                        </div>
+
+                        <!-- Recent Discussion -->
+                        <div class="home-section">
+                            <h3><span class="icon">💬</span> Recent Discussion</h3>
+                            <div id="recentPosts">
+                                <div class="empty-state">No posts yet. Be the first to share your thoughts.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Sidebar: Getting Started + Activity -->
+                    <div class="home-sidebar">
+                        <!-- Getting Started -->
                         <div class="activity-card orientation-card">
                             <div class="activity-card-header" onclick="toggleOrientation()" style="cursor: pointer;">
                                 <span class="icon">🧭</span> Getting Started
@@ -1949,46 +1979,26 @@
                             <div class="activity-card-body" id="orientationBody">
                                 <div class="orientation-section">
                                     <h4>Read</h4>
-                                    <p>Browse readings by week in the left sidebar. Select text to create annotations visible to the group.</p>
+                                    <p>Browse readings by week. Select text to annotate.</p>
                                 </div>
                                 <div class="orientation-section">
                                     <h4>Notes</h4>
-                                    <p>Write private notes as you read. Use <code>[[Week 1]]</code> to link to readings. Publish to share with the group.</p>
+                                    <p>Write private notes. Use <code>[[Week 1]]</code> to link readings.</p>
                                 </div>
                                 <div class="orientation-section">
                                     <h4>Discuss</h4>
-                                    <p>Post essays, questions, or responses. Comment and react to others' posts.</p>
-                                </div>
-                                <div class="orientation-section">
-                                    <h4>Tips</h4>
-                                    <ul>
-                                        <li>Zoom: use <strong>+/−</strong> buttons or <kbd>⌘+</kbd>/<kbd>⌘−</kbd> to zoom; <kbd>⌘0</kbd> fits width</li>
-                                        <li>Two-column PDFs: use <strong>Left/Right</strong> toggle to select one column</li>
-                                        <li>Fullscreen hides sidebars for focused reading</li>
-                                        <li>Split view: compare readings side-by-side</li>
-                                    </ul>
+                                    <p>Post essays and respond to others.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Current Week -->
-                        <div class="current-week" id="currentWeekCard">
-                            <!-- Populated by JS -->
-                        </div>
-
-                        <!-- Recent Activity Grid -->
-                        <div class="home-grid">
-                            <div class="home-section">
-                                <h3><span class="icon">💬</span> Recent Discussion</h3>
-                                <div id="recentPosts">
-                                    <div class="empty-state">No posts yet. Be the first to share your thoughts.</div>
-                                </div>
+                        <!-- Recent Activity -->
+                        <div class="activity-card">
+                            <div class="activity-card-header">
+                                <span class="icon">⚡</span> Recent Activity
                             </div>
-                            <div class="home-section">
-                                <h3><span class="icon">⚡</span> Recent Activity</h3>
-                                <div id="activityStream">
-                                    <div class="empty-state">Activity from the group will appear here.</div>
-                                </div>
+                            <div class="activity-card-body" id="activityStream">
+                                <div class="empty-state">Activity from the group will appear here.</div>
                             </div>
                         </div>
                     </div>
@@ -2919,7 +2929,7 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             let html = '';
             schedule.forEach(unit => {
                 // Unit header
-                html += `<div class="course-unit-header">${unit.name}</div>`;
+                html += `<div class="course-unit-header">${unit.unit}</div>`;
 
                 // Weeks in unit
                 unit.weeks.forEach(week => {
