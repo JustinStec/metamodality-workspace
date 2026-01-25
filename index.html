@@ -760,6 +760,7 @@
             display: none;
             height: 100%;
             flex-direction: row;
+            overflow: hidden; /* Prevent any child overflow */
         }
         .read-view.active { display: flex; }
 
@@ -992,18 +993,16 @@
         }
         .read-view.fullscreen .annotations-panel {
             position: absolute;
-            right: 12px;
-            top: 62px;
-            bottom: 12px;
+            right: 0;
+            top: 50px;
+            bottom: 0;
             width: 400px;
             z-index: 10;
-            margin: 0;
-            border-radius: 12px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 1px solid var(--border);
+            box-shadow: -4px 0 16px rgba(0,0,0,0.1);
         }
         .read-view.fullscreen .annotations-panel.collapsed {
             width: 50px;
-            border-radius: 12px;
         }
         .read-view.fullscreen .annotations-panel.collapsed .annotations-list,
         .read-view.fullscreen .annotations-panel.collapsed .annotation-form { display: none; }
@@ -1170,22 +1169,18 @@
         .pdf-empty-icon { font-size: 48px; opacity: 0.5; }
 
         .annotations-panel {
-            width: 420px;
+            width: 400px;
             background: var(--bg-panel);
-            border-left: none;
+            border-left: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
-            transition: width 0.2s ease, margin 0.2s ease;
-            margin: 12px;
-            margin-left: 0;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
+            transition: width 0.2s ease;
+            box-shadow: -2px 0 8px rgba(0,0,0,0.04);
             overflow: hidden;
         }
         .annotations-panel.collapsed {
             width: 50px;
-            border-radius: 12px;
         }
         .annotations-panel.collapsed .annotations-list,
         .annotations-panel.collapsed .annotation-form,
