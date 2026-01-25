@@ -903,8 +903,7 @@
 
         .pdf-viewer {
             flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
+            overflow: auto;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -913,13 +912,11 @@
         }
         .pdf-viewer canvas {
             box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            max-width: 100%;
-            height: auto;
+            display: block;
         }
         .pdf-page-container {
             position: relative;
-            max-width: 100%;
-            display: inline-block;
+            transform-origin: top center;
         }
         .pdf-text-layer {
             position: absolute;
@@ -2609,6 +2606,19 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 canvas.width = viewport.width;
 
                 await page.render({ canvasContext: context, viewport }).promise;
+
+                // Scale page to fit viewer width
+                const pageContainer = canvas.parentElement;
+                const viewer = document.getElementById('pdfViewer');
+                const availableWidth = viewer.clientWidth - 60; // Account for padding
+                if (viewport.width > availableWidth) {
+                    const scaleFactor = availableWidth / viewport.width;
+                    pageContainer.style.transform = `scale(${scaleFactor})`;
+                    pageContainer.style.marginBottom = `-${viewport.height * (1 - scaleFactor)}px`;
+                } else {
+                    pageContainer.style.transform = '';
+                    pageContainer.style.marginBottom = '';
+                }
 
                 // Render text layer for selection
                 if (textLayerDiv) {
