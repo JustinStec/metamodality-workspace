@@ -880,6 +880,7 @@
             flex-direction: column;
             background: #525659;
             min-width: 0;
+            overflow: hidden; /* Keep PDF bounded, let pdf-viewer handle scroll */
         }
         .pdf-header {
             padding: 12px 20px;
@@ -991,14 +992,19 @@
         }
         .read-view.fullscreen .annotations-panel {
             position: absolute;
-            right: 0;
-            top: 50px;
-            bottom: 0;
-            width: 450px;
+            right: 12px;
+            top: 62px;
+            bottom: 12px;
+            width: 400px;
             z-index: 10;
-            box-shadow: -4px 0 20px rgba(0,0,0,0.2);
+            margin: 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1);
         }
-        .read-view.fullscreen .annotations-panel.collapsed { width: 40px; }
+        .read-view.fullscreen .annotations-panel.collapsed {
+            width: 50px;
+            border-radius: 12px;
+        }
         .read-view.fullscreen .annotations-panel.collapsed .annotations-list,
         .read-view.fullscreen .annotations-panel.collapsed .annotation-form { display: none; }
 
@@ -1164,16 +1170,22 @@
         .pdf-empty-icon { font-size: 48px; opacity: 0.5; }
 
         .annotations-panel {
-            width: 480px;
+            width: 420px;
             background: var(--bg-panel);
-            border-left: 1px solid var(--border);
+            border-left: none;
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
-            transition: width 0.2s ease;
+            transition: width 0.2s ease, margin 0.2s ease;
+            margin: 12px;
+            margin-left: 0;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
+            overflow: hidden;
         }
         .annotations-panel.collapsed {
             width: 50px;
+            border-radius: 12px;
         }
         .annotations-panel.collapsed .annotations-list,
         .annotations-panel.collapsed .annotation-form,
