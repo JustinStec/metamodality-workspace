@@ -2683,7 +2683,14 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
         }
 
         // Start
-        init();
+        console.log('Metamodality: Starting init...');
+        try {
+            init();
+            console.log('Metamodality: Init completed successfully');
+        } catch (e) {
+            console.error('Metamodality: Init failed:', e);
+            alert('Init error: ' + e.message);
+        }
     </script>
 </body>
 </html>
