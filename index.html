@@ -1047,19 +1047,15 @@
         .pdf-viewer canvas {
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
             display: block;
-            max-width: calc(100% - 40px); /* Account for padding */
-            height: auto;
         }
         .pdf-page-container {
             position: relative;
-            max-width: calc(100% - 40px);
+            flex-shrink: 0;
         }
         .pdf-text-layer {
             position: absolute;
             left: 0;
             top: 0;
-            right: 0;
-            bottom: 0;
             overflow: hidden;
             line-height: 1;
             z-index: 2;
@@ -3037,20 +3033,25 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 const context = canvas.getContext('2d');
                 const textLayerDiv = document.getElementById('text-layer-' + num);
 
-                // Render at high quality, CSS max-width handles containment
-                const scale = 2.0 * currentZoom;
+                // Calculate scale to fit available width (no CSS scaling needed)
+                const viewer = document.getElementById('pdfViewer');
+                const availableWidth = viewer.clientWidth - 60; // Account for padding
+                const baseViewport = page.getViewport({ scale: 1.0 });
+                const fitScale = availableWidth / baseViewport.width;
+                const scale = fitScale * currentZoom;
+
                 const viewport = page.getViewport({ scale });
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
 
                 await page.render({ canvasContext: context, viewport }).promise;
 
-                // Clear any transform - we're rendering at the right size directly
+                // Set container to exact canvas size - no CSS scaling
                 const pageContainer = canvas.parentElement;
-                pageContainer.style.transform = '';
-                pageContainer.style.marginBottom = '';
+                pageContainer.style.width = viewport.width + 'px';
+                pageContainer.style.height = viewport.height + 'px';
 
-                // Render text layer for selection
+                // Render text layer at exact same size
                 if (textLayerDiv) {
                     textLayerDiv.innerHTML = '';
                     textLayerDiv.style.width = viewport.width + 'px';
