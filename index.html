@@ -881,37 +881,42 @@
             flex-direction: column;
             background: #525659;
             min-width: 0;
-            overflow: hidden; /* Keep PDF bounded, let pdf-viewer handle scroll */
+            overflow: hidden;
         }
         .pdf-header {
-            padding: 12px 20px;
+            padding: 10px 15px;
             background: var(--bg-panel);
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-shrink: 0;
         }
         .pdf-title {
             font-size: 14px;
             font-weight: 500;
             color: var(--text-bright);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 300px;
         }
         .pdf-controls {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         .pdf-controls button {
             background: var(--bg-dark);
             border: 1px solid var(--border);
-            padding: 6px 12px;
+            padding: 5px 10px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 12px;
         }
         .pdf-controls button:hover { background: var(--highlight); }
         .pdf-controls span { font-size: 12px; color: var(--text-muted); }
-        .fullscreen-btn { margin-left: auto; }
+        .fullscreen-btn { margin-left: 8px; }
 
         .zoom-controls {
             display: flex;
@@ -988,8 +993,8 @@
         .read-view.fullscreen .read-sidebar { display: none; }
         .read-view.fullscreen .pdf-container { flex: 1; }
         .read-view.fullscreen .pdf-viewer {
-            align-items: flex-start;
-            padding: 20px 40px;
+            align-items: center;
+            padding: 20px;
         }
         .read-view.fullscreen .annotations-panel {
             position: absolute;
@@ -1012,17 +1017,19 @@
             overflow: auto;
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            padding: 20px 20px 20px 40px;
-            gap: 15px;
+            align-items: center;
+            padding: 20px;
+            gap: 10px;
+            background: #e8e4dc;
         }
         .pdf-viewer canvas {
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
             display: block;
+            max-width: 100%;
         }
         .pdf-page-container {
             position: relative;
-            transform-origin: top left;
+            max-width: 100%;
         }
         .pdf-text-layer {
             position: absolute;
@@ -2862,8 +2869,7 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             currentReading = readingId;
             pdfHasText = false; // Reset for new PDF
 
-            // Reset zoom to fit-width mode for new PDF
-            zoomMode = 'fit';
+            // Reset zoom for new PDF
             currentZoom = 1.0;
             updateZoomDisplay();
 
@@ -2944,34 +2950,29 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             }
         }
 
-        // Zoom state
-        let currentZoom = 1.0; // 1.0 = fit width
-        let zoomMode = 'fit'; // 'fit' or 'manual'
+        // Zoom state - simple percentage-based zoom
+        let currentZoom = 1.0;
         const ZOOM_STEP = 0.25;
         const MIN_ZOOM = 0.5;
-        const MAX_ZOOM = 3.0;
+        const MAX_ZOOM = 2.5;
 
         function updateZoomDisplay() {
-            const zoomPercent = Math.round(currentZoom * 100);
-            document.getElementById('zoomLevel').textContent = zoomMode === 'fit' ? 'Fit' : zoomPercent + '%';
+            document.getElementById('zoomLevel').textContent = Math.round(currentZoom * 100) + '%';
         }
 
         function zoomIn() {
-            zoomMode = 'manual';
             currentZoom = Math.min(MAX_ZOOM, currentZoom + ZOOM_STEP);
             updateZoomDisplay();
             rerenderAllPages();
         }
 
         function zoomOut() {
-            zoomMode = 'manual';
             currentZoom = Math.max(MIN_ZOOM, currentZoom - ZOOM_STEP);
             updateZoomDisplay();
             rerenderAllPages();
         }
 
         function fitWidth() {
-            zoomMode = 'fit';
             currentZoom = 1.0;
             updateZoomDisplay();
             rerenderAllPages();
@@ -3012,17 +3013,8 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 const context = canvas.getContext('2d');
                 const textLayerDiv = document.getElementById('text-layer-' + num);
 
-                // Calculate fit-width scale as baseline
-                const viewer = document.getElementById('pdfViewer');
-                const availableWidth = viewer.clientWidth - 40; // Less padding for better use of space
-                const baseViewport = page.getViewport({ scale: 1.0 });
-                const fitWidthScale = availableWidth / baseViewport.width;
-
-                // Apply user zoom: in 'fit' mode use fitWidthScale, in 'manual' mode multiply by currentZoom
-                const scale = zoomMode === 'fit'
-                    ? fitWidthScale
-                    : fitWidthScale * currentZoom;
-
+                // Render at high quality, CSS max-width handles containment
+                const scale = 2.0 * currentZoom;
                 const viewport = page.getViewport({ scale });
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
