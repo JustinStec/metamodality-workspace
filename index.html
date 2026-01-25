@@ -436,9 +436,62 @@
             gap: 8px;
         }
         .activity-card-header .icon { font-size: 14px; }
+        .activity-card-header .toggle-icon {
+            margin-left: auto;
+            font-size: 10px;
+            transition: transform 0.2s;
+        }
+        .activity-card-header .toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
         .activity-card-body {
             max-height: 280px;
             overflow-y: auto;
+        }
+        .activity-card-body.collapsed {
+            display: none;
+        }
+
+        /* Orientation card */
+        .orientation-card .activity-card-body {
+            max-height: none;
+            padding: 0;
+        }
+        .orientation-section {
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+        .orientation-section:last-child {
+            border-bottom: none;
+        }
+        .orientation-section h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 6px;
+        }
+        .orientation-section p {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text);
+            margin: 0;
+        }
+        .orientation-section code {
+            background: var(--bg-dark);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: var(--accent);
+        }
+        .orientation-section ul {
+            margin: 0;
+            padding-left: 18px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text);
+        }
+        .orientation-section li {
+            margin-bottom: 4px;
         }
 
         .stream-item {
@@ -888,6 +941,13 @@
         }
         .read-view.fullscreen .read-sidebar { display: none; }
         .read-view.fullscreen .pdf-container { flex: 1; }
+        .read-view.fullscreen .pdf-viewer {
+            align-items: flex-start;
+            padding: 20px 40px;
+        }
+        .read-view.fullscreen .pdf-page-container {
+            margin: 0 auto;
+        }
         .read-view.fullscreen .annotations-panel {
             position: absolute;
             right: 0;
@@ -947,16 +1007,18 @@
             top: 0;
             bottom: 0;
             pointer-events: auto;
-            user-select: text;
-            -webkit-user-select: text;
+            user-select: contain;
+            -webkit-user-select: contain;
         }
         .pdf-text-layer .column-container.left-column {
             left: 0;
             right: 50%;
+            clip-path: inset(0 50% 0 0);
         }
         .pdf-text-layer .column-container.right-column {
-            left: 50%;
+            left: 0;
             right: 0;
+            clip-path: inset(0 0 0 50%);
         }
         .pdf-text-layer .column-container > span {
             color: transparent;
@@ -1519,6 +1581,36 @@
                     </div>
 
                     <div class="activity-sidebar">
+                        <!-- Getting Started -->
+                        <div class="activity-card orientation-card">
+                            <div class="activity-card-header" onclick="toggleOrientation()" style="cursor: pointer;">
+                                <span class="icon">🧭</span> Getting Started
+                                <span class="toggle-icon" id="orientationToggle">▼</span>
+                            </div>
+                            <div class="activity-card-body" id="orientationBody">
+                                <div class="orientation-section">
+                                    <h4>Read</h4>
+                                    <p>Browse readings by week in the left sidebar. Select text to create annotations visible to the group.</p>
+                                </div>
+                                <div class="orientation-section">
+                                    <h4>Notes</h4>
+                                    <p>Write private notes as you read. Use <code>[[Week 1]]</code> to link to readings. Publish to share with the group.</p>
+                                </div>
+                                <div class="orientation-section">
+                                    <h4>Discuss</h4>
+                                    <p>Post essays, questions, or responses. Comment and react to others' posts.</p>
+                                </div>
+                                <div class="orientation-section">
+                                    <h4>Tips</h4>
+                                    <ul>
+                                        <li>Two-column PDFs: use <strong>Left/Right</strong> toggle to select one column</li>
+                                        <li>Fullscreen hides sidebars for focused reading</li>
+                                        <li>Split view: compare readings side-by-side</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Upcoming Weeks -->
                         <div class="activity-card">
                             <div class="activity-card-header">
@@ -2557,6 +2649,13 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             }
         }
 
+        function toggleOrientation() {
+            const body = document.getElementById('orientationBody');
+            const toggle = document.getElementById('orientationToggle');
+            body.classList.toggle('collapsed');
+            toggle.classList.toggle('collapsed');
+        }
+
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
         async function loadReading(readingId) {
@@ -2793,7 +2892,7 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                             const rightLines = groupIntoLines(rightItems);
 
                             renderLines(leftLines, leftContainer, 0);
-                            renderLines(rightLines, rightContainer, midpoint);
+                            renderLines(rightLines, rightContainer, 0);  // No offset needed with clip-path
 
                             textLayerDiv.appendChild(leftContainer);
                             textLayerDiv.appendChild(rightContainer);
@@ -2903,11 +3002,11 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                             leftContainer.appendChild(span);
                         });
 
-                        // Render right column (adjust x position relative to container)
+                        // Render right column (no offset needed with clip-path)
                         rightWords.forEach(word => {
                             const span = document.createElement('span');
                             span.textContent = word.text + ' ';
-                            span.style.left = (word.x - midpoint) + 'px';
+                            span.style.left = word.x + 'px';
                             span.style.top = word.y + 'px';
                             span.style.fontSize = word.height * 0.8 + 'px';
                             span.style.letterSpacing = '0.5px';
