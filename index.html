@@ -2772,14 +2772,18 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
 
                 await page.render({ canvasContext: context, viewport }).promise;
 
-                // Scale page to fit viewer width
+                // Scale page to fill available width
                 const pageContainer = canvas.parentElement;
                 const viewer = document.getElementById('pdfViewer');
                 const availableWidth = viewer.clientWidth - 60; // Account for padding
-                if (viewport.width > availableWidth) {
-                    const scaleFactor = availableWidth / viewport.width;
-                    pageContainer.style.transform = `scale(${scaleFactor})`;
-                    pageContainer.style.marginBottom = `-${viewport.height * (1 - scaleFactor)}px`;
+                const targetWidth = availableWidth * 0.95; // Use 95% of available width
+                const scaleFactor = targetWidth / viewport.width;
+                // Cap scale between 0.5x and 1.5x to keep readable
+                const clampedScale = Math.min(1.5, Math.max(0.5, scaleFactor));
+                if (Math.abs(clampedScale - 1) > 0.05) { // Only transform if meaningful difference
+                    pageContainer.style.transform = `scale(${clampedScale})`;
+                    pageContainer.style.transformOrigin = 'top center';
+                    pageContainer.style.marginBottom = `-${viewport.height * (1 - clampedScale)}px`;
                 } else {
                     pageContainer.style.transform = '';
                     pageContainer.style.marginBottom = '';
