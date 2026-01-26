@@ -3776,7 +3776,7 @@ Type @ to link a reading."></textarea>
         function showSearchResults(results, query) {
             // Create modal for search results
             const modal = document.createElement('div');
-            modal.className = 'modal-overlay';
+            modal.className = 'modal-overlay active';
             modal.innerHTML = `
                 <div class="modal" style="max-width: 600px;">
                     <div class="modal-header">
@@ -3870,7 +3870,7 @@ Type @ to link a reading."></textarea>
 
             if (matchingWeeks.length > 0 && activeTagFilter) {
                 const modal = document.createElement('div');
-                modal.className = 'modal-overlay';
+                modal.className = 'modal-overlay active';
                 modal.innerHTML = `
                     <div class="modal" style="max-width: 500px;">
                         <div class="modal-header">
