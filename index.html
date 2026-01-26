@@ -525,6 +525,38 @@
             text-align: left;
             margin-bottom: 16px;
         }
+        .welcome-banner {
+            background: linear-gradient(135deg, #da7756 0%, #c4684a 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+        .welcome-banner h3 {
+            margin: 0 0 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .welcome-banner p {
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            opacity: 0.95;
+        }
+        .welcome-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.7;
+            line-height: 1;
+        }
+        .welcome-close:hover { opacity: 1; }
         .course-description-module {
             background: var(--bg-panel);
             border-radius: 12px;
@@ -2904,6 +2936,12 @@
                         but nothing is not.
                     </div>
                     <p class="epigraph-source">— Parmenides, Fr. 6.1–2 (Kingsley trans.)</p>
+                </div>
+
+                <div class="welcome-banner" id="welcomeBanner" style="display: none;">
+                    <button class="welcome-close" onclick="dismissWelcome()">&times;</button>
+                    <h3>Welcome to Metamodality!</h3>
+                    <p>The workspace is now live. Browse the weekly readings, annotate passages with the group, take private notes, and join the discussion. We look forward to exploring the forms of the possible together.</p>
                 </div>
 
                 <div class="course-description-module">
@@ -6866,6 +6904,22 @@ Type @ to link a reading."></textarea>
             }
         }
 
+        function showWelcomeBanner() {
+            const banner = document.getElementById('welcomeBanner');
+            const dismissed = localStorage.getItem('metamodality_welcome_dismissed');
+            if (banner && !dismissed) {
+                banner.style.display = 'block';
+            }
+        }
+
+        function dismissWelcome() {
+            const banner = document.getElementById('welcomeBanner');
+            if (banner) {
+                banner.style.display = 'none';
+                localStorage.setItem('metamodality_welcome_dismissed', 'true');
+            }
+        }
+
         function updateAuthUI(user) {
             const btn = document.getElementById('authBtn');
             const authGate = document.getElementById('authGate');
@@ -6873,6 +6927,7 @@ Type @ to link a reading."></textarea>
             if (user) {
                 // Hide auth gate, show app
                 authGate.classList.add('hidden');
+                showWelcomeBanner();
                 if (btn) {
                     btn.outerHTML = `<div class="user-avatar" onclick="signOut()" title="Sign out">${user.email[0].toUpperCase()}</div>`;
                 }
