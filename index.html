@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Metamodality — Reading Group</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
 
     <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -3055,11 +3056,11 @@
 
             <p class="auth-gate-cta">Sign in with your email to access the workspace.</p>
 
-            <div class="auth-gate-form">
-                <input type="email" id="gateEmail" placeholder="your@email.edu">
-                <input type="password" id="gatePassword" placeholder="Password (if set)" style="display: none;">
-                <button class="btn" id="gateSubmitBtn" onclick="handleGateLogin()">Magic Link</button>
-            </div>
+            <form class="auth-gate-form" onsubmit="event.preventDefault(); handleGateLogin();" autocomplete="on">
+                <input type="email" id="gateEmail" name="email" autocomplete="email" placeholder="your@email.edu">
+                <input type="password" id="gatePassword" name="password" autocomplete="current-password" placeholder="Password (if set)" style="display: none;">
+                <button type="submit" class="btn" id="gateSubmitBtn">Magic Link</button>
+            </form>
             <div style="margin-top: 0.75rem;">
                 <button onclick="toggleLoginMode()" style="background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.85rem;" id="toggleLoginBtn">Have a password? Sign in with password</button>
             </div>
@@ -3617,26 +3618,28 @@ Type @ to link a reading."></textarea>
             <h3>Your Profile</h3>
             <p style="color: var(--text-muted); margin-bottom: 1rem;">Choose how you appear to others.</p>
             <div class="message" id="profileMessage" style="display: none;"></div>
-            <div style="margin-bottom: 1rem;">
-                <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Username</label>
-                <input type="text" id="profileUsername" placeholder="yourname" style="width: 100%;" maxlength="30">
-                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Letters, numbers, and underscores only</div>
-            </div>
-            <div style="margin-bottom: 1rem;">
-                <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Display Name (optional)</label>
-                <input type="text" id="profileDisplayName" placeholder="Your Full Name" style="width: 100%;" maxlength="50">
-            </div>
-            <hr style="border: none; border-top: 1px solid var(--border); margin: 1.25rem 0;">
-            <div style="margin-bottom: 1rem;">
-                <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Set Password (optional)</label>
-                <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.5rem;">Set a password to log in without a magic link.</p>
-                <input type="password" id="profilePassword" placeholder="New password" style="width: 100%; margin-bottom: 0.5rem;" minlength="8">
-                <input type="password" id="profilePasswordConfirm" placeholder="Confirm password" style="width: 100%;">
-            </div>
-            <div class="btn-row">
-                <button class="btn secondary" onclick="hideProfileModal()">Cancel</button>
-                <button class="btn" onclick="saveProfile()">Save</button>
-            </div>
+            <form onsubmit="event.preventDefault(); saveProfile();" autocomplete="on">
+                <div style="margin-bottom: 1rem;">
+                    <label for="profileUsername" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Username</label>
+                    <input type="text" id="profileUsername" name="username" autocomplete="username" placeholder="yourname" style="width: 100%;" maxlength="30">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Letters, numbers, and underscores only</div>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label for="profileDisplayName" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Display Name (optional)</label>
+                    <input type="text" id="profileDisplayName" name="displayName" autocomplete="name" placeholder="Your Full Name" style="width: 100%;" maxlength="50">
+                </div>
+                <hr style="border: none; border-top: 1px solid var(--border); margin: 1.25rem 0;">
+                <div style="margin-bottom: 1rem;">
+                    <label for="profilePassword" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Set Password (optional)</label>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.5rem;">Set a password to log in without a magic link.</p>
+                    <input type="password" id="profilePassword" name="new-password" autocomplete="new-password" placeholder="New password" style="width: 100%; margin-bottom: 0.5rem;" minlength="8">
+                    <input type="password" id="profilePasswordConfirm" name="confirm-password" autocomplete="new-password" placeholder="Confirm password" style="width: 100%;">
+                </div>
+                <div class="btn-row">
+                    <button type="button" class="btn secondary" onclick="hideProfileModal()">Cancel</button>
+                    <button type="submit" class="btn">Save</button>
+                </div>
+            </form>
         </div>
     </div>
 
