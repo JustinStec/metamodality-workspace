@@ -3922,6 +3922,19 @@ Type @ to link a reading."></textarea>
                 }
             }
 
+            // Check for password recovery in URL hash (runs before auth state change)
+            if (window.location.hash) {
+                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                const type = hashParams.get('type');
+                console.log('URL hash type:', type);
+                if (type === 'recovery') {
+                    // Show password reset modal after a brief delay to let Supabase process the token
+                    setTimeout(() => {
+                        showPasswordResetModal();
+                    }, 500);
+                }
+            }
+
             // Auth state with whitelist check
             if (db) {
                 db.auth.onAuthStateChange(async (event, session) => {
