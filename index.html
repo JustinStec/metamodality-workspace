@@ -2700,7 +2700,47 @@
         .auth-gate-cta {
             color: var(--text-muted);
             font-size: 0.9rem;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            max-width: 360px;
+            margin: 0 auto;
+            padding: 12px 24px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-google:hover {
+            background: var(--bg-hover);
+            border-color: var(--text-muted);
+        }
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            max-width: 360px;
+            margin: 1.5rem auto;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        .auth-divider span {
+            padding: 0 1rem;
         }
         .auth-gate-form {
             display: flex;
@@ -2811,14 +2851,28 @@
                 <div class="feature">💬 Discuss with the group</div>
             </div>
 
-            <p class="auth-gate-cta">Sign in with your email to access the workspace.</p>
+            <p class="auth-gate-cta">Sign in to access the workspace.</p>
+
+            <button class="btn-google" onclick="signInWithGoogle()">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                    <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
+                    <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+                </svg>
+                Continue with Google
+            </button>
+
+            <div class="auth-divider">
+                <span>or</span>
+            </div>
 
             <div class="auth-gate-form">
                 <input type="email" id="gateEmail" placeholder="your@email.edu">
-                <button class="btn" onclick="sendGateMagicLink()">Send Magic Link</button>
+                <button class="btn" onclick="sendGateMagicLink()">Magic Link</button>
             </div>
             <div class="auth-gate-message" id="gateMessage"></div>
-            <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">Rate limited? Click the title 3 times to continue as guest.</p>
+            <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">Click the title 3 times to continue as guest.</p>
         </div>
     </div>
 
@@ -6764,6 +6818,29 @@ Type @ to link a reading."></textarea>
                 bypassClickCount = 0;
             } else {
                 bypassClickTimer = setTimeout(() => { bypassClickCount = 0; }, 1000);
+            }
+        }
+
+        async function signInWithGoogle() {
+            const msgEl = document.getElementById('gateMessage');
+
+            if (db) {
+                try {
+                    const { error } = await db.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: {
+                            redirectTo: window.location.origin + window.location.pathname
+                        }
+                    });
+
+                    if (error) throw error;
+                } catch (e) {
+                    msgEl.className = 'auth-gate-message error';
+                    msgEl.textContent = 'Error: ' + e.message;
+                }
+            } else {
+                msgEl.className = 'auth-gate-message error';
+                msgEl.textContent = 'Database not configured.';
             }
         }
 
