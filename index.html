@@ -3632,7 +3632,7 @@ Type @ to link a reading."></textarea>
                 </div>
                 <hr style="border: none; border-top: 1px solid var(--border); margin: 1.25rem 0;">
                 <div style="margin-bottom: 1rem;">
-                    <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Password Login</label>
+                    <span style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Password Login</span>
                     <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.5rem;">Set up a password to log in without a magic link.</p>
                     <button type="button" class="btn secondary" onclick="sendPasswordSetupEmail()" id="passwordSetupBtn" style="width: 100%;">
                         Send password setup email
@@ -3654,6 +3654,8 @@ Type @ to link a reading."></textarea>
             <p style="color: var(--text-muted); margin-bottom: 1rem;">Create a password to log in without a magic link.</p>
             <div class="message" id="passwordResetMessage" style="display: none;"></div>
             <form onsubmit="event.preventDefault(); submitNewPassword();" autocomplete="on">
+                <!-- Hidden username for accessibility -->
+                <input type="text" name="username" autocomplete="username" style="display: none;" aria-hidden="true">
                 <div style="margin-bottom: 1rem;">
                     <label for="newPassword" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">New Password</label>
                     <input type="password" id="newPassword" name="new-password" autocomplete="new-password" placeholder="Enter password" style="width: 100%;" minlength="8">
