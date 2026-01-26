@@ -114,6 +114,64 @@
         }
         .status-dot.connected { background: var(--success); }
 
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .search-box input {
+            width: 200px;
+            padding: 7px 12px 7px 32px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-dark);
+            color: var(--text);
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--bg-panel);
+        }
+        .search-box .search-icon {
+            position: absolute;
+            left: 10px;
+            font-size: 12px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .search-result-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .search-result-item:hover {
+            background: var(--highlight);
+        }
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        .search-result-type {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+        .search-result-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-bright);
+            margin-bottom: 4px;
+        }
+        .search-result-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
         .btn {
             background: var(--accent);
             color: white;
@@ -272,12 +330,6 @@
             background: var(--bg-sidebar);
             flex-shrink: 0;
         }
-        .split-readings-sidebar::after {
-            content: '';
-            display: block;
-            height: calc(100% - 50px);
-            min-height: 200px;
-        }
         .split-readings-header {
             padding: 12px;
             font-size: 11px;
@@ -383,12 +435,6 @@
             flex: 1;
             overflow-y: auto;
         }
-        .split-annotations-list::after {
-            content: '';
-            display: block;
-            height: calc(100% - 50px);
-            min-height: 150px;
-        }
         .split-btn {
             background: var(--bg-dark);
             border: 1px solid var(--border);
@@ -421,9 +467,9 @@
         .home-hero {
             margin-bottom: 24px;
             padding: 30px;
-            background: linear-gradient(135deg, rgba(139,90,43,0.08) 0%, rgba(101,67,33,0.04) 100%);
+            background: var(--bg-panel);
             border-radius: 12px;
-            border: 1px solid rgba(139,90,43,0.15);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -471,6 +517,139 @@
             line-height: 1.7;
             color: var(--text);
             margin: 0;
+        }
+
+        /* Meeting Info Bar */
+        .meeting-info-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 12px 20px;
+            background: var(--bg-panel);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 24px;
+            font-size: 13px;
+        }
+        .meeting-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+        }
+        .meeting-info-item .icon {
+            font-size: 14px;
+        }
+        .meeting-info-item .label {
+            color: var(--text-muted);
+        }
+
+        /* Progress Bar */
+        .semester-progress {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            padding: 16px 20px;
+            margin-bottom: 24px;
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .progress-header .label {
+            color: var(--text-muted);
+        }
+        .progress-header .value {
+            font-weight: 600;
+            color: var(--accent);
+        }
+        .progress-bar {
+            height: 8px;
+            background: var(--bg-dark);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #e8a87c);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Next Week Preview */
+        .next-week-preview {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid var(--text-muted);
+            opacity: 0.85;
+        }
+        .next-week-preview:hover {
+            opacity: 1;
+        }
+        .next-week-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .next-week-preview h3 {
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            font-size: 18px;
+            font-weight: normal;
+            color: var(--text-bright);
+            margin-bottom: 8px;
+        }
+        .next-week-preview .focus {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Workshop Card */
+        .workshop-card {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        .workshop-card-header {
+            padding: 15px 18px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-bright);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 12px 12px 0 0;
+            background: var(--bg-panel);
+        }
+        .workshop-card-body {
+            padding: 0;
+        }
+        .workshop-item {
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+        .workshop-item:last-child {
+            border-bottom: none;
+        }
+        .workshop-item .unit {
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .workshop-item .dates {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 2px;
         }
 
         .current-week {
@@ -560,12 +739,6 @@
             border-radius: 0 0 12px 12px;
             background: var(--bg-panel);
         }
-        .home-section > div::after {
-            content: '';
-            display: block;
-            height: calc(100% - 50px);
-            min-height: 150px;
-        }
 
         .activity-item {
             padding: 12px 20px;
@@ -639,12 +812,6 @@
             padding: 8px 0;
             border-radius: 0 0 12px 12px;
             background: var(--bg-panel);
-        }
-        .course-stream-body::after {
-            content: '';
-            display: block;
-            height: calc(100% - 60px);
-            min-height: 200px;
         }
         .course-week-item {
             padding: 10px 18px;
@@ -739,12 +906,6 @@
             overflow-y: auto;
             border-radius: 0 0 12px 12px;
             background: var(--bg-panel);
-        }
-        .activity-card-body::after {
-            content: '';
-            display: block;
-            height: calc(100% - 50px);
-            min-height: 150px;
         }
         .activity-card-body.collapsed {
             display: none;
@@ -1954,6 +2115,10 @@
             <button class="nav-tab" data-view="write">Write</button>
         </nav>
         <div class="header-right">
+            <div class="search-box">
+                <input type="text" id="globalSearch" placeholder="Search readings, notes..." onkeyup="handleSearch(event)">
+                <span class="search-icon">🔍</span>
+            </div>
             <button class="split-btn" id="splitBtn" onclick="toggleSplitView()" title="Split view (⌘/)">
                 <span>⫿</span> Split
             </button>
@@ -1986,6 +2151,25 @@
                     <p>From Parmenides through contemporary set theory, thinkers have asked what it means for something to be possible. This reading group traces possibility across traditions—Greek, Islamic, Buddhist, phenomenological, pragmatist—asking how each configures the space between what is and what might be.</p>
                 </div>
 
+                <div class="meeting-info-bar">
+                    <div class="meeting-info-item">
+                        <span class="icon">👤</span>
+                        <span><span class="label">Organizers:</span> Justin Stec & Jacob Foster</span>
+                    </div>
+                    <div class="meeting-info-item">
+                        <span class="icon">📅</span>
+                        <span><span class="label">When:</span> Wednesdays, 4:00–5:30 PM</span>
+                    </div>
+                    <div class="meeting-info-item">
+                        <span class="icon">📍</span>
+                        <span><span class="label">First Meeting:</span> February 4, 2026</span>
+                    </div>
+                </div>
+
+                <div class="semester-progress" id="semesterProgress">
+                    <!-- Populated by JS -->
+                </div>
+
                 <div class="home-layout">
                     <!-- Course Stream Sidebar -->
                     <div class="course-stream-sidebar">
@@ -2003,6 +2187,11 @@
                     <div class="home-main">
                         <!-- Current Week (Featured) -->
                         <div class="current-week" id="currentWeekCard">
+                            <!-- Populated by JS -->
+                        </div>
+
+                        <!-- Next Week Preview -->
+                        <div class="next-week-preview" id="nextWeekPreview" style="cursor: pointer;">
                             <!-- Populated by JS -->
                         </div>
 
@@ -2046,6 +2235,35 @@
                             </div>
                             <div class="activity-card-body" id="activityStream">
                                 <div class="empty-state">Activity from the group will appear here.</div>
+                            </div>
+                        </div>
+
+                        <!-- Workshops -->
+                        <div class="workshop-card">
+                            <div class="workshop-card-header">
+                                <span class="icon">🛠️</span> Unit Workshops
+                            </div>
+                            <div class="workshop-card-body">
+                                <div class="workshop-item">
+                                    <div class="unit">Unit I Workshop</div>
+                                    <div class="dates">Feb 26 or 27</div>
+                                </div>
+                                <div class="workshop-item">
+                                    <div class="unit">Unit II Workshop</div>
+                                    <div class="dates">Mar 19 or 20</div>
+                                </div>
+                                <div class="workshop-item">
+                                    <div class="unit">Unit III Workshop</div>
+                                    <div class="dates">Apr 17 or 18</div>
+                                </div>
+                                <div class="workshop-item">
+                                    <div class="unit">Unit IV Workshop</div>
+                                    <div class="dates">May 7 or 8</div>
+                                </div>
+                                <div class="workshop-item">
+                                    <div class="unit">Unit V Workshop</div>
+                                    <div class="dates">May 21 or 22</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2942,6 +3160,93 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
         }
 
         // =============================================
+        // SEARCH
+        // =============================================
+
+        function handleSearch(event) {
+            if (event.key === 'Enter') {
+                const query = document.getElementById('globalSearch').value.trim().toLowerCase();
+                if (!query) return;
+
+                // Search through readings and weeks
+                const results = [];
+
+                schedule.forEach(unit => {
+                    unit.weeks.forEach(week => {
+                        // Check week title and focus
+                        if (week.title.toLowerCase().includes(query) ||
+                            week.focus.toLowerCase().includes(query)) {
+                            results.push({
+                                type: 'week',
+                                title: `Week ${week.num}: ${week.title}`,
+                                description: week.focus.substring(0, 100) + '...',
+                                action: () => goToWeek(week.num)
+                            });
+                        }
+
+                        // Check readings
+                        week.readings.forEach(r => {
+                            const titleText = r.title.replace(/<[^>]*>/g, ''); // Strip HTML
+                            if (titleText.toLowerCase().includes(query)) {
+                                results.push({
+                                    type: 'reading',
+                                    title: titleText,
+                                    description: `Week ${week.num}`,
+                                    action: () => openReading(r.id)
+                                });
+                            }
+                        });
+                    });
+                });
+
+                // Search through notes
+                notes.forEach(note => {
+                    if (note.title.toLowerCase().includes(query) ||
+                        note.content.toLowerCase().includes(query)) {
+                        results.push({
+                            type: 'note',
+                            title: note.title,
+                            description: note.content.substring(0, 80) + '...',
+                            action: () => { switchView('write'); selectNote(note.id); }
+                        });
+                    }
+                });
+
+                // Show results
+                if (results.length > 0) {
+                    showSearchResults(results, query);
+                } else {
+                    alert(`No results found for "${query}"`);
+                }
+            }
+        }
+
+        function showSearchResults(results, query) {
+            // Create modal for search results
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h3>Search Results for "${query}"</h3>
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+                    </div>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        ${results.map((r, i) => `
+                            <div class="search-result-item" onclick="searchResults[${i}].action(); this.closest('.modal-overlay').remove();">
+                                <div class="search-result-type">${r.type}</div>
+                                <div class="search-result-title">${r.title}</div>
+                                <div class="search-result-desc">${r.description}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            window.searchResults = results;
+        }
+
+        // =============================================
         // HOME VIEW
         // =============================================
 
@@ -2986,6 +3291,62 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             // Also render sidebar components
             renderCourseStream();
             renderActivityStream();
+            renderSemesterProgress();
+            renderNextWeekPreview();
+        }
+
+        function renderSemesterProgress() {
+            const container = document.getElementById('semesterProgress');
+            if (!container) return;
+
+            const totalWeeks = 16;
+            const progressPercent = Math.round((currentWeekNum / totalWeeks) * 100);
+
+            container.innerHTML = `
+                <div class="progress-header">
+                    <span class="label">Semester Progress</span>
+                    <span class="value">Week ${currentWeekNum} of ${totalWeeks}</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                </div>
+            `;
+        }
+
+        function renderNextWeekPreview() {
+            const container = document.getElementById('nextWeekPreview');
+            if (!container) return;
+
+            // Find next week
+            const nextWeekNum = currentWeekNum + 1;
+            if (nextWeekNum > 16) {
+                container.style.display = 'none';
+                return;
+            }
+
+            let nextWeek = null;
+            for (const unit of schedule) {
+                for (const week of unit.weeks) {
+                    if (week.num === nextWeekNum) {
+                        nextWeek = week;
+                        break;
+                    }
+                }
+                if (nextWeek) break;
+            }
+
+            if (!nextWeek) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+            container.onclick = () => goToWeek(nextWeekNum);
+            container.innerHTML = `
+                <div class="next-week-label">Coming Up — Week ${nextWeek.num}</div>
+                <h3>${nextWeek.title}</h3>
+                <p class="focus">${nextWeek.focus.substring(0, 150)}${nextWeek.focus.length > 150 ? '...' : ''}</p>
+            `;
         }
 
         function renderCourseStream() {
