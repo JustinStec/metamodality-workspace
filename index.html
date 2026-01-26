@@ -7623,10 +7623,13 @@ Type @ to link a reading."></textarea>
 
                 // Update password if provided
                 if (password) {
-                    const { error: pwError } = await db.auth.updateUser({ password });
+                    console.log('Attempting to update password...');
+                    const { data: pwData, error: pwError } = await db.auth.updateUser({ password });
+                    console.log('Password update response:', { data: pwData, error: pwError });
                     if (pwError) {
+                        console.error('Password update error details:', JSON.stringify(pwError, null, 2));
                         msgEl.className = 'message error';
-                        msgEl.textContent = 'Profile saved, but password update failed: ' + pwError.message;
+                        msgEl.textContent = 'Profile saved, but password update failed: ' + (pwError.message || pwError.error_description || JSON.stringify(pwError));
                         msgEl.style.display = 'block';
                         return;
                     }
