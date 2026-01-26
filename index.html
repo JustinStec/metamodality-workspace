@@ -3167,55 +3167,64 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 const query = document.getElementById('globalSearch').value.trim().toLowerCase();
                 if (!query) return;
 
+                console.log('Searching for:', query);
+
                 // Search through readings and weeks
                 const results = [];
 
-                schedule.forEach(unit => {
-                    unit.weeks.forEach(week => {
-                        // Check week title and focus
-                        if (week.title.toLowerCase().includes(query) ||
-                            week.focus.toLowerCase().includes(query)) {
-                            results.push({
-                                type: 'week',
-                                title: `Week ${week.num}: ${week.title}`,
-                                description: week.focus.substring(0, 100) + '...',
-                                action: () => goToWeek(week.num)
-                            });
-                        }
-
-                        // Check readings
-                        week.readings.forEach(r => {
-                            const titleText = r.title.replace(/<[^>]*>/g, ''); // Strip HTML
-                            if (titleText.toLowerCase().includes(query)) {
+                try {
+                    schedule.forEach(unit => {
+                        unit.weeks.forEach(week => {
+                            // Check week title and focus
+                            if ((week.title || '').toLowerCase().includes(query) ||
+                                (week.focus || '').toLowerCase().includes(query)) {
                                 results.push({
-                                    type: 'reading',
-                                    title: titleText,
-                                    description: `Week ${week.num}`,
-                                    action: () => openReading(r.id)
+                                    type: 'week',
+                                    title: `Week ${week.num}: ${week.title}`,
+                                    description: (week.focus || '').substring(0, 100) + '...',
+                                    action: () => goToWeek(week.num)
                                 });
                             }
+
+                            // Check readings
+                            (week.readings || []).forEach(r => {
+                                const titleText = (r.title || '').replace(/<[^>]*>/g, ''); // Strip HTML
+                                if (titleText.toLowerCase().includes(query)) {
+                                    results.push({
+                                        type: 'reading',
+                                        title: titleText,
+                                        description: `Week ${week.num}`,
+                                        action: () => openReading(r.id)
+                                    });
+                                }
+                            });
                         });
                     });
-                });
 
-                // Search through notes
-                notes.forEach(note => {
-                    if (note.title.toLowerCase().includes(query) ||
-                        note.content.toLowerCase().includes(query)) {
-                        results.push({
-                            type: 'note',
-                            title: note.title,
-                            description: note.content.substring(0, 80) + '...',
-                            action: () => { switchView('write'); selectNote(note.id); }
-                        });
+                    // Search through notes
+                    (notes || []).forEach(note => {
+                        if ((note.title || '').toLowerCase().includes(query) ||
+                            (note.content || '').toLowerCase().includes(query)) {
+                            results.push({
+                                type: 'note',
+                                title: note.title || 'Untitled',
+                                description: (note.content || '').substring(0, 80) + '...',
+                                action: () => { switchView('write'); selectNote(note.id); }
+                            });
+                        }
+                    });
+
+                    console.log('Search results:', results.length);
+
+                    // Show results
+                    if (results.length > 0) {
+                        showSearchResults(results, query);
+                    } else {
+                        alert(`No results found for "${query}"`);
                     }
-                });
-
-                // Show results
-                if (results.length > 0) {
-                    showSearchResults(results, query);
-                } else {
-                    alert(`No results found for "${query}"`);
+                } catch (err) {
+                    console.error('Search error:', err);
+                    alert('Search error: ' + err.message);
                 }
             }
         }
