@@ -3632,10 +3632,12 @@ Type @ to link a reading."></textarea>
                 </div>
                 <hr style="border: none; border-top: 1px solid var(--border); margin: 1.25rem 0;">
                 <div style="margin-bottom: 1rem;">
-                    <label for="profilePassword" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Set Password (optional)</label>
-                    <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.5rem;">Set a password to log in without a magic link.</p>
-                    <input type="password" id="profilePassword" name="new-password" autocomplete="new-password" placeholder="New password" style="width: 100%; margin-bottom: 0.5rem;" minlength="8">
-                    <input type="password" id="profilePasswordConfirm" name="confirm-password" autocomplete="new-password" placeholder="Confirm password" style="width: 100%;">
+                    <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Password Login</label>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.5rem;">Set up a password to log in without a magic link.</p>
+                    <button type="button" class="btn secondary" onclick="sendPasswordSetupEmail()" id="passwordSetupBtn" style="width: 100%;">
+                        Send password setup email
+                    </button>
+                    <div id="passwordSetupMessage" style="margin-top: 0.5rem; font-size: 0.8rem; display: none;"></div>
                 </div>
                 <div class="btn-row">
                     <button type="button" class="btn secondary" onclick="hideProfileModal()">Cancel</button>
@@ -7521,13 +7523,46 @@ Type @ to link a reading."></textarea>
             document.getElementById('profileMessage').style.display = 'none';
         }
 
+        async function sendPasswordSetupEmail() {
+            const msgEl = document.getElementById('passwordSetupMessage');
+            const btn = document.getElementById('passwordSetupBtn');
+
+            if (!db || !currentUser) {
+                msgEl.style.color = 'var(--error)';
+                msgEl.textContent = 'Not logged in.';
+                msgEl.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            try {
+                const { error } = await db.auth.resetPasswordForEmail(currentUser.email, {
+                    redirectTo: window.location.origin + window.location.pathname
+                });
+
+                if (error) {
+                    msgEl.style.color = 'var(--error)';
+                    msgEl.textContent = 'Failed: ' + error.message;
+                } else {
+                    msgEl.style.color = 'var(--success, #22c55e)';
+                    msgEl.textContent = 'Email sent! Check your inbox to set your password.';
+                }
+            } catch (e) {
+                msgEl.style.color = 'var(--error)';
+                msgEl.textContent = 'Error: ' + e.message;
+            }
+
+            msgEl.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Send password setup email';
+        }
+
         async function saveProfile() {
-            console.log('saveProfile called');
             const msgEl = document.getElementById('profileMessage');
             const username = document.getElementById('profileUsername').value.trim().toLowerCase();
             const displayName = document.getElementById('profileDisplayName').value.trim();
-            const password = document.getElementById('profilePassword').value;
-            const passwordConfirm = document.getElementById('profilePasswordConfirm').value;
 
             // Validate username
             if (!username) {
@@ -7549,22 +7584,6 @@ Type @ to link a reading."></textarea>
                 msgEl.textContent = 'Username must be at least 3 characters.';
                 msgEl.style.display = 'block';
                 return;
-            }
-
-            // Validate password if provided
-            if (password) {
-                if (password.length < 8) {
-                    msgEl.className = 'message error';
-                    msgEl.textContent = 'Password must be at least 8 characters.';
-                    msgEl.style.display = 'block';
-                    return;
-                }
-                if (password !== passwordConfirm) {
-                    msgEl.className = 'message error';
-                    msgEl.textContent = 'Passwords do not match.';
-                    msgEl.style.display = 'block';
-                    return;
-                }
             }
 
             if (!db || !currentUser) {
@@ -7625,68 +7644,6 @@ Type @ to link a reading."></textarea>
                     display_name: displayName || null
                 };
                 profilesCache[currentUser.id] = currentProfile;
-
-                // Update password if provided
-                if (password) {
-                    console.log('Attempting to update password...');
-
-                    // Check session first
-                    const { data: sessionData } = await db.auth.getSession();
-                    console.log('Current session:', sessionData?.session ? 'valid' : 'none');
-
-                    if (!sessionData?.session) {
-                        msgEl.className = 'message error';
-                        msgEl.textContent = 'Session expired. Please log in again to set a password.';
-                        msgEl.style.display = 'block';
-                        return;
-                    }
-
-                    // Add timeout to prevent hanging
-                    const timeoutPromise = new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Request timed out')), 10000)
-                    );
-
-                    let pwData, pwError;
-                    try {
-                        const result = await Promise.race([
-                            db.auth.updateUser({ password }),
-                            timeoutPromise
-                        ]);
-                        pwData = result.data;
-                        pwError = result.error;
-                    } catch (e) {
-                        pwError = { message: e.message };
-                    }
-
-                    console.log('Password update response:', { data: pwData, error: pwError });
-                    if (pwError) {
-                        console.error('Password update error details:', JSON.stringify(pwError, null, 2));
-                        // Try sending password reset email as fallback for magic link users
-                        const userEmail = currentUser.email;
-                        if (userEmail && confirm('Direct password update failed. Would you like to receive a password setup email instead?')) {
-                            const { error: resetError } = await db.auth.resetPasswordForEmail(userEmail, {
-                                redirectTo: window.location.origin + window.location.pathname
-                            });
-                            if (resetError) {
-                                msgEl.className = 'message error';
-                                msgEl.textContent = 'Failed to send password email: ' + resetError.message;
-                            } else {
-                                msgEl.className = 'message success';
-                                msgEl.textContent = 'Profile saved! Check your email to set your password.';
-                            }
-                        } else {
-                            msgEl.className = 'message error';
-                            msgEl.textContent = 'Profile saved, but password update failed: ' + (pwError.message || 'Please try the password reset option.');
-                        }
-                        msgEl.style.display = 'block';
-                        document.getElementById('profilePassword').value = '';
-                        document.getElementById('profilePasswordConfirm').value = '';
-                        return;
-                    }
-                    // Clear password fields
-                    document.getElementById('profilePassword').value = '';
-                    document.getElementById('profilePasswordConfirm').value = '';
-                }
 
                 // Update UI
                 updateAuthUI(currentUser);
