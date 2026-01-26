@@ -3647,6 +3647,28 @@ Type @ to link a reading."></textarea>
         </div>
     </div>
 
+    <!-- Password Reset Modal -->
+    <div class="modal-overlay" id="passwordResetModal">
+        <div class="modal" style="max-width: 400px;">
+            <h3>Set Your Password</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">Create a password to log in without a magic link.</p>
+            <div class="message" id="passwordResetMessage" style="display: none;"></div>
+            <form onsubmit="event.preventDefault(); submitNewPassword();" autocomplete="on">
+                <div style="margin-bottom: 1rem;">
+                    <label for="newPassword" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">New Password</label>
+                    <input type="password" id="newPassword" name="new-password" autocomplete="new-password" placeholder="Enter password" style="width: 100%;" minlength="8">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label for="confirmNewPassword" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Confirm Password</label>
+                    <input type="password" id="confirmNewPassword" name="confirm-password" autocomplete="new-password" placeholder="Confirm password" style="width: 100%;">
+                </div>
+                <div class="btn-row">
+                    <button type="submit" class="btn" id="setPasswordBtn">Set Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Reading Picker Modal -->
     <div class="modal-overlay" id="readingPickerModal">
         <div class="modal reading-picker-modal">
@@ -3903,6 +3925,14 @@ Type @ to link a reading."></textarea>
             // Auth state with whitelist check
             if (db) {
                 db.auth.onAuthStateChange(async (event, session) => {
+                    console.log('Auth event:', event);
+
+                    // Handle password recovery flow
+                    if (event === 'PASSWORD_RECOVERY') {
+                        showPasswordResetModal();
+                        return;
+                    }
+
                     if (session?.user) {
                         // Check if email is in whitelist
                         const allowed = await checkEmailAllowed(session.user.email);
@@ -7521,6 +7551,70 @@ Type @ to link a reading."></textarea>
         function hideProfileModal() {
             document.getElementById('profileModal').classList.remove('active');
             document.getElementById('profileMessage').style.display = 'none';
+        }
+
+        function showPasswordResetModal() {
+            document.getElementById('passwordResetModal').classList.add('active');
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+            document.getElementById('passwordResetMessage').style.display = 'none';
+        }
+
+        function hidePasswordResetModal() {
+            document.getElementById('passwordResetModal').classList.remove('active');
+        }
+
+        async function submitNewPassword() {
+            const password = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmNewPassword').value;
+            const msgEl = document.getElementById('passwordResetMessage');
+            const btn = document.getElementById('setPasswordBtn');
+
+            // Validate
+            if (!password || password.length < 8) {
+                msgEl.className = 'message error';
+                msgEl.textContent = 'Password must be at least 8 characters.';
+                msgEl.style.display = 'block';
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                msgEl.className = 'message error';
+                msgEl.textContent = 'Passwords do not match.';
+                msgEl.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Setting password...';
+
+            try {
+                const { error } = await db.auth.updateUser({ password });
+
+                if (error) {
+                    msgEl.className = 'message error';
+                    msgEl.textContent = 'Failed: ' + error.message;
+                    msgEl.style.display = 'block';
+                } else {
+                    msgEl.className = 'message success';
+                    msgEl.textContent = 'Password set successfully!';
+                    msgEl.style.display = 'block';
+
+                    // Close modal after brief delay
+                    setTimeout(() => {
+                        hidePasswordResetModal();
+                        // Clear the hash from URL
+                        history.replaceState(null, '', window.location.pathname);
+                    }, 1500);
+                }
+            } catch (e) {
+                msgEl.className = 'message error';
+                msgEl.textContent = 'Error: ' + e.message;
+                msgEl.style.display = 'block';
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Set Password';
         }
 
         async function sendPasswordSetupEmail() {
