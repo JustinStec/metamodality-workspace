@@ -2649,6 +2649,7 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             renderCurrentWeek();
             loadFeed();
             loadNotes();
+            loadAllAnnotationsForActivity();
 
             // Handle URL parameters for deep linking
             const params = new URLSearchParams(window.location.search);
@@ -4057,6 +4058,49 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
         // =============================================
         // ANNOTATIONS
         // =============================================
+
+        async function loadAllAnnotationsForActivity() {
+            // Load all recent annotations for the activity stream
+            if (db) {
+                try {
+                    const { data, error } = await db
+                        .from('annotations')
+                        .select('*')
+                        .order('created_at', { ascending: false })
+                        .limit(20);
+
+                    if (!error && data && data.length > 0) {
+                        // Group by reading_id
+                        data.forEach(a => {
+                            if (!annotations[a.reading_id]) {
+                                annotations[a.reading_id] = [];
+                            }
+                            // Avoid duplicates
+                            if (!annotations[a.reading_id].find(x => x.id === a.id)) {
+                                annotations[a.reading_id].push(a);
+                            }
+                        });
+                        renderActivityStream();
+                    }
+                } catch (e) {
+                    console.warn('Failed to load annotations for activity:', e);
+                }
+            }
+
+            // Also load from localStorage
+            const localAnnotations = JSON.parse(localStorage.getItem('metamodality_annotations') || '{}');
+            Object.entries(localAnnotations).forEach(([readingId, items]) => {
+                if (!annotations[readingId]) {
+                    annotations[readingId] = [];
+                }
+                (items || []).forEach(a => {
+                    if (!annotations[readingId].find(x => x.id === a.id)) {
+                        annotations[readingId].push(a);
+                    }
+                });
+            });
+            renderActivityStream();
+        }
 
         async function loadAnnotations(readingId) {
             // Load from localStorage first as fallback
