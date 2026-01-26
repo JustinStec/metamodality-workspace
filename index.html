@@ -7631,9 +7631,26 @@ Type @ to link a reading."></textarea>
                     console.log('Password update response:', { data: pwData, error: pwError });
                     if (pwError) {
                         console.error('Password update error details:', JSON.stringify(pwError, null, 2));
-                        msgEl.className = 'message error';
-                        msgEl.textContent = 'Profile saved, but password update failed: ' + (pwError.message || pwError.error_description || JSON.stringify(pwError));
+                        // Try sending password reset email as fallback for magic link users
+                        const userEmail = currentUser.email;
+                        if (userEmail && confirm('Direct password update failed. Would you like to receive a password setup email instead?')) {
+                            const { error: resetError } = await db.auth.resetPasswordForEmail(userEmail, {
+                                redirectTo: window.location.origin + window.location.pathname
+                            });
+                            if (resetError) {
+                                msgEl.className = 'message error';
+                                msgEl.textContent = 'Failed to send password email: ' + resetError.message;
+                            } else {
+                                msgEl.className = 'message success';
+                                msgEl.textContent = 'Profile saved! Check your email to set your password.';
+                            }
+                        } else {
+                            msgEl.className = 'message error';
+                            msgEl.textContent = 'Profile saved, but password update failed: ' + (pwError.message || 'Please try the password reset option.');
+                        }
                         msgEl.style.display = 'block';
+                        document.getElementById('profilePassword').value = '';
+                        document.getElementById('profilePasswordConfirm').value = '';
                         return;
                     }
                     // Clear password fields
