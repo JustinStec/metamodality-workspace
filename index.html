@@ -29,6 +29,8 @@
             --bg-sidebar: #eae8e4;
             --bg-panel: #ffffff;
             --bg-editor: #fffcf8;
+            --bg-secondary: #eae8e4;
+            --bg-hover: #f0ebe3;
             --border: #e0ddd5;
             --text: #3d3929;
             --text-muted: #8b8579;
@@ -91,6 +93,25 @@
         }
         .nav-tab:hover { background: var(--highlight); color: var(--text); }
         .nav-tab.active { background: var(--accent); color: white; }
+
+        /* Notification badge */
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
 
         .header-right {
             margin-left: auto;
@@ -2624,7 +2645,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: var(--bg);
+            background: rgba(61, 57, 41, 0.95);
+            backdrop-filter: blur(8px);
             z-index: 2000;
             display: flex;
             align-items: center;
@@ -2635,6 +2657,9 @@
             max-width: 480px;
             padding: 3rem;
             text-align: center;
+            background: var(--bg-panel);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         .auth-gate-content h1 {
             font-size: 2.5rem;
@@ -2772,7 +2797,7 @@
     <!-- Auth Gate (shown until user signs in) -->
     <div class="auth-gate" id="authGate">
         <div class="auth-gate-content">
-            <h1>Metamodality</h1>
+            <h1 onclick="bypassAuthGate()" style="cursor: pointer;" title="Click 3 times to bypass (dev mode)">Metamodality</h1>
             <p class="subtitle">An Inquiry into Forms of the Possible</p>
 
             <div class="auth-gate-info">
@@ -2794,6 +2819,7 @@
                 <button class="btn" onclick="sendGateMagicLink()">Send Magic Link</button>
             </div>
             <div class="auth-gate-message" id="gateMessage"></div>
+            <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">Rate limited? Click the title 3 times to continue as guest.</p>
         </div>
     </div>
 
@@ -3551,6 +3577,7 @@ Type @ to link a reading."></textarea>
             loadNotes();
             loadDrafts();
             loadAllAnnotationsForActivity();
+            loadAllWorkshopComments();
 
             // Handle URL parameters for deep linking
             const params = new URLSearchParams(window.location.search);
@@ -4060,8 +4087,16 @@ Type @ to link a reading."></textarea>
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
 
-            document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
-            document.getElementById('view-' + viewName).classList.add('active');
+            document.querySelector(`[data-view="${viewName}"]`)?.classList.add('active');
+            document.getElementById('view-' + viewName)?.classList.add('active');
+
+            // Clear notification badge for this tab
+            clearBadge(viewName);
+
+            // Update last visit time when viewing content tabs
+            if (['discuss', 'read'].includes(viewName)) {
+                updateLastVisit();
+            }
         }
 
         // =============================================
@@ -4409,11 +4444,11 @@ Type @ to link a reading."></textarea>
             const container = document.getElementById('activityStream');
             if (!container) return;
 
-            // Combine recent posts and annotations into a single stream
+            // Combine all activity types into a single stream
             const activities = [];
 
-            // Add posts
-            posts.slice(0, 5).forEach(p => {
+            // Add posts (essays)
+            posts.forEach(p => {
                 activities.push({
                     type: 'post',
                     author: p.author_email || 'Anonymous',
@@ -4423,13 +4458,39 @@ Type @ to link a reading."></textarea>
                 });
             });
 
+            // Add post comments
+            Object.entries(postComments).forEach(([postId, comments]) => {
+                const post = posts.find(p => p.id === postId);
+                (comments || []).forEach(c => {
+                    activities.push({
+                        type: 'comment',
+                        author: c.author_email || 'Anonymous',
+                        postTitle: post?.title || 'an essay',
+                        time: new Date(c.created_at),
+                        onClick: `switchView('discuss')`
+                    });
+                });
+            });
+
+            // Add workshop comments (from all workshops)
+            allWorkshopComments.forEach(c => {
+                const workshop = workshops.find(w => w.id === c.workshop_id);
+                activities.push({
+                    type: 'workshop_comment',
+                    author: c.author_email || 'Anonymous',
+                    workshopTitle: workshop ? `${workshop.unit} Workshop` : 'a workshop',
+                    time: new Date(c.created_at),
+                    onClick: `openWorkshop(${c.workshop_id})`
+                });
+            });
+
             // Add annotations from all readings
             Object.entries(annotations).forEach(([readingId, items]) => {
-                (items || []).slice(0, 3).forEach(a => {
+                (items || []).forEach(a => {
                     activities.push({
                         type: 'annotation',
                         author: a.author_email || 'Anonymous',
-                        quote: a.quote?.substring(0, 50) + '...',
+                        quote: a.quote?.substring(0, 40) + '...',
                         readingId: readingId,
                         time: new Date(a.created_at),
                         onClick: `openReading('${readingId}')`
@@ -4445,7 +4506,10 @@ Type @ to link a reading."></textarea>
                 return;
             }
 
-            container.innerHTML = activities.slice(0, 8).map(a => {
+            // Update notification badges
+            updateNotificationBadges(activities);
+
+            container.innerHTML = activities.slice(0, 10).map(a => {
                 const initial = (a.author.split('@')[0] || 'A')[0].toUpperCase();
                 const timeAgo = formatTimeAgo(a.time);
 
@@ -4462,13 +4526,40 @@ Type @ to link a reading."></textarea>
                             </div>
                         </div>
                     `;
+                } else if (a.type === 'comment') {
+                    return `
+                        <div class="stream-item" onclick="${a.onClick}">
+                            <div class="stream-avatar">${initial}</div>
+                            <div class="stream-content">
+                                <div class="stream-text">
+                                    <span class="author">${a.author.split('@')[0]}</span> commented on
+                                    <span class="target">"${a.postTitle}"</span>
+                                </div>
+                                <div class="stream-meta">${timeAgo}</div>
+                            </div>
+                        </div>
+                    `;
+                } else if (a.type === 'workshop_comment') {
+                    return `
+                        <div class="stream-item" onclick="${a.onClick}">
+                            <div class="stream-avatar">${initial}</div>
+                            <div class="stream-content">
+                                <div class="stream-text">
+                                    <span class="author">${a.author.split('@')[0]}</span> posted in
+                                    <span class="target">${a.workshopTitle}</span>
+                                </div>
+                                <div class="stream-meta">${timeAgo}</div>
+                            </div>
+                        </div>
+                    `;
                 } else {
                     return `
                         <div class="stream-item" onclick="${a.onClick}">
                             <div class="stream-avatar">${initial}</div>
                             <div class="stream-content">
                                 <div class="stream-text">
-                                    <span class="author">${a.author.split('@')[0]}</span> annotated "${a.quote}"
+                                    <span class="author">${a.author.split('@')[0]}</span> annotated
+                                    <span class="target">"${a.quote}"</span>
                                 </div>
                                 <div class="stream-meta">${timeAgo}</div>
                             </div>
@@ -4476,6 +4567,58 @@ Type @ to link a reading."></textarea>
                     `;
                 }
             }).join('');
+        }
+
+        // Notification badge system
+        function getLastVisit() {
+            return new Date(localStorage.getItem('metamodality_last_visit') || 0);
+        }
+
+        function updateLastVisit() {
+            localStorage.setItem('metamodality_last_visit', new Date().toISOString());
+        }
+
+        function updateNotificationBadges(activities) {
+            const lastVisit = getLastVisit();
+
+            // Count new items since last visit
+            const newDiscuss = activities.filter(a =>
+                (a.type === 'post' || a.type === 'comment') && a.time > lastVisit
+            ).length;
+
+            const newRead = activities.filter(a =>
+                a.type === 'annotation' && a.time > lastVisit
+            ).length;
+
+            // Update badges
+            updateBadge('discuss', newDiscuss);
+            updateBadge('read', newRead);
+        }
+
+        function updateBadge(tabName, count) {
+            const tab = document.querySelector(`[data-view="${tabName}"]`);
+            if (!tab) return;
+
+            // Remove existing badge
+            const existingBadge = tab.querySelector('.notification-badge');
+            if (existingBadge) existingBadge.remove();
+
+            // Add badge if count > 0
+            if (count > 0) {
+                const badge = document.createElement('span');
+                badge.className = 'notification-badge';
+                badge.textContent = count > 9 ? '9+' : count;
+                tab.style.position = 'relative';
+                tab.appendChild(badge);
+            }
+        }
+
+        // Clear badge when viewing that tab
+        function clearBadge(tabName) {
+            const tab = document.querySelector(`[data-view="${tabName}"]`);
+            if (!tab) return;
+            const badge = tab.querySelector('.notification-badge');
+            if (badge) badge.remove();
         }
 
         function formatTimeAgo(date) {
@@ -5451,6 +5594,7 @@ Type @ to link a reading."></textarea>
                 }
             }
             renderFeed();
+            renderActivityStream();
         }
 
         function renderFeed() {
@@ -5567,6 +5711,7 @@ Type @ to link a reading."></textarea>
             } catch (e) {
                 console.warn('Failed to load post comments:', e);
             }
+            renderActivityStream();
         }
 
         function togglePostComments(postId) {
@@ -5634,6 +5779,7 @@ Type @ to link a reading."></textarea>
                         postComments[postId].push(data[0]);
                         input.value = '';
                         renderPostComments(postId);
+                        renderActivityStream();
 
                         // Update comment count in button
                         const btn = document.querySelector(`[data-post-id="${postId}"] .post-action`);
@@ -6403,7 +6549,8 @@ Type @ to link a reading."></textarea>
         // =============================================
 
         let currentWorkshopId = null;
-        let workshopComments = [];
+        let workshopComments = [];  // Comments for current workshop view
+        let allWorkshopComments = [];  // All workshop comments for activity stream
 
         function openWorkshop(workshopId) {
             currentWorkshopId = workshopId;
@@ -6515,6 +6662,25 @@ Type @ to link a reading."></textarea>
             renderWorkshopComments();
         }
 
+        // Load ALL workshop comments for activity stream (called at init)
+        async function loadAllWorkshopComments() {
+            if (!db) return;
+
+            try {
+                const { data, error } = await db
+                    .from('workshop_comments')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (!error && data) {
+                    allWorkshopComments = data;
+                }
+            } catch (e) {
+                console.warn('Failed to load all workshop comments:', e);
+            }
+            renderActivityStream();
+        }
+
         function renderWorkshopComments() {
             const container = document.getElementById('workshopComments');
 
@@ -6562,8 +6728,10 @@ Type @ to link a reading."></textarea>
 
                     if (!error && data?.[0]) {
                         workshopComments.push(data[0]);
+                        allWorkshopComments.unshift(data[0]);  // Add to front (most recent)
                         input.value = '';
                         renderWorkshopComments();
+                        renderActivityStream();
                     }
                 } catch (e) {
                     console.warn('Failed to post comment:', e);
@@ -6584,6 +6752,21 @@ Type @ to link a reading."></textarea>
         // =============================================
         // AUTH FUNCTIONS
         // =============================================
+
+        let bypassClickCount = 0;
+        let bypassClickTimer = null;
+
+        function bypassAuthGate() {
+            bypassClickCount++;
+            clearTimeout(bypassClickTimer);
+
+            if (bypassClickCount >= 3) {
+                document.getElementById('authGate').classList.add('hidden');
+                bypassClickCount = 0;
+            } else {
+                bypassClickTimer = setTimeout(() => { bypassClickCount = 0; }, 1000);
+            }
+        }
 
         function updateAuthUI(user) {
             const btn = document.getElementById('authBtn');
