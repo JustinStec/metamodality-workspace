@@ -7517,6 +7517,7 @@ Type @ to link a reading."></textarea>
         }
 
         async function saveProfile() {
+            console.log('saveProfile called');
             const msgEl = document.getElementById('profileMessage');
             const username = document.getElementById('profileUsername').value.trim().toLowerCase();
             const displayName = document.getElementById('profileDisplayName').value.trim();
@@ -7561,7 +7562,13 @@ Type @ to link a reading."></textarea>
                 }
             }
 
-            if (!db || !currentUser) return;
+            if (!db || !currentUser) {
+                console.error('saveProfile: db or currentUser is undefined', { db: !!db, currentUser: !!currentUser });
+                msgEl.className = 'message error';
+                msgEl.textContent = 'Not logged in. Please refresh and try again.';
+                msgEl.style.display = 'block';
+                return;
+            }
 
             try {
                 // Check if profile exists
