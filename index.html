@@ -13,8 +13,8 @@
     <!-- Tesseract.js for OCR (self-hosted) -->
     <script src="libs/tesseract.min.js"></script>
 
-    <!-- Supabase SDK (self-hosted) -->
-    <script src="libs/supabase.min.js"></script>
+    <!-- Supabase SDK (CDN - self-hosted version had issues with updateUser) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- Markdown parser (self-hosted) -->
     <script src="libs/marked.min.js"></script>
@@ -3689,6 +3689,17 @@ Type @ to link a reading."></textarea>
 
     <script>
         // =============================================
+        // CAPTURE URL HASH IMMEDIATELY (before Supabase modifies it)
+        // =============================================
+        const initialHash = window.location.hash;
+        let isPasswordRecovery = false;
+        if (initialHash) {
+            const hashParams = new URLSearchParams(initialHash.substring(1));
+            isPasswordRecovery = hashParams.get('type') === 'recovery';
+            console.log('Initial hash type:', hashParams.get('type'), 'isPasswordRecovery:', isPasswordRecovery);
+        }
+
+        // =============================================
         // CONFIGURATION
         // =============================================
         const SUPABASE_URL = 'https://tnasxupoydyoxibccovm.supabase.co';
@@ -3924,17 +3935,13 @@ Type @ to link a reading."></textarea>
                 }
             }
 
-            // Check for password recovery in URL hash (runs before auth state change)
-            if (window.location.hash) {
-                const hashParams = new URLSearchParams(window.location.hash.substring(1));
-                const type = hashParams.get('type');
-                console.log('URL hash type:', type);
-                if (type === 'recovery') {
-                    // Show password reset modal after a brief delay to let Supabase process the token
-                    setTimeout(() => {
-                        showPasswordResetModal();
-                    }, 500);
-                }
+            // Check for password recovery (using flag captured at page load, before Supabase modified the hash)
+            if (isPasswordRecovery) {
+                console.log('Password recovery detected, showing modal after Supabase processes token...');
+                // Show password reset modal after Supabase has time to process the token and establish session
+                setTimeout(() => {
+                    showPasswordResetModal();
+                }, 1000);
             }
 
             // Auth state with whitelist check
