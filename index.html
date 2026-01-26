@@ -3654,8 +3654,8 @@ Type @ to link a reading."></textarea>
             <p style="color: var(--text-muted); margin-bottom: 1rem;">Create a password to log in without a magic link.</p>
             <div class="message" id="passwordResetMessage" style="display: none;"></div>
             <form onsubmit="event.preventDefault(); submitNewPassword();" autocomplete="on">
-                <!-- Hidden username for accessibility -->
-                <input type="text" name="username" autocomplete="username" style="display: none;" aria-hidden="true">
+                <!-- Hidden username for password managers -->
+                <input type="text" id="hiddenUsername" name="username" autocomplete="username" aria-label="Username" tabindex="-1" style="position: absolute; left: -9999px;">
                 <div style="margin-bottom: 1rem;">
                     <label for="newPassword" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">New Password</label>
                     <input type="password" id="newPassword" name="new-password" autocomplete="new-password" placeholder="Enter password" style="width: 100%;" minlength="8">
