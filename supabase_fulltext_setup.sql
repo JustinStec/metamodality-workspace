@@ -259,3 +259,32 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 GRANT EXECUTE ON FUNCTION is_email_allowed TO anon, authenticated;
+
+-- =============================================
+-- THOUGHTS TABLE (quick Twitter-like posts)
+-- =============================================
+
+CREATE TABLE IF NOT EXISTS thoughts (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  author_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  author_email TEXT,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_thoughts_created_at ON thoughts(created_at DESC);
+
+ALTER TABLE thoughts ENABLE ROW LEVEL SECURITY;
+
+-- Everyone can read thoughts
+CREATE POLICY "Public read thoughts" ON thoughts
+  FOR SELECT USING (true);
+
+-- Authenticated users can post thoughts
+CREATE POLICY "Authenticated insert thoughts" ON thoughts
+  FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = author_id);
+
+-- Users can delete their own thoughts
+CREATE POLICY "Users can delete own thoughts" ON thoughts
+  FOR DELETE USING (auth.uid() = author_id);

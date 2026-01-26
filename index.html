@@ -1939,6 +1939,129 @@
             color: var(--text-bright);
         }
 
+        /* Quick Post Composer */
+        .quick-post-composer {
+            display: flex;
+            gap: 12px;
+            padding: 20px;
+            background: var(--bg-panel);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+        }
+        .composer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .composer-input-area {
+            flex: 1;
+        }
+        .composer-input-area textarea {
+            width: 100%;
+            border: none;
+            resize: none;
+            font-size: 1rem;
+            line-height: 1.5;
+            padding: 8px 0;
+            background: transparent;
+            color: var(--text);
+            font-family: inherit;
+            min-height: 60px;
+        }
+        .composer-input-area textarea:focus { outline: none; }
+        .composer-input-area textarea::placeholder { color: var(--text-muted); }
+        .composer-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .char-count {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Feed Tabs */
+        .feed-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .feed-tab {
+            padding: 8px 16px;
+            border: none;
+            background: var(--bg-panel);
+            color: var(--text-muted);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+        .feed-tab:hover { background: var(--highlight); color: var(--text); }
+        .feed-tab.active { background: var(--accent); color: white; }
+
+        /* Quick Thought Post (smaller than essay) */
+        .thought-card {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .thought-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .thought-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .thought-author { font-weight: 500; color: var(--text-bright); }
+        .thought-time { font-size: 0.85rem; color: var(--text-muted); }
+        .thought-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text);
+        }
+        .thought-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .thought-action {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .thought-action:hover { color: var(--accent); }
+
         .post-card {
             background: var(--bg-panel);
             border-radius: 12px;
@@ -3265,11 +3388,31 @@ Type @ to link a reading."></textarea>
             <div class="discuss-view">
                 <div class="discuss-header">
                     <h1>Discussion</h1>
-                    <button class="btn" onclick="switchView('write')">+ New Essay</button>
+                    <button class="btn secondary" onclick="switchView('write')">Write Essay</button>
                 </div>
+
+                <!-- Quick Post Composer -->
+                <div class="quick-post-composer">
+                    <div class="composer-avatar" id="composerAvatar">?</div>
+                    <div class="composer-input-area">
+                        <textarea id="quickPostInput" placeholder="What's on your mind about the readings?" maxlength="500"></textarea>
+                        <div class="composer-footer">
+                            <span class="char-count"><span id="charCount">0</span>/500</span>
+                            <button class="btn" onclick="postQuickThought()">Post</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feed -->
+                <div class="feed-tabs">
+                    <button class="feed-tab active" onclick="switchFeedTab('all')">All</button>
+                    <button class="feed-tab" onclick="switchFeedTab('thoughts')">Thoughts</button>
+                    <button class="feed-tab" onclick="switchFeedTab('essays')">Essays</button>
+                </div>
+
                 <div id="postsContainer">
                     <div class="empty-state" style="padding: 60px 20px;">
-                        No essays published yet. Switch to Write to share your thoughts with the group.
+                        No posts yet. Share your thoughts about the readings!
                     </div>
                 </div>
             </div>
@@ -3650,11 +3793,13 @@ Type @ to link a reading."></textarea>
             buildReadingsList();
             renderCurrentWeek();
             loadFeed();
+            loadThoughts();
             loadPostComments();
             loadNotes();
             loadDrafts();
             loadAllAnnotationsForActivity();
             loadAllWorkshopComments();
+            setupComposer();
 
             // Handle URL parameters for deep linking
             const params = new URLSearchParams(window.location.search);
@@ -5670,6 +5815,90 @@ Type @ to link a reading."></textarea>
         // DISCUSS VIEW
         // =============================================
 
+        let thoughts = [];
+        let currentFeedTab = 'all';
+
+        async function loadThoughts() {
+            if (db) {
+                try {
+                    const { data } = await db
+                        .from('thoughts')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (data) thoughts = data;
+                } catch (e) {
+                    console.warn('Failed to load thoughts:', e);
+                }
+            }
+            renderFeed();
+            renderActivityStream();
+        }
+
+        async function postQuickThought() {
+            const input = document.getElementById('quickPostInput');
+            const content = input?.value?.trim();
+
+            if (!content) return;
+
+            if (!currentUser) {
+                alert('Please sign in to post.');
+                return;
+            }
+
+            const thought = {
+                content: content,
+                author_id: currentUser.id,
+                author_email: currentUser.email,
+                created_at: new Date().toISOString()
+            };
+
+            if (db) {
+                try {
+                    const { data, error } = await db
+                        .from('thoughts')
+                        .insert([thought])
+                        .select();
+
+                    if (!error && data?.[0]) {
+                        thoughts.unshift(data[0]);
+                        input.value = '';
+                        document.getElementById('charCount').textContent = '0';
+                        renderFeed();
+                        renderActivityStream();
+                    } else {
+                        alert('Failed to post: ' + (error?.message || 'Unknown error'));
+                    }
+                } catch (e) {
+                    console.warn('Failed to post thought:', e);
+                    alert('Failed to post. Please try again.');
+                }
+            }
+        }
+
+        function switchFeedTab(tab) {
+            currentFeedTab = tab;
+            document.querySelectorAll('.feed-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.feed-tab[onclick="switchFeedTab('${tab}')"]`)?.classList.add('active');
+            renderFeed();
+        }
+
+        function setupComposer() {
+            const input = document.getElementById('quickPostInput');
+            const countEl = document.getElementById('charCount');
+            const avatarEl = document.getElementById('composerAvatar');
+
+            if (input && countEl) {
+                input.addEventListener('input', () => {
+                    countEl.textContent = input.value.length;
+                });
+            }
+
+            if (avatarEl && currentUser) {
+                avatarEl.textContent = currentUser.email[0].toUpperCase();
+            }
+        }
+
         async function loadFeed() {
             if (db) {
                 try {
@@ -5690,51 +5919,100 @@ Type @ to link a reading."></textarea>
         function renderFeed() {
             const container = document.getElementById('postsContainer');
 
-            if (posts.length === 0) {
-                container.innerHTML = '<div class="empty-state" style="padding: 60px 20px;">No posts yet. Switch to Write to share your thoughts.</div>';
+            // Build combined feed based on tab
+            let feedItems = [];
+
+            if (currentFeedTab === 'all' || currentFeedTab === 'thoughts') {
+                thoughts.forEach(t => feedItems.push({ type: 'thought', data: t, time: new Date(t.created_at) }));
+            }
+
+            if (currentFeedTab === 'all' || currentFeedTab === 'essays') {
+                posts.forEach(p => feedItems.push({ type: 'essay', data: p, time: new Date(p.published_at) }));
+            }
+
+            // Sort by time, newest first
+            feedItems.sort((a, b) => b.time - a.time);
+
+            if (feedItems.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 60px 20px;">No posts yet. Share your thoughts about the readings!</div>';
                 return;
             }
 
-            container.innerHTML = posts.map(p => {
-                const isAuthor = currentUser && p.author_id === currentUser.id;
-                const commentCount = (postComments[p.id] || []).length;
-                return `
-                    <div class="post-card" data-post-id="${p.id}">
-                        <div class="post-header">
-                            <div class="post-avatar">${(p.author_email || 'A')[0].toUpperCase()}</div>
-                            <div>
-                                <div class="post-author">${p.author_email || 'Anonymous'}</div>
-                                <div class="post-date">${new Date(p.published_at).toLocaleDateString()}</div>
+            container.innerHTML = feedItems.map(item => {
+                if (item.type === 'thought') {
+                    const t = item.data;
+                    const isAuthor = currentUser && t.author_id === currentUser.id;
+                    return `
+                        <div class="thought-card" data-thought-id="${t.id}">
+                            <div class="thought-header">
+                                <div class="thought-avatar">${(t.author_email || 'A')[0].toUpperCase()}</div>
+                                <div>
+                                    <span class="thought-author">${t.author_email?.split('@')[0] || 'Anonymous'}</span>
+                                    <span class="thought-time">· ${formatTimeAgo(item.time)}</span>
+                                </div>
+                            </div>
+                            <div class="thought-content">${t.content}</div>
+                            <div class="thought-actions">
+                                <button class="thought-action">💬 Reply</button>
+                                ${isAuthor ? `<button class="thought-action" onclick="deleteThought('${t.id}')">🗑️ Delete</button>` : ''}
                             </div>
                         </div>
-                        <div class="post-title">${p.title}</div>
-                        ${p.subtitle ? `<div class="post-subtitle">${p.subtitle}</div>` : ''}
-                        <div class="post-content">${marked.parse(p.content || '')}</div>
-                        ${p.linked_readings?.length ? `<div class="post-links">📎 ${p.linked_readings.join(', ')}</div>` : ''}
-                        <div class="post-actions">
-                            <button class="post-action" onclick="togglePostComments('${p.id}')">
-                                💬 ${commentCount} Comment${commentCount !== 1 ? 's' : ''}
-                            </button>
-                            ${isAuthor ? `
-                                <button class="post-action" onclick="editPost('${p.id}')">✏️ Edit</button>
-                                <button class="post-action" onclick="deletePost('${p.id}')">🗑️ Delete</button>
-                            ` : ''}
-                        </div>
-                        <div class="post-comments-section" id="comments-${p.id}" style="display: none;">
-                            <div class="post-comments-list" id="comments-list-${p.id}">
-                                <!-- Comments loaded dynamically -->
+                    `;
+                } else {
+                    const p = item.data;
+                    const isAuthor = currentUser && p.author_id === currentUser.id;
+                    const commentCount = (postComments[p.id] || []).length;
+                    return `
+                        <div class="post-card" data-post-id="${p.id}">
+                            <div class="post-header">
+                                <div class="post-avatar">${(p.author_email || 'A')[0].toUpperCase()}</div>
+                                <div>
+                                    <div class="post-author">${p.author_email?.split('@')[0] || 'Anonymous'}</div>
+                                    <div class="post-date">${formatTimeAgo(item.time)}</div>
+                                </div>
                             </div>
-                            <div class="post-comment-form">
-                                <textarea id="comment-input-${p.id}" placeholder="Write a comment..."></textarea>
-                                <button class="btn" onclick="postComment('${p.id}')">Post</button>
+                            <div class="post-title">${p.title}</div>
+                            ${p.subtitle ? `<div class="post-subtitle">${p.subtitle}</div>` : ''}
+                            <div class="post-content">${marked.parse(p.content || '')}</div>
+                            ${p.linked_readings?.length ? `<div class="post-links">📎 ${p.linked_readings.join(', ')}</div>` : ''}
+                            <div class="post-actions">
+                                <button class="post-action" onclick="togglePostComments('${p.id}')">
+                                    💬 ${commentCount} Comment${commentCount !== 1 ? 's' : ''}
+                                </button>
+                                ${isAuthor ? `
+                                    <button class="post-action" onclick="editPost('${p.id}')">✏️ Edit</button>
+                                    <button class="post-action" onclick="deletePost('${p.id}')">🗑️ Delete</button>
+                                ` : ''}
+                            </div>
+                            <div class="post-comments-section" id="comments-${p.id}" style="display: none;">
+                                <div class="post-comments-list" id="comments-list-${p.id}"></div>
+                                <div class="post-comment-form">
+                                    <textarea id="comment-input-${p.id}" placeholder="Write a comment..."></textarea>
+                                    <button class="btn" onclick="postComment('${p.id}')">Post</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
             }).join('');
 
             // Also update home view
             renderRecentPosts();
+        }
+
+        async function deleteThought(thoughtId) {
+            if (!confirm('Delete this thought?')) return;
+
+            if (db) {
+                try {
+                    await db.from('thoughts').delete().eq('id', thoughtId);
+                    thoughts = thoughts.filter(t => t.id !== thoughtId);
+                    renderFeed();
+                    renderActivityStream();
+                } catch (e) {
+                    console.warn('Failed to delete thought:', e);
+                }
+            }
         }
 
         let editingPostId = null;
