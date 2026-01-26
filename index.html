@@ -3155,7 +3155,7 @@
                                 </div>
                                 <div class="orientation-section">
                                     <h4>💬 Discuss</h4>
-                                    <p>Read published essays, leave comments, and add reactions.</p>
+                                    <p>Share quick thoughts about readings, read essays, and comment on posts. A feed for group conversation.</p>
                                 </div>
                                 <div class="orientation-section">
                                     <h4>🔍 Search</h4>
@@ -4693,6 +4693,17 @@ Type @ to link a reading."></textarea>
                 });
             });
 
+            // Add thoughts (quick posts)
+            thoughts.forEach(t => {
+                activities.push({
+                    type: 'thought',
+                    author: t.author_email || 'Anonymous',
+                    content: t.content?.substring(0, 50) + (t.content?.length > 50 ? '...' : ''),
+                    time: new Date(t.created_at),
+                    onClick: `switchView('discuss')`
+                });
+            });
+
             // Add post comments
             Object.entries(postComments).forEach(([postId, comments]) => {
                 const post = posts.find(p => p.id === postId);
@@ -4756,6 +4767,19 @@ Type @ to link a reading."></textarea>
                                 <div class="stream-text">
                                     <span class="author">${a.author.split('@')[0]}</span> posted
                                     <span class="target">"${a.title}"</span>
+                                </div>
+                                <div class="stream-meta">${timeAgo}</div>
+                            </div>
+                        </div>
+                    `;
+                } else if (a.type === 'thought') {
+                    return `
+                        <div class="stream-item" onclick="${a.onClick}">
+                            <div class="stream-avatar">${initial}</div>
+                            <div class="stream-content">
+                                <div class="stream-text">
+                                    <span class="author">${a.author.split('@')[0]}</span> shared
+                                    <span class="target">"${a.content}"</span>
                                 </div>
                                 <div class="stream-meta">${timeAgo}</div>
                             </div>
