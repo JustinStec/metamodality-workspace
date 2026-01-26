@@ -7629,7 +7629,35 @@ Type @ to link a reading."></textarea>
                 // Update password if provided
                 if (password) {
                     console.log('Attempting to update password...');
-                    const { data: pwData, error: pwError } = await db.auth.updateUser({ password });
+
+                    // Check session first
+                    const { data: sessionData } = await db.auth.getSession();
+                    console.log('Current session:', sessionData?.session ? 'valid' : 'none');
+
+                    if (!sessionData?.session) {
+                        msgEl.className = 'message error';
+                        msgEl.textContent = 'Session expired. Please log in again to set a password.';
+                        msgEl.style.display = 'block';
+                        return;
+                    }
+
+                    // Add timeout to prevent hanging
+                    const timeoutPromise = new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('Request timed out')), 10000)
+                    );
+
+                    let pwData, pwError;
+                    try {
+                        const result = await Promise.race([
+                            db.auth.updateUser({ password }),
+                            timeoutPromise
+                        ]);
+                        pwData = result.data;
+                        pwError = result.error;
+                    } catch (e) {
+                        pwError = { message: e.message };
+                    }
+
                     console.log('Password update response:', { data: pwData, error: pwError });
                     if (pwError) {
                         console.error('Password update error details:', JSON.stringify(pwError, null, 2));
