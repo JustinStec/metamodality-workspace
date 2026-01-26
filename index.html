@@ -1915,9 +1915,17 @@
         .post-date { font-size: 12px; color: var(--text-muted); }
         .post-title {
             font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-            font-size: 20px;
+            font-size: 22px;
+            font-weight: 600;
             color: var(--text-bright);
-            margin-bottom: 12px;
+            margin-bottom: 6px;
+        }
+        .post-subtitle {
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            font-style: italic;
         }
         .post-content {
             font-size: 14px;
@@ -2081,6 +2089,131 @@
             gap: 15px;
         }
         .editor-empty-icon { font-size: 48px; opacity: 0.5; }
+        .editor-empty-hint { font-size: 13px; opacity: 0.7; }
+
+        /* ========== NOTES VIEW ========== */
+        .notes-view {
+            display: none;
+            height: 100%;
+            flex-direction: row;
+        }
+        .notes-view.active { display: flex; }
+
+        /* ========== SUBSTACK-STYLE WRITE VIEW ========== */
+        .substack-editor {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+        .substack-editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .substack-header {
+            margin-bottom: 30px;
+        }
+        .substack-title {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--text-bright);
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            line-height: 1.2;
+            margin-bottom: 12px;
+        }
+        .substack-title:focus { outline: none; }
+        .substack-title::placeholder { color: var(--text-muted); opacity: 0.5; }
+        .substack-subtitle {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 22px;
+            font-weight: 400;
+            color: var(--text-muted);
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+        }
+        .substack-subtitle:focus { outline: none; }
+        .substack-subtitle::placeholder { color: var(--text-muted); opacity: 0.4; }
+        .substack-body {
+            flex: 1;
+            display: flex;
+        }
+        .substack-textarea {
+            width: 100%;
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 18px;
+            line-height: 1.9;
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            color: var(--text);
+            resize: none;
+        }
+        .substack-textarea:focus { outline: none; }
+        .substack-textarea::placeholder { color: var(--text-muted); opacity: 0.5; }
+        .substack-footer {
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .substack-links {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .substack-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .substack-sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+        .substack-sidebar-header {
+            padding: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-bright);
+            border-bottom: 1px solid var(--border);
+        }
+        .drafts-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .draft-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .draft-item:hover { background: var(--highlight); }
+        .draft-item.active { background: var(--highlight); border-left: 3px solid var(--accent); }
+        .draft-item-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-bright);
+            margin-bottom: 4px;
+        }
+        .draft-item-preview {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        .draft-item-date {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
 
         /* ========== SELECTION POPUP ========== */
         .selection-popup {
@@ -2166,8 +2299,9 @@
             <button class="nav-tab active" data-view="home">Home</button>
             <button class="nav-tab" data-view="syllabus">Syllabus</button>
             <button class="nav-tab" data-view="read">Read</button>
-            <button class="nav-tab" data-view="discuss">Discuss</button>
+            <button class="nav-tab" data-view="notes">Notes</button>
             <button class="nav-tab" data-view="write">Write</button>
+            <button class="nav-tab" data-view="discuss">Discuss</button>
         </nav>
         <div class="header-right">
             <div class="search-box">
@@ -2278,15 +2412,19 @@
                             <div class="activity-card-body" id="orientationBody">
                                 <div class="orientation-section">
                                     <h4>Read</h4>
-                                    <p>Browse readings by week. Select text to annotate.</p>
+                                    <p>Browse readings by week. Select text to annotate and highlight.</p>
                                 </div>
                                 <div class="orientation-section">
                                     <h4>Notes</h4>
-                                    <p>Write private notes. Use <code>[[Week 1]]</code> to link readings.</p>
+                                    <p>Private reading notes. Use <code>[[Week 1]]</code> to link to readings.</p>
+                                </div>
+                                <div class="orientation-section">
+                                    <h4>Write</h4>
+                                    <p>Draft longer essays to share with the group.</p>
                                 </div>
                                 <div class="orientation-section">
                                     <h4>Discuss</h4>
-                                    <p>Post essays and respond to others.</p>
+                                    <p>Read and respond to published essays.</p>
                                 </div>
                             </div>
                         </div>
@@ -2420,23 +2558,8 @@
             </div>
         </div>
 
-        <!-- DISCUSS VIEW -->
-        <div class="view" id="view-discuss">
-            <div class="discuss-view">
-                <div class="discuss-header">
-                    <h1>Discussion</h1>
-                    <button class="btn" onclick="switchView('write')">+ New Post</button>
-                </div>
-                <div id="postsContainer">
-                    <div class="empty-state" style="padding: 60px 20px;">
-                        No posts yet. Switch to Write to share your thoughts with the group.
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- WRITE VIEW -->
-        <div class="view write-view" id="view-write">
+        <!-- NOTES VIEW (Private Reading Notes) -->
+        <div class="view notes-view" id="view-notes">
             <div class="notes-sidebar">
                 <div class="notes-sidebar-header">
                     <h3>Your Notes</h3>
@@ -2448,26 +2571,79 @@
             </div>
             <div class="editor-container" id="editorContainer">
                 <div class="editor-empty">
-                    <div class="editor-empty-icon">✍️</div>
+                    <div class="editor-empty-icon">📝</div>
                     <div>Select a note or create a new one</div>
+                    <div class="editor-empty-hint">Your notes are private and won't be shared with the group.</div>
                 </div>
             </div>
             <div class="editor-active" id="editorActive" style="display: none; flex: 1; flex-direction: column;">
                 <div class="editor-header">
-                    <input type="text" class="editor-title-input" id="noteTitleInput" placeholder="Title...">
+                    <input type="text" class="editor-title-input" id="noteTitleInput" placeholder="Note title...">
                     <div style="display: flex; gap: 8px;">
                         <button class="btn secondary" onclick="saveNote()">Save</button>
-                        <button class="btn" onclick="publishNote()">Publish</button>
+                        <button class="btn secondary" onclick="deleteNote()">Delete</button>
                     </div>
                 </div>
                 <div class="editor-body">
-                    <textarea class="editor-textarea" id="noteContentInput" placeholder="Write your thoughts...
+                    <textarea class="editor-textarea" id="noteContentInput" placeholder="Write your notes here...
 
 Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 </div>
                 <div class="editor-footer">
                     <div class="editor-links" id="editorLinks">
                         Use [[Week Title]] to link to readings
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WRITE VIEW (Substack-style Essay Editor) -->
+        <div class="view write-view" id="view-write">
+            <div class="substack-editor">
+                <div class="substack-editor-container">
+                    <div class="substack-header">
+                        <input type="text" class="substack-title" id="essayTitleInput" placeholder="Title">
+                        <input type="text" class="substack-subtitle" id="essaySubtitleInput" placeholder="Add a subtitle...">
+                    </div>
+                    <div class="substack-body">
+                        <textarea class="substack-textarea" id="essayContentInput" placeholder="Start writing...
+
+Your essay will be published to the Discuss feed where others can read and respond.
+
+Use [[Week 1: Parmenides]] to reference readings."></textarea>
+                    </div>
+                    <div class="substack-footer">
+                        <div class="substack-links" id="essayLinks">
+                            <!-- Reading links will appear here -->
+                        </div>
+                        <div class="substack-actions">
+                            <button class="btn secondary" onclick="saveDraft()">Save Draft</button>
+                            <button class="btn" onclick="publishEssay()">Publish</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="substack-sidebar">
+                    <div class="substack-sidebar-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>Your Drafts</span>
+                        <button class="btn" onclick="newDraft()" style="padding: 4px 10px; font-size: 12px;">+ New</button>
+                    </div>
+                    <div class="drafts-list" id="draftsList">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DISCUSS VIEW (Published Essays Feed) -->
+        <div class="view" id="view-discuss">
+            <div class="discuss-view">
+                <div class="discuss-header">
+                    <h1>Discussion</h1>
+                    <button class="btn" onclick="switchView('write')">+ New Essay</button>
+                </div>
+                <div id="postsContainer">
+                    <div class="empty-state" style="padding: 60px 20px;">
+                        No essays published yet. Switch to Write to share your thoughts with the group.
                     </div>
                 </div>
             </div>
@@ -2735,6 +2911,7 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             renderCurrentWeek();
             loadFeed();
             loadNotes();
+            loadDrafts();
             loadAllAnnotationsForActivity();
 
             // Handle URL parameters for deep linking
@@ -2755,6 +2932,7 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                         updateAuthUI(currentUser);
                         hideAuthModal();
                         loadNotes();
+                        loadDrafts();
                     } else {
                         currentUser = null;
                         updateAuthUI(null);
@@ -2766,6 +2944,7 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                         currentUser = session.user;
                         updateAuthUI(currentUser);
                         loadNotes();
+                        loadDrafts();
                     }
                 });
             }
@@ -4631,6 +4810,7 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                         </div>
                     </div>
                     <div class="post-title">${p.title}</div>
+                    ${p.subtitle ? `<div class="post-subtitle">${p.subtitle}</div>` : ''}
                     <div class="post-content">${marked.parse(p.content || '')}</div>
                     ${p.linked_readings?.length ? `<div class="post-links">📎 ${p.linked_readings.join(', ')}</div>` : ''}
                 </div>
@@ -4824,6 +5004,218 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             renderFeed();
             switchView('discuss');
         }
+
+        // Delete note
+        async function deleteNote() {
+            if (!editingNoteId) return;
+            if (!confirm('Delete this note?')) return;
+
+            if (db && currentUser) {
+                try {
+                    await db.from('notes').delete().eq('id', editingNoteId);
+                } catch (e) {
+                    console.warn('Failed to delete:', e);
+                }
+            }
+
+            notes = notes.filter(n => n.id !== editingNoteId);
+            localStorage.setItem('metamodality_notes', JSON.stringify(notes));
+
+            editingNoteId = null;
+            document.getElementById('editorActive').style.display = 'none';
+            document.getElementById('editorContainer').style.display = 'flex';
+            renderNotesList();
+        }
+
+        // =============================================
+        // DRAFTS & ESSAYS (Substack-style Write View)
+        // =============================================
+        let drafts = [];
+        let editingDraftId = null;
+
+        async function loadDrafts() {
+            if (db && currentUser) {
+                try {
+                    const { data } = await db
+                        .from('drafts')
+                        .select('*')
+                        .eq('user_id', currentUser.id)
+                        .order('updated_at', { ascending: false });
+
+                    if (data) drafts = data;
+                } catch (e) {
+                    console.warn('Failed to load drafts:', e);
+                }
+            } else {
+                drafts = JSON.parse(localStorage.getItem('metamodality_drafts') || '[]');
+            }
+            renderDraftsList();
+        }
+
+        function renderDraftsList() {
+            const container = document.getElementById('draftsList');
+            if (!container) return;
+
+            if (drafts.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 30px; font-size: 13px;">No drafts yet.</div>';
+                return;
+            }
+
+            container.innerHTML = drafts.map(d => `
+                <div class="draft-item ${editingDraftId === d.id ? 'active' : ''}" onclick="editDraft('${d.id}')">
+                    <div class="draft-item-title">${d.title || 'Untitled'}</div>
+                    <div class="draft-item-preview">${(d.content || '').substring(0, 60)}...</div>
+                    <div class="draft-item-date">${new Date(d.updated_at).toLocaleDateString()}</div>
+                </div>
+            `).join('');
+        }
+
+        function editDraft(id) {
+            const draft = drafts.find(d => d.id === id);
+            if (!draft) return;
+
+            editingDraftId = id;
+            document.getElementById('essayTitleInput').value = draft.title || '';
+            document.getElementById('essaySubtitleInput').value = draft.subtitle || '';
+            document.getElementById('essayContentInput').value = draft.content || '';
+            parseEssayLinks(draft.content || '');
+            renderDraftsList();
+        }
+
+        function newDraft() {
+            editingDraftId = null;
+            document.getElementById('essayTitleInput').value = '';
+            document.getElementById('essaySubtitleInput').value = '';
+            document.getElementById('essayContentInput').value = '';
+            document.getElementById('essayLinks').innerHTML = '';
+        }
+
+        async function saveDraft() {
+            const title = document.getElementById('essayTitleInput').value;
+            const subtitle = document.getElementById('essaySubtitleInput').value;
+            const content = document.getElementById('essayContentInput').value;
+            const links = (content.match(/\[\[([^\]]+)\]\]/g) || []).map(l => l.replace(/\[\[|\]\]/g, ''));
+
+            const draft = {
+                title,
+                subtitle,
+                content,
+                linked_readings: links,
+                updated_at: new Date().toISOString()
+            };
+
+            if (db && currentUser) {
+                draft.user_id = currentUser.id;
+                try {
+                    if (editingDraftId) {
+                        await db.from('drafts').update(draft).eq('id', editingDraftId);
+                        const idx = drafts.findIndex(d => d.id === editingDraftId);
+                        if (idx >= 0) drafts[idx] = { ...drafts[idx], ...draft };
+                    } else {
+                        const { data } = await db.from('drafts').insert([draft]).select();
+                        if (data?.[0]) {
+                            drafts.unshift(data[0]);
+                            editingDraftId = data[0].id;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Failed to save draft:', e);
+                }
+            } else {
+                if (editingDraftId) {
+                    const idx = drafts.findIndex(d => d.id === editingDraftId);
+                    if (idx >= 0) drafts[idx] = { ...drafts[idx], ...draft };
+                } else {
+                    draft.id = Date.now().toString();
+                    draft.created_at = draft.updated_at;
+                    drafts.unshift(draft);
+                    editingDraftId = draft.id;
+                }
+                localStorage.setItem('metamodality_drafts', JSON.stringify(drafts));
+            }
+
+            renderDraftsList();
+        }
+
+        async function publishEssay() {
+            const title = document.getElementById('essayTitleInput').value;
+            const subtitle = document.getElementById('essaySubtitleInput').value;
+            const content = document.getElementById('essayContentInput').value;
+
+            if (!title || !content) {
+                alert('Please add a title and content before publishing.');
+                return;
+            }
+
+            const links = (content.match(/\[\[([^\]]+)\]\]/g) || []).map(l => l.replace(/\[\[|\]\]/g, ''));
+
+            const post = {
+                title,
+                subtitle,
+                content,
+                linked_readings: links,
+                published_at: new Date().toISOString(),
+                author_email: currentUser?.email || 'Anonymous',
+                reactions: {}
+            };
+
+            if (db && currentUser) {
+                post.author_id = currentUser.id;
+                try {
+                    const { data } = await db.from('posts').insert([post]).select();
+                    if (data?.[0]) posts.unshift(data[0]);
+
+                    // Delete draft after publishing
+                    if (editingDraftId) {
+                        await db.from('drafts').delete().eq('id', editingDraftId);
+                        drafts = drafts.filter(d => d.id !== editingDraftId);
+                        editingDraftId = null;
+                    }
+                } catch (e) {
+                    console.warn('Failed to publish:', e);
+                }
+            } else {
+                post.id = Date.now().toString();
+                posts.unshift(post);
+
+                // Delete draft from local storage after publishing
+                if (editingDraftId) {
+                    drafts = drafts.filter(d => d.id !== editingDraftId);
+                    localStorage.setItem('metamodality_drafts', JSON.stringify(drafts));
+                    editingDraftId = null;
+                }
+            }
+
+            // Clear editor
+            document.getElementById('essayTitleInput').value = '';
+            document.getElementById('essaySubtitleInput').value = '';
+            document.getElementById('essayContentInput').value = '';
+            document.getElementById('essayLinks').innerHTML = '';
+
+            renderDraftsList();
+            renderFeed();
+            switchView('discuss');
+        }
+
+        function parseEssayLinks(content) {
+            const links = content.match(/\[\[([^\]]+)\]\]/g) || [];
+            const linksEl = document.getElementById('essayLinks');
+            if (!linksEl) return;
+
+            if (links.length === 0) {
+                linksEl.innerHTML = '';
+                return;
+            }
+
+            linksEl.innerHTML = 'Links: ' + links.map(l => {
+                const text = l.replace(/\[\[|\]\]/g, '');
+                return `<span class="editor-link">${text}</span>`;
+            }).join('');
+        }
+
+        document.getElementById('essayContentInput')?.addEventListener('input', e => {
+            parseEssayLinks(e.target.value);
+        });
 
         // =============================================
         // AUTHENTICATION
