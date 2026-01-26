@@ -148,7 +148,58 @@ CREATE POLICY "Users can delete own drafts" ON drafts
   FOR DELETE USING (auth.uid() = user_id);
 
 -- =============================================
--- UPDATE POSTS TABLE (add subtitle column)
+-- POSTS TABLE UPDATES
 -- =============================================
 
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS subtitle TEXT;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
+-- Ensure RLS is enabled on posts
+ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
+
+-- Everyone can read posts
+CREATE POLICY IF NOT EXISTS "Public read posts" ON posts
+  FOR SELECT USING (true);
+
+-- Authenticated users can create posts
+CREATE POLICY IF NOT EXISTS "Authenticated insert posts" ON posts
+  FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = author_id);
+
+-- Users can update their own posts
+CREATE POLICY IF NOT EXISTS "Users can update own posts" ON posts
+  FOR UPDATE USING (auth.uid() = author_id);
+
+-- Users can delete their own posts
+CREATE POLICY IF NOT EXISTS "Users can delete own posts" ON posts
+  FOR DELETE USING (auth.uid() = author_id);
+
+-- =============================================
+-- WORKSHOP COMMENTS TABLE
+-- =============================================
+
+CREATE TABLE IF NOT EXISTS workshop_comments (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  workshop_id INT NOT NULL,
+  author_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  author_email TEXT,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_workshop_comments_workshop_id ON workshop_comments(workshop_id);
+
+ALTER TABLE workshop_comments ENABLE ROW LEVEL SECURITY;
+
+-- Everyone can read workshop comments
+CREATE POLICY "Public read workshop comments" ON workshop_comments
+  FOR SELECT USING (true);
+
+-- Authenticated users can post comments
+CREATE POLICY "Authenticated insert workshop comments" ON workshop_comments
+  FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = author_id);
+
+-- Users can delete their own comments
+CREATE POLICY "Users can delete own workshop comments" ON workshop_comments
+  FOR DELETE USING (auth.uid() = author_id);

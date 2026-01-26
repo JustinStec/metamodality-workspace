@@ -1957,6 +1957,172 @@
         }
         .post-action:hover { color: var(--accent); }
 
+        /* ========== WORKSHOP VIEW ========== */
+        .workshop-view {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        .workshop-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .workshop-title-area {
+            flex: 1;
+        }
+        .workshop-unit-label {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        .workshop-title-area h1 {
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            font-size: 28px;
+            font-weight: normal;
+            color: var(--text-bright);
+            margin: 0 0 8px;
+        }
+        .workshop-dates {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .workshop-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .workshop-section h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .workshop-weeks {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        .workshop-week-card {
+            background: var(--bg-panel);
+            border-radius: 10px;
+            padding: 18px;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .workshop-week-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .workshop-week-num {
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .workshop-week-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-bright);
+            margin-bottom: 8px;
+        }
+        .workshop-week-readings {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        .workshop-essays {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .workshop-essay-card {
+            background: var(--bg-panel);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+        }
+        .workshop-essay-card:hover {
+            background: var(--bg-hover);
+        }
+        .workshop-essay-title {
+            font-weight: 500;
+            color: var(--text-bright);
+            margin-bottom: 4px;
+        }
+        .workshop-essay-author {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .workshop-discussion {
+            background: var(--bg-panel);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .workshop-comment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .workshop-comment-form textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text);
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+        .workshop-comment-form textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .workshop-comment-form .btn {
+            align-self: flex-end;
+        }
+        .workshop-comments {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .workshop-comment {
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+        }
+        .workshop-comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .workshop-comment-author {
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-bright);
+        }
+        .workshop-comment-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .workshop-comment-content {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--text);
+        }
+
         /* ========== WRITE VIEW ========== */
         .write-view {
             display: none;
@@ -2722,23 +2888,23 @@
                                 <span class="icon">🛠️</span> Unit Workshops
                             </div>
                             <div class="workshop-card-body">
-                                <div class="workshop-item">
+                                <div class="workshop-item" onclick="openWorkshop(1)" style="cursor: pointer;">
                                     <div class="unit">Unit I Workshop</div>
                                     <div class="dates">Feb 26 or 27</div>
                                 </div>
-                                <div class="workshop-item">
+                                <div class="workshop-item" onclick="openWorkshop(2)" style="cursor: pointer;">
                                     <div class="unit">Unit II Workshop</div>
                                     <div class="dates">Mar 19 or 20</div>
                                 </div>
-                                <div class="workshop-item">
+                                <div class="workshop-item" onclick="openWorkshop(3)" style="cursor: pointer;">
                                     <div class="unit">Unit III Workshop</div>
                                     <div class="dates">Apr 17 or 18</div>
                                 </div>
-                                <div class="workshop-item">
+                                <div class="workshop-item" onclick="openWorkshop(4)" style="cursor: pointer;">
                                     <div class="unit">Unit IV Workshop</div>
                                     <div class="dates">May 7 or 8</div>
                                 </div>
-                                <div class="workshop-item">
+                                <div class="workshop-item" onclick="openWorkshop(5)" style="cursor: pointer;">
                                     <div class="unit">Unit V Workshop</div>
                                     <div class="dates">May 21 or 22</div>
                                 </div>
@@ -2950,6 +3116,52 @@ Type @ to link a reading."></textarea>
             </div>
         </div>
 
+        <!-- WORKSHOP VIEW -->
+        <div class="view" id="view-workshop">
+            <div class="workshop-view">
+                <div class="workshop-header">
+                    <button class="btn secondary" onclick="switchView('home')">&larr; Back</button>
+                    <div class="workshop-title-area">
+                        <div class="workshop-unit-label" id="workshopUnitLabel">Unit I</div>
+                        <h1 id="workshopTitle">Workshop</h1>
+                        <div class="workshop-dates" id="workshopDates">Feb 26 or 27</div>
+                    </div>
+                </div>
+
+                <div class="workshop-content">
+                    <!-- Covered Weeks -->
+                    <div class="workshop-section">
+                        <h2>Covered Readings</h2>
+                        <div class="workshop-weeks" id="workshopWeeks">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Related Essays -->
+                    <div class="workshop-section">
+                        <h2>Related Essays</h2>
+                        <div class="workshop-essays" id="workshopEssays">
+                            <div class="empty-state">No essays linked to this unit's readings yet.</div>
+                        </div>
+                    </div>
+
+                    <!-- Discussion Thread -->
+                    <div class="workshop-section">
+                        <h2>Discussion</h2>
+                        <div class="workshop-discussion">
+                            <div class="workshop-comment-form">
+                                <textarea id="workshopCommentInput" placeholder="Share thoughts, questions, or ideas for the workshop..."></textarea>
+                                <button class="btn" onclick="postWorkshopComment()">Post</button>
+                            </div>
+                            <div class="workshop-comments" id="workshopComments">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- SPLIT VIEW CONTAINER -->
         <div class="split-container horizontal" id="splitContainer">
             <div class="split-pane" id="splitPane1">
@@ -3087,6 +3299,15 @@ Type @ to link a reading."></textarea>
             concept: ['possibility', 'actuality', 'potentiality', 'essence', 'existence', 'nothingness', 'contingency', 'necessity', 'imagination', 'emanation', 'continuity', 'attention'],
             thinker: ['Parmenides', 'Aristotle', 'Avicenna', 'Nāgārjuna', 'Leibniz', 'Du Châtelet', 'Kant', 'Ibn ʿArabī', 'Husserl', 'Derrida', 'Heidegger', 'Arendt', 'Peirce', 'Nishida', 'Lalla', 'Whitehead', 'Thompson', 'Weil', 'Varela', 'Plotinus', 'Conway', 'Marcus', 'Hamkins', 'Borges']
         };
+
+        // Workshop data
+        const workshops = [
+            { id: 1, unit: "Unit I", title: "Ancient and Medieval Foundations", dates: "Feb 26 or 27", weeks: [1, 2, 3, 4] },
+            { id: 2, unit: "Unit II", title: "Rationalism, Transcendentalism, and the Imaginal", dates: "Mar 19 or 20", weeks: [5, 6, 7] },
+            { id: 3, unit: "Unit III", title: "Phenomenology, Pragmatism, and Nothingness", dates: "Apr 17 or 18", weeks: [8, 9, 10, 11] },
+            { id: 4, unit: "Unit IV", title: "Process, Contemplation, Emanation", dates: "May 7 or 8", weeks: [12, 13, 14] },
+            { id: 5, unit: "Unit V", title: "Mathematical and Formal Possibility", dates: "May 21 or 22", weeks: [15, 16] }
+        ];
 
         const schedule = [
             {
@@ -3900,7 +4121,7 @@ Type @ to link a reading."></textarea>
             const modal = document.createElement('div');
             modal.className = 'modal-overlay active';
             modal.innerHTML = `
-                <div class="modal" style="max-width: 600px;">
+                <div class="modal" style="max-width: 900px; width: 90%;">
                     <div class="modal-header">
                         <h3>Search Results for "${query}"</h3>
                         <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
@@ -5183,24 +5404,74 @@ Type @ to link a reading."></textarea>
                 return;
             }
 
-            container.innerHTML = posts.map(p => `
-                <div class="post-card">
-                    <div class="post-header">
-                        <div class="post-avatar">${(p.author_email || 'A')[0].toUpperCase()}</div>
-                        <div>
-                            <div class="post-author">${p.author_email || 'Anonymous'}</div>
-                            <div class="post-date">${new Date(p.published_at).toLocaleDateString()}</div>
+            container.innerHTML = posts.map(p => {
+                const isAuthor = currentUser && p.author_id === currentUser.id;
+                return `
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar">${(p.author_email || 'A')[0].toUpperCase()}</div>
+                            <div>
+                                <div class="post-author">${p.author_email || 'Anonymous'}</div>
+                                <div class="post-date">${new Date(p.published_at).toLocaleDateString()}</div>
+                            </div>
                         </div>
+                        <div class="post-title">${p.title}</div>
+                        ${p.subtitle ? `<div class="post-subtitle">${p.subtitle}</div>` : ''}
+                        <div class="post-content">${marked.parse(p.content || '')}</div>
+                        ${p.linked_readings?.length ? `<div class="post-links">📎 ${p.linked_readings.join(', ')}</div>` : ''}
+                        ${isAuthor ? `
+                            <div class="post-actions">
+                                <button class="post-action" onclick="editPost('${p.id}')">✏️ Edit</button>
+                                <button class="post-action" onclick="deletePost('${p.id}')">🗑️ Delete</button>
+                            </div>
+                        ` : ''}
                     </div>
-                    <div class="post-title">${p.title}</div>
-                    ${p.subtitle ? `<div class="post-subtitle">${p.subtitle}</div>` : ''}
-                    <div class="post-content">${marked.parse(p.content || '')}</div>
-                    ${p.linked_readings?.length ? `<div class="post-links">📎 ${p.linked_readings.join(', ')}</div>` : ''}
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             // Also update home view
             renderRecentPosts();
+        }
+
+        let editingPostId = null;
+
+        function editPost(postId) {
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+
+            editingPostId = postId;
+
+            // Load post into Write view
+            document.getElementById('essayTitleInput').value = post.title || '';
+            document.getElementById('essaySubtitleInput').value = post.subtitle || '';
+            document.getElementById('essayContentInput').value = post.content || '';
+
+            // Load linked readings
+            essayLinkedReadings = (post.linked_readings || []).map(lr => {
+                if (typeof lr === 'object') return lr;
+                const allReadings = getAllReadings();
+                return allReadings.find(r => r.id === lr) || { id: lr, title: lr, week: '?' };
+            });
+            renderLinkedReadings('essay');
+
+            switchView('write');
+        }
+
+        async function deletePost(postId) {
+            if (!confirm('Are you sure you want to delete this essay?')) return;
+
+            if (db) {
+                try {
+                    const { error } = await db.from('posts').delete().eq('id', postId);
+                    if (!error) {
+                        posts = posts.filter(p => p.id !== postId);
+                        renderFeed();
+                    }
+                } catch (e) {
+                    console.warn('Failed to delete post:', e);
+                    alert('Failed to delete. Please try again.');
+                }
+            }
         }
 
         function renderRecentPosts() {
@@ -5535,34 +5806,55 @@ Type @ to link a reading."></textarea>
             // Use essayLinkedReadings array
             const links = essayLinkedReadings.map(r => r.id);
 
-            const post = {
+            const postData = {
                 title,
                 subtitle,
                 content,
                 linked_readings: links,
-                published_at: new Date().toISOString(),
-                author_email: currentUser?.email || 'Anonymous',
-                reactions: {}
+                updated_at: new Date().toISOString()
             };
 
             if (db && currentUser) {
-                post.author_id = currentUser.id;
                 try {
-                    const { data } = await db.from('posts').insert([post]).select();
-                    if (data?.[0]) posts.unshift(data[0]);
+                    // If editing an existing post, update it
+                    if (editingPostId) {
+                        const { data, error } = await db
+                            .from('posts')
+                            .update(postData)
+                            .eq('id', editingPostId)
+                            .select();
 
-                    // Delete draft after publishing
-                    if (editingDraftId) {
-                        await db.from('drafts').delete().eq('id', editingDraftId);
-                        drafts = drafts.filter(d => d.id !== editingDraftId);
-                        editingDraftId = null;
+                        if (!error && data?.[0]) {
+                            const idx = posts.findIndex(p => p.id === editingPostId);
+                            if (idx >= 0) posts[idx] = { ...posts[idx], ...data[0] };
+                        }
+                        editingPostId = null;
+                    } else {
+                        // New post
+                        postData.published_at = new Date().toISOString();
+                        postData.author_id = currentUser.id;
+                        postData.author_email = currentUser.email || 'Anonymous';
+                        postData.reactions = {};
+
+                        const { data } = await db.from('posts').insert([postData]).select();
+                        if (data?.[0]) posts.unshift(data[0]);
+
+                        // Delete draft after publishing
+                        if (editingDraftId) {
+                            await db.from('drafts').delete().eq('id', editingDraftId);
+                            drafts = drafts.filter(d => d.id !== editingDraftId);
+                            editingDraftId = null;
+                        }
                     }
                 } catch (e) {
                     console.warn('Failed to publish:', e);
                 }
             } else {
-                post.id = Date.now().toString();
-                posts.unshift(post);
+                postData.id = Date.now().toString();
+                postData.published_at = new Date().toISOString();
+                postData.author_email = 'Anonymous';
+                postData.reactions = {};
+                posts.unshift(postData);
 
                 // Delete draft from local storage after publishing
                 if (editingDraftId) {
@@ -5930,6 +6222,193 @@ Type @ to link a reading."></textarea>
                 }
             }
         }
+
+        // =============================================
+        // WORKSHOP VIEW
+        // =============================================
+
+        let currentWorkshopId = null;
+        let workshopComments = [];
+
+        function openWorkshop(workshopId) {
+            currentWorkshopId = workshopId;
+            const workshop = workshops.find(w => w.id === workshopId);
+            if (!workshop) return;
+
+            // Update header
+            document.getElementById('workshopUnitLabel').textContent = workshop.unit;
+            document.getElementById('workshopTitle').textContent = workshop.title;
+            document.getElementById('workshopDates').textContent = workshop.dates;
+
+            // Render covered weeks
+            renderWorkshopWeeks(workshop);
+
+            // Render related essays
+            renderWorkshopEssays(workshop);
+
+            // Load comments
+            loadWorkshopComments(workshopId);
+
+            // Switch to workshop view
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById('view-workshop').classList.add('active');
+        }
+
+        function renderWorkshopWeeks(workshop) {
+            const container = document.getElementById('workshopWeeks');
+
+            // Get all weeks in this unit
+            const weeksHtml = workshop.weeks.map(weekNum => {
+                let weekData = null;
+                schedule.forEach(unit => {
+                    unit.weeks.forEach(w => {
+                        if (w.num === weekNum) weekData = w;
+                    });
+                });
+                if (!weekData) return '';
+
+                const readingsList = weekData.readings.map(r =>
+                    r.title.replace(/<[^>]*>/g, '').substring(0, 50) + (r.title.length > 50 ? '...' : '')
+                ).join(' • ');
+
+                return `
+                    <div class="workshop-week-card" onclick="goToWeek(${weekNum})">
+                        <div class="workshop-week-num">Week ${weekNum} — ${weekData.date}</div>
+                        <div class="workshop-week-title">${weekData.title}</div>
+                        <div class="workshop-week-readings">${readingsList}</div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = weeksHtml;
+        }
+
+        function renderWorkshopEssays(workshop) {
+            const container = document.getElementById('workshopEssays');
+
+            // Get all reading IDs for this unit
+            const unitReadingIds = [];
+            workshop.weeks.forEach(weekNum => {
+                schedule.forEach(unit => {
+                    unit.weeks.forEach(w => {
+                        if (w.num === weekNum) {
+                            w.readings.forEach(r => unitReadingIds.push(r.id));
+                        }
+                    });
+                });
+            });
+
+            // Find essays that link to these readings
+            const relatedPosts = posts.filter(post => {
+                if (!post.linked_readings) return false;
+                return post.linked_readings.some(lr => unitReadingIds.includes(lr));
+            });
+
+            if (relatedPosts.length === 0) {
+                container.innerHTML = '<div class="empty-state">No essays linked to this unit\'s readings yet.</div>';
+                return;
+            }
+
+            container.innerHTML = relatedPosts.map(post => `
+                <div class="workshop-essay-card" onclick="viewPost('${post.id}')">
+                    <div class="workshop-essay-title">${post.title}</div>
+                    <div class="workshop-essay-author">by ${post.author_email || 'Anonymous'}</div>
+                </div>
+            `).join('');
+        }
+
+        async function loadWorkshopComments(workshopId) {
+            const container = document.getElementById('workshopComments');
+
+            if (db) {
+                try {
+                    const { data, error } = await db
+                        .from('workshop_comments')
+                        .select('*')
+                        .eq('workshop_id', workshopId)
+                        .order('created_at', { ascending: true });
+
+                    if (!error && data) {
+                        workshopComments = data;
+                    }
+                } catch (e) {
+                    console.warn('Failed to load workshop comments:', e);
+                }
+            }
+
+            renderWorkshopComments();
+        }
+
+        function renderWorkshopComments() {
+            const container = document.getElementById('workshopComments');
+
+            if (workshopComments.length === 0) {
+                container.innerHTML = '<div class="empty-state">No comments yet. Start the discussion!</div>';
+                return;
+            }
+
+            container.innerHTML = workshopComments.map(c => `
+                <div class="workshop-comment">
+                    <div class="workshop-comment-header">
+                        <span class="workshop-comment-author">${c.author_email || 'Anonymous'}</span>
+                        <span class="workshop-comment-date">${new Date(c.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div class="workshop-comment-content">${c.content}</div>
+                </div>
+            `).join('');
+        }
+
+        async function postWorkshopComment() {
+            const input = document.getElementById('workshopCommentInput');
+            const content = input.value.trim();
+
+            if (!content) return;
+
+            if (!currentUser) {
+                alert('Please sign in to post comments.');
+                return;
+            }
+
+            const comment = {
+                workshop_id: currentWorkshopId,
+                author_id: currentUser.id,
+                author_email: currentUser.email,
+                content: content,
+                created_at: new Date().toISOString()
+            };
+
+            if (db) {
+                try {
+                    const { data, error } = await db
+                        .from('workshop_comments')
+                        .insert([comment])
+                        .select();
+
+                    if (!error && data?.[0]) {
+                        workshopComments.push(data[0]);
+                        input.value = '';
+                        renderWorkshopComments();
+                    }
+                } catch (e) {
+                    console.warn('Failed to post comment:', e);
+                    alert('Failed to post comment. Please try again.');
+                }
+            }
+        }
+
+        function viewPost(postId) {
+            // Find the post and show it (could expand to full view)
+            const post = posts.find(p => p.id === postId);
+            if (post) {
+                switchView('discuss');
+                // Scroll to the post if needed
+            }
+        }
+
+        // =============================================
+        // AUTH FUNCTIONS
+        // =============================================
 
         function updateAuthUI(user) {
             const btn = document.getElementById('authBtn');
