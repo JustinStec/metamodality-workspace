@@ -203,3 +203,33 @@ CREATE POLICY "Authenticated insert workshop comments" ON workshop_comments
 -- Users can delete their own comments
 CREATE POLICY "Users can delete own workshop comments" ON workshop_comments
   FOR DELETE USING (auth.uid() = author_id);
+
+-- =============================================
+-- POST COMMENTS TABLE (comments on essays)
+-- =============================================
+
+CREATE TABLE IF NOT EXISTS post_comments (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
+  author_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  author_email TEXT,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_post_comments_post_id ON post_comments(post_id);
+
+ALTER TABLE post_comments ENABLE ROW LEVEL SECURITY;
+
+-- Everyone can read post comments
+CREATE POLICY "Public read post comments" ON post_comments
+  FOR SELECT USING (true);
+
+-- Authenticated users can post comments
+CREATE POLICY "Authenticated insert post comments" ON post_comments
+  FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = author_id);
+
+-- Users can delete their own comments
+CREATE POLICY "Users can delete own post comments" ON post_comments
+  FOR DELETE USING (auth.uid() = author_id);

@@ -1957,6 +1957,62 @@
         }
         .post-action:hover { color: var(--accent); }
 
+        /* Post Comments */
+        .post-comments-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+        .post-comments-list {
+            margin-bottom: 15px;
+        }
+        .post-comment {
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .post-comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .post-comment-author {
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: var(--text-bright);
+        }
+        .post-comment-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .post-comment-content {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--text);
+        }
+        .post-comment-form {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .post-comment-form textarea {
+            flex: 1;
+            min-height: 60px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text);
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+        .post-comment-form textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
         /* ========== WORKSHOP VIEW ========== */
         .workshop-view {
             max-width: 900px;
@@ -3491,6 +3547,7 @@ Type @ to link a reading."></textarea>
             buildReadingsList();
             renderCurrentWeek();
             loadFeed();
+            loadPostComments();
             loadNotes();
             loadDrafts();
             loadAllAnnotationsForActivity();
@@ -5406,8 +5463,9 @@ Type @ to link a reading."></textarea>
 
             container.innerHTML = posts.map(p => {
                 const isAuthor = currentUser && p.author_id === currentUser.id;
+                const commentCount = (postComments[p.id] || []).length;
                 return `
-                    <div class="post-card">
+                    <div class="post-card" data-post-id="${p.id}">
                         <div class="post-header">
                             <div class="post-avatar">${(p.author_email || 'A')[0].toUpperCase()}</div>
                             <div>
@@ -5419,12 +5477,24 @@ Type @ to link a reading."></textarea>
                         ${p.subtitle ? `<div class="post-subtitle">${p.subtitle}</div>` : ''}
                         <div class="post-content">${marked.parse(p.content || '')}</div>
                         ${p.linked_readings?.length ? `<div class="post-links">📎 ${p.linked_readings.join(', ')}</div>` : ''}
-                        ${isAuthor ? `
-                            <div class="post-actions">
+                        <div class="post-actions">
+                            <button class="post-action" onclick="togglePostComments('${p.id}')">
+                                💬 ${commentCount} Comment${commentCount !== 1 ? 's' : ''}
+                            </button>
+                            ${isAuthor ? `
                                 <button class="post-action" onclick="editPost('${p.id}')">✏️ Edit</button>
                                 <button class="post-action" onclick="deletePost('${p.id}')">🗑️ Delete</button>
+                            ` : ''}
+                        </div>
+                        <div class="post-comments-section" id="comments-${p.id}" style="display: none;">
+                            <div class="post-comments-list" id="comments-list-${p.id}">
+                                <!-- Comments loaded dynamically -->
                             </div>
-                        ` : ''}
+                            <div class="post-comment-form">
+                                <textarea id="comment-input-${p.id}" placeholder="Write a comment..."></textarea>
+                                <button class="btn" onclick="postComment('${p.id}')">Post</button>
+                            </div>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -5470,6 +5540,111 @@ Type @ to link a reading."></textarea>
                 } catch (e) {
                     console.warn('Failed to delete post:', e);
                     alert('Failed to delete. Please try again.');
+                }
+            }
+        }
+
+        // Post comments storage
+        let postComments = {};
+
+        async function loadPostComments() {
+            if (!db) return;
+
+            try {
+                const { data, error } = await db
+                    .from('post_comments')
+                    .select('*')
+                    .order('created_at', { ascending: true });
+
+                if (!error && data) {
+                    // Group comments by post_id
+                    postComments = {};
+                    data.forEach(c => {
+                        if (!postComments[c.post_id]) postComments[c.post_id] = [];
+                        postComments[c.post_id].push(c);
+                    });
+                }
+            } catch (e) {
+                console.warn('Failed to load post comments:', e);
+            }
+        }
+
+        function togglePostComments(postId) {
+            const section = document.getElementById(`comments-${postId}`);
+            if (!section) return;
+
+            const isHidden = section.style.display === 'none';
+            section.style.display = isHidden ? 'block' : 'none';
+
+            if (isHidden) {
+                renderPostComments(postId);
+            }
+        }
+
+        function renderPostComments(postId) {
+            const container = document.getElementById(`comments-list-${postId}`);
+            if (!container) return;
+
+            const comments = postComments[postId] || [];
+
+            if (comments.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 15px; font-size: 0.9rem;">No comments yet. Be the first to share your thoughts.</div>';
+                return;
+            }
+
+            container.innerHTML = comments.map(c => `
+                <div class="post-comment">
+                    <div class="post-comment-header">
+                        <span class="post-comment-author">${c.author_email || 'Anonymous'}</span>
+                        <span class="post-comment-date">${new Date(c.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div class="post-comment-content">${c.content}</div>
+                </div>
+            `).join('');
+        }
+
+        async function postComment(postId) {
+            const input = document.getElementById(`comment-input-${postId}`);
+            const content = input?.value?.trim();
+
+            if (!content) return;
+
+            if (!currentUser) {
+                alert('Please sign in to post comments.');
+                return;
+            }
+
+            const comment = {
+                post_id: postId,
+                author_id: currentUser.id,
+                author_email: currentUser.email,
+                content: content,
+                created_at: new Date().toISOString()
+            };
+
+            if (db) {
+                try {
+                    const { data, error } = await db
+                        .from('post_comments')
+                        .insert([comment])
+                        .select();
+
+                    if (!error && data?.[0]) {
+                        if (!postComments[postId]) postComments[postId] = [];
+                        postComments[postId].push(data[0]);
+                        input.value = '';
+                        renderPostComments(postId);
+
+                        // Update comment count in button
+                        const btn = document.querySelector(`[data-post-id="${postId}"] .post-action`);
+                        if (btn) {
+                            const count = postComments[postId].length;
+                            btn.innerHTML = `💬 ${count} Comment${count !== 1 ? 's' : ''}`;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Failed to post comment:', e);
+                    alert('Failed to post comment. Please try again.');
                 }
             }
         }
