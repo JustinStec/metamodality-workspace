@@ -2319,6 +2319,16 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Tags -->
+                        <div class="activity-card">
+                            <div class="activity-card-header">
+                                <span class="icon">🏷️</span> Browse by Topic
+                            </div>
+                            <div class="tag-cloud" id="tagCloud">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3376,6 +3386,7 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             document.getElementById('currentWeekCard').innerHTML = `
                 <div class="current-week-label">Week ${week.num} — ${week.date}</div>
                 <h2>${week.title}</h2>
+                ${week.tags ? `<div class="week-tags">${week.tags.map(t => `<span class="tag" onclick="filterByTag('${t}')">${t}</span>`).join('')}</div>` : ''}
                 <p class="focus">${week.focus}</p>
                 <div class="current-week-readings">
                     ${week.readings.map(r => `
@@ -3395,6 +3406,76 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
             renderActivityStream();
             renderSemesterProgress();
             renderNextWeekPreview();
+            renderTagCloud();
+        }
+
+        let activeTagFilter = null;
+
+        function filterByTag(tag) {
+            if (activeTagFilter === tag) {
+                activeTagFilter = null; // Toggle off
+            } else {
+                activeTagFilter = tag;
+            }
+
+            // Show filtered results in a modal
+            const matchingWeeks = [];
+            schedule.forEach(unit => {
+                unit.weeks.forEach(week => {
+                    if (week.tags && week.tags.includes(tag)) {
+                        matchingWeeks.push(week);
+                    }
+                });
+            });
+
+            if (matchingWeeks.length > 0 && activeTagFilter) {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+                modal.innerHTML = `
+                    <div class="modal" style="max-width: 500px;">
+                        <div class="modal-header">
+                            <h3>Weeks tagged "${tag}"</h3>
+                            <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+                        </div>
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            ${matchingWeeks.map(w => `
+                                <div class="search-result-item" onclick="goToWeek(${w.num}); this.closest('.modal-overlay').remove();">
+                                    <div class="search-result-type">Week ${w.num}</div>
+                                    <div class="search-result-title">${w.title}</div>
+                                    <div class="search-result-desc">${w.focus.substring(0, 80)}...</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+
+            renderTagCloud();
+        }
+
+        function renderTagCloud() {
+            const container = document.getElementById('tagCloud');
+            if (!container) return;
+
+            // Collect all unique tags with counts
+            const tagCounts = {};
+            schedule.forEach(unit => {
+                unit.weeks.forEach(week => {
+                    (week.tags || []).forEach(tag => {
+                        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+                    });
+                });
+            });
+
+            // Sort by count
+            const sortedTags = Object.entries(tagCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 15); // Top 15 tags
+
+            container.innerHTML = sortedTags.map(([tag, count]) =>
+                `<span class="tag${activeTagFilter === tag ? ' active' : ''}" onclick="filterByTag('${tag}')">${tag}</span>`
+            ).join('');
         }
 
         function renderSemesterProgress() {
