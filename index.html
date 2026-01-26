@@ -401,58 +401,61 @@
 
         /* ========== HOME VIEW ========== */
         .home-view {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 40px 40px;
+            padding: 30px 30px;
         }
 
         .home-hero {
-            margin-bottom: 50px;
-            padding: 40px 20px;
+            margin-bottom: 24px;
+            padding: 30px;
             background: linear-gradient(135deg, rgba(139,90,43,0.08) 0%, rgba(101,67,33,0.04) 100%);
-            border-radius: 16px;
+            border-radius: 12px;
             border: 1px solid rgba(139,90,43,0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .home-hero h1 {
             font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-            font-size: 36px;
+            font-size: 32px;
             font-weight: normal;
             color: var(--text-bright);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             letter-spacing: -0.01em;
             text-align: center;
         }
         .home-hero .subtitle {
-            font-size: 16px;
+            font-size: 15px;
             color: var(--text-muted);
             font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             text-align: center;
         }
         .home-hero .epigraph {
             font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-            font-size: 16px;
-            line-height: 1.35;
+            font-size: 15px;
+            line-height: 1.4;
             color: var(--text);
-            max-width: 640px;
-            margin: 0 0 12px;
+            margin: 0 0 10px;
             text-align: left;
         }
         .home-hero .epigraph-source {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-muted);
             text-align: left;
+            margin-bottom: 16px;
         }
         .home-intro {
             font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-            font-size: 15px;
-            line-height: 1.7;
+            font-size: 14px;
+            line-height: 1.6;
             color: var(--text);
-            max-width: 800px;
-            margin: 24px 0 0;
-            padding-top: 20px;
+            margin: 0;
+            padding-top: 16px;
             border-top: 1px solid rgba(139,90,43,0.15);
             text-align: left;
+            width: 100%;
         }
 
         .current-week {
@@ -561,12 +564,12 @@
         /* Home Layout - Three columns: Schedule | Main | Sidebar */
         .home-layout {
             display: grid;
-            grid-template-columns: 260px 1fr 320px;
-            gap: 24px;
-            margin-top: 30px;
+            grid-template-columns: 240px 1fr 300px;
+            gap: 20px;
+            margin-top: 24px;
         }
         @media (max-width: 1200px) {
-            .home-layout { grid-template-columns: 240px 1fr; }
+            .home-layout { grid-template-columns: 220px 1fr; }
             .home-sidebar { display: none; }
         }
         @media (max-width: 900px) {
@@ -2222,27 +2225,27 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                       focus: `How can we think or speak "what is not"? This problem drives subsequent responses from Aristotle through Heidegger. Kingsley's reading situates Parmenides within an initiatory tradition.`,
                       readings: [
                         { id: "w01_parmenides", title: `Parmenides, "On Nature" (complete fragments)`, file: "readings/Week 1_Parmenides/Week 1_Parmenides.pdf" },
-                        { id: "w01_kingsley", title: "Kingsley, In the Dark Places of Wisdom (Parts One and Two most essential)", file: "readings/Week 1_Parmenides/Week 1_Kingsley.pdf" }
+                        { id: "w01_kingsley", title: `Kingsley, <em>In the Dark Places of Wisdom</em> (Parts One and Two most essential)`, file: "readings/Week 1_Parmenides/Week 1_Kingsley.pdf" }
                     ]},
                     { num: 2, date: "Feb 11", title: "Potentiality and Actuality",
                       focus: "Aristotle's potentiality (dynamis) answers Parmenides by locating possibility within beings themselves. The sea-battle problem asks whether future contingents have determinate truth values.",
                       readings: [
-                        { id: "w02_meta", title: "Aristotle, Metaphysics Book Θ, ch. 1–3 and 6–8", file: "readings/Week 2_Aristotle/Week 2_Aristotle.pdf" },
-                        { id: "w02_di", title: "Aristotle, De Interpretatione, ch. 9", file: "readings/Week 2_Aristotle/Week 2_Conway.pdf" },
+                        { id: "w02_meta", title: `Aristotle, <em>Metaphysics</em> Book Θ, ch. 1–3 and 6–8`, file: "readings/Week 2_Aristotle/Week 2_Aristotle.pdf" },
+                        { id: "w02_di", title: `Aristotle, <em>De Interpretatione</em>, ch. 9`, file: "readings/Week 2_Aristotle/Week 2_Conway.pdf" },
                         { id: "w02_witt", title: `Witt, "The Priority of Actuality in Aristotle"`, file: "readings/Week 2_Aristotle/Week 2_Witt.pdf" }
                     ]},
                     { num: 3, date: "Feb 18", title: "Essence and Existence",
                       focus: "Separating essence from existence, Avicenna makes contingency fundamental to everything except the Necessary Existent. This reconfiguration of Aristotle shapes Leibniz's later work on possible worlds.",
                       readings: [
-                        { id: "w03_avicenna", title: "Avicenna, The Metaphysics of The Healing, selections", file: "readings/Week 3_Avicenna/Week 3_Avicenna.pdf" },
+                        { id: "w03_avicenna", title: `Avicenna, <em>The Metaphysics of The Healing</em>, selections`, file: "readings/Week 3_Avicenna/Week 3_Avicenna.pdf" },
                         { id: "w03_adamson", title: `Adamson, "From the Necessary Existent to God"`, file: "readings/Week 3_Avicenna/Week 3_Adamson.pdf" }
                     ]},
                     { num: 4, date: "Feb 25", title: "Emptiness and Dependent Arising",
                       focus: `Does "possibility" mean anything once inherent existence drops out? Nāgārjuna's tetralemma refuses the logical options that Western frameworks take for granted.`,
                       readings: [
-                        { id: "w04_nagarjuna", title: "Nāgārjuna, Mūlamadhyamakakārikā, ch. 1, 2, 15, 24, 25", file: "readings/Week 4_Nagarjuna/Week 4_Nagarjuna.pdf" },
+                        { id: "w04_nagarjuna", title: `Nāgārjuna, <em>Mūlamadhyamakakārikā</em>, ch. 1, 2, 15, 24, 25`, file: "readings/Week 4_Nagarjuna/Week 4_Nagarjuna.pdf" },
                         { id: "w04_garfield", title: `Garfield, "Dependent Arising and the Emptiness of Emptiness"`, file: "readings/Week 4_Nagarjuna/Week 4_Garfield (Essay).pdf" },
-                        { id: "w04_commentary", title: "Garfield, Commentary (optional)", file: "readings/Week 4_Nagarjuna/Week 4_Garfield (Commentary).pdf" }
+                        { id: "w04_commentary", title: `Garfield, <em>Commentary</em> (optional)`, file: "readings/Week 4_Nagarjuna/Week 4_Garfield (Commentary).pdf" }
                     ]}
                 ]
             },
@@ -2250,22 +2253,22 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                 unit: "Unit II: Rationalism, Transcendentalism, and the Imaginal",
                 weeks: [
                     { num: 5, date: "Mar 4", title: "Compossibility and Possible Worlds",
-                      focus: "Compossibility constrains which possibilities can coexist within a single world. The Monadology raises the question of what individuates possible worlds.",
+                      focus: `Compossibility constrains which possibilities can coexist within a single world. The <em>Monadology</em> raises the question of what individuates possible worlds.`,
                       readings: [
-                        { id: "w05_monad", title: "Leibniz, Monadology", file: "readings/Week 5_Leibniz and Du Châtelet/Leibniz_Monadology.pdf" },
-                        { id: "w05_duchat", title: "Du Châtelet, Institutions de physique, ch. 1–2", file: "readings/Week 5_Leibniz and Du Châtelet/Week 5_Du Chatelet.pdf" },
+                        { id: "w05_monad", title: `Leibniz, <em>Monadology</em>`, file: "readings/Week 5_Leibniz and Du Châtelet/Leibniz_Monadology.pdf" },
+                        { id: "w05_duchat", title: `Du Châtelet, <em>Institutions de physique</em>, ch. 1–2`, file: "readings/Week 5_Leibniz and Du Châtelet/Week 5_Du Chatelet.pdf" },
                         { id: "w05_orig", title: `Leibniz, "On the Ultimate Origination of Things"`, file: "readings/Week 5_Leibniz and Du Châtelet/Week 5_Leibniz (Origination).pdf" }
                     ]},
                     { num: 6, date: "Mar 11", title: "Real and Logical Possibility",
                       focus: "What must any possible experience conform to? Kant's Postulates distinguish logical possibility from real possibility.",
                       readings: [
-                        { id: "w06_kant", title: `Kant, Critique of Pure Reason: "Postulates of Empirical Thought"`, file: "readings/Week 6_Kant and Leech/Week 6_Kant.pdf" },
+                        { id: "w06_kant", title: `Kant, <em>Critique of Pure Reason</em>: "Postulates of Empirical Thought"`, file: "readings/Week 6_Kant and Leech/Week 6_Kant.pdf" },
                         { id: "w06_leech", title: `Leech, "The Function of Modal Judgment and the Kantian Gap"`, file: "readings/Week 6_Kant and Leech/Week 6_Leech.pdf" }
                     ]},
                     { num: 7, date: "Mar 18", title: "The Imaginal World",
                       focus: "Ibn ʿArabī's imaginal world (ʿālam al-mithāl) occupies a realm between sensible and intelligible, where possibilities take on form. The Adam chapter introduces the human being as comprehensive mirror of divine names; the Joseph chapter develops imagination as an ontological realm through dream interpretation. (Spring Break—informal)",
                       readings: [
-                        { id: "w07_arabi", title: `Ibn ʿArabī, Fuṣūṣ al-Ḥikam (Bezels of Wisdom), "Adam" and "Joseph" chapters (Austin trans.)`, file: "readings/Week 7_al-Adawiyya and Ibn Arabi/Week 7_Arabi.pdf" }
+                        { id: "w07_arabi", title: `Ibn ʿArabī, <em>Fuṣūṣ al-Ḥikam</em> (Bezels of Wisdom), "Adam" and "Joseph" chapters (Austin trans.)`, file: "readings/Week 7_al-Adawiyya and Ibn Arabi/Week 7_Arabi.pdf" }
                     ]}
                 ]
             },
@@ -2276,13 +2279,13 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                       focus: "Can a condition of possibility also be a condition of impossibility? Derrida's introduction examines how ideal objects arise in history yet claim eternal validity.",
                       readings: [
                         { id: "w08_husserl", title: `Husserl, "The Origin of Geometry"`, file: "readings/Week 8_Husserl and Derrida/Week 8_Husserl and Derrida.pdf" },
-                        { id: "w08_derrida", title: `Derrida, Introduction to "The Origin of Geometry," selections`, file: "readings/Week 8_Husserl and Derrida/Week 8_Husserl and Derrida.pdf" }
+                        { id: "w08_derrida", title: `Derrida, <em>Introduction to "The Origin of Geometry,"</em> selections`, file: "readings/Week 8_Husserl and Derrida/Week 8_Husserl and Derrida.pdf" }
                     ]},
                     { num: 9, date: "Apr 1", title: "Death and Natality",
                       focus: "Heidegger transforms the Aristotelian vocabulary so that possibility becomes constitutive of Dasein; death individualizes as the ownmost possibility. Arendt's natality offers a counter-emphasis.",
                       readings: [
-                        { id: "w09_heid", title: "Heidegger, Being and Time, Division II ch. 1 (§§46–53)", file: "readings/Week 9_Heidegger and Arendt/Week 9_Heidegger.pdf" },
-                        { id: "w09_arendt", title: "Arendt, The Human Condition, ch. 5 §§24–26", file: "readings/Week 9_Heidegger and Arendt/Week 9_Arendt.pdf" }
+                        { id: "w09_heid", title: `Heidegger, <em>Being and Time</em>, Division II ch. 1 (§§46–53)`, file: "readings/Week 9_Heidegger and Arendt/Week 9_Heidegger.pdf" },
+                        { id: "w09_arendt", title: `Arendt, <em>The Human Condition</em>, ch. 5 §§24–26`, file: "readings/Week 9_Heidegger and Arendt/Week 9_Arendt.pdf" }
                     ]},
                     { num: 10, date: "Apr 8", title: "Firstness and Continuity",
                       focus: "Firstness is pure qualitative possibility, prior to relation or resistance. Peirce's continuum allows possibility to grade into actuality.",
@@ -2293,8 +2296,8 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                     { num: 11, date: "Apr 15", title: "Nothingness East and West",
                       focus: `Nishida's "place of absolute nothingness" (zettai mu no basho) holds particulars without being one itself. Lalla's Kashmiri Shaivite poetry pursues nothingness through a different idiom.`,
                       readings: [
-                        { id: "w11_nishida", title: "Nishida Kitarō, An Inquiry into the Good, Part I ch. 1–3", file: "readings/Week 11_Nishida and Lalla/Week 11_Nishida.pdf" },
-                        { id: "w11_lalla", title: "Lalla, Naked Song, selections", file: "readings/Week 11_Nishida and Lalla/Week 11_Lalla.pdf" }
+                        { id: "w11_nishida", title: `Nishida Kitarō, <em>An Inquiry into the Good</em>, Part I ch. 1–3`, file: "readings/Week 11_Nishida and Lalla/Week 11_Nishida.pdf" },
+                        { id: "w11_lalla", title: `Lalla, <em>Naked Song</em>, selections`, file: "readings/Week 11_Nishida and Lalla/Week 11_Lalla.pdf" }
                     ]}
                 ]
             },
@@ -2304,21 +2307,21 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                     { num: 12, date: "Apr 22", title: "Eternal Objects and Ingression",
                       focus: "Eternal objects ingress into actual occasions as pure potentials. Whitehead's God functions as the primordial envisagement of possibility, a role that recalls Leibniz, and Peirce's categories find new form in this processual framework.",
                       readings: [
-                        { id: "w12_white", title: "Whitehead, Science and the Modern World, ch. 11", file: "readings/Week 12_Whitehead/Week 12_Whitehead.pdf" },
-                        { id: "w12_stengers", title: "Stengers, Thinking with Whitehead, selections", file: "readings/Week 12_Whitehead/Week 12_Stengers (Thinking With Whitehead).pdf" }
+                        { id: "w12_white", title: `Whitehead, <em>Science and the Modern World</em>, ch. 11`, file: "readings/Week 12_Whitehead/Week 12_Whitehead.pdf" },
+                        { id: "w12_stengers", title: `Stengers, <em>Thinking with Whitehead</em>, selections`, file: "readings/Week 12_Whitehead/Week 12_Stengers (Thinking With Whitehead).pdf" }
                     ]},
                     { num: 13, date: "Apr 29", title: "Attention and Awareness",
                       focus: "Thompson and Varela bridge first-person contemplative methods and third-person neuroscience. Weil's account of attention resonates with contemplative approaches while drawing on Platonic sources.",
                       readings: [
-                        { id: "w13_thompson", title: "Thompson, Waking, Dreaming, Being, ch. 1", file: "readings/Week 13_Thompson, Weil, Varela /Week 13_Thompson.pdf" },
+                        { id: "w13_thompson", title: `Thompson, <em>Waking, Dreaming, Being</em>, ch. 1`, file: "readings/Week 13_Thompson, Weil, Varela /Week 13_Thompson.pdf" },
                         { id: "w13_weil", title: `Weil, "Reflections on the Right Use of School Studies with a View to the Love of God"`, file: "readings/Week 13_Thompson, Weil, Varela /Week 13_Weil.pdf" },
                         { id: "w13_varela", title: `Varela, "Neurophenomenology: A Methodological Remedy for the Hard Problem"`, file: "readings/Week 13_Thompson, Weil, Varela /Week 13_Varela.pdf" }
                     ]},
                     { num: 14, date: "May 6", title: "Emanation and Superabundance",
                       focus: "Possibility flows from the One's inexhaustible superabundance. This emanationist framework shaped Avicenna and passed into German Idealism; it offers a counterpoint to the Aristotelian model of potentiality.",
                       readings: [
-                        { id: "w14_plotinus", title: "Plotinus, Enneads V.1", file: "readings/Week 14_Plotinus, Conway/Week 14_Plotinus.pdf" },
-                        { id: "w14_conway", title: "Conway, Principles of the Most Ancient and Modern Philosophy, selections", file: "readings/Week 14_Plotinus, Conway/Week 14_Conway.pdf" }
+                        { id: "w14_plotinus", title: `Plotinus, <em>Enneads</em> V.1`, file: "readings/Week 14_Plotinus, Conway/Week 14_Plotinus.pdf" },
+                        { id: "w14_conway", title: `Conway, <em>Principles of the Most Ancient and Modern Philosophy</em>, selections`, file: "readings/Week 14_Plotinus, Conway/Week 14_Conway.pdf" }
                     ]}
                 ]
             },
