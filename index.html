@@ -3692,11 +3692,21 @@ Type @ to link a reading."></textarea>
         // CAPTURE URL HASH IMMEDIATELY (before Supabase modifies it)
         // =============================================
         const initialHash = window.location.hash;
+        const initialSearch = window.location.search;
         let isPasswordRecovery = false;
+
+        console.log('=== PAGE LOAD DEBUG ===');
+        console.log('Full URL:', window.location.href);
+        console.log('Hash:', initialHash);
+        console.log('Search:', initialSearch);
+
         if (initialHash) {
             const hashParams = new URLSearchParams(initialHash.substring(1));
-            isPasswordRecovery = hashParams.get('type') === 'recovery';
-            console.log('Initial hash type:', hashParams.get('type'), 'isPasswordRecovery:', isPasswordRecovery);
+            const hashType = hashParams.get('type');
+            const hasAccessToken = hashParams.has('access_token');
+            isPasswordRecovery = hashType === 'recovery';
+            console.log('Hash params - type:', hashType, 'has access_token:', hasAccessToken);
+            console.log('isPasswordRecovery:', isPasswordRecovery);
         }
 
         // =============================================
