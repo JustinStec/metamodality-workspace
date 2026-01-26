@@ -645,9 +645,6 @@
             padding: 12px 18px 6px;
             font-weight: 600;
             background: var(--bg-dark);
-            position: sticky;
-            top: 0;
-            z-index: 1;
         }
 
         .home-main {
@@ -2358,8 +2355,27 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
         // INITIALIZATION
         // =============================================
 
-        function init() {
-            updateStatus('connected', 'Connected');
+        async function init() {
+            // Test Supabase connection
+            if (db) {
+                updateStatus('connecting', 'Connecting...');
+                try {
+                    // Quick test query
+                    const { error } = await db.from('annotations').select('id').limit(1);
+                    if (error) {
+                        console.error('Supabase test query error:', error);
+                        updateStatus('error', 'Database error');
+                    } else {
+                        updateStatus('online', 'Connected');
+                    }
+                } catch (e) {
+                    console.error('Supabase connection test failed:', e);
+                    updateStatus('offline', 'Offline mode');
+                }
+            } else {
+                updateStatus('offline', 'Offline mode');
+            }
+
             buildSyllabus();
             buildReadingsList();
             renderCurrentWeek();
@@ -3632,12 +3648,12 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
         // =============================================
 
         async function loadAnnotations(readingId) {
-            // Always load from localStorage first as fallback
+            // Load from localStorage first as fallback
             const localAnnotations = JSON.parse(localStorage.getItem('metamodality_annotations') || '{}');
             annotations = { ...localAnnotations };
 
-            // Then try to load from Supabase
-            if (db && currentUser) {
+            // Try to load from Supabase (works for all users, not just logged in)
+            if (db) {
                 try {
                     const { data, error } = await db
                         .from('annotations')
@@ -3647,13 +3663,24 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
 
                     if (error) {
                         console.warn('Supabase annotations error:', error);
-                    } else if (data) {
-                        // Merge with local
-                        annotations[readingId] = data;
+                        updateStatus('error', 'Database error');
+                    } else if (data && data.length > 0) {
+                        // Merge Supabase data with local (Supabase takes priority for shared annotations)
+                        const localItems = annotations[readingId] || [];
+                        const supabaseIds = new Set(data.map(a => a.id));
+                        // Keep local items that aren't in Supabase (user's unsaved annotations)
+                        const localOnly = localItems.filter(a => !supabaseIds.has(a.id));
+                        annotations[readingId] = [...data, ...localOnly];
+                        updateStatus('online', 'Connected');
+                    } else {
+                        updateStatus('online', 'Connected');
                     }
                 } catch (e) {
                     console.warn('Failed to load annotations:', e);
+                    updateStatus('error', 'Connection failed');
                 }
+            } else {
+                updateStatus('offline', 'Offline mode');
             }
             renderAnnotations();
         }
