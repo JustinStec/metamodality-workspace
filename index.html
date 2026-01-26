@@ -3618,22 +3618,23 @@ Type @ to link a reading."></textarea>
         // SEARCH
         // =============================================
 
-        function handleSearch(event) {
+        async function handleSearch(event) {
             if (event.key === 'Enter') {
-                const query = document.getElementById('globalSearch').value.trim().toLowerCase();
+                const query = document.getElementById('globalSearch').value.trim();
                 if (!query) return;
 
+                const queryLower = query.toLowerCase();
                 console.log('Searching for:', query);
 
-                // Search through readings and weeks
+                // Search through readings and weeks (local)
                 const results = [];
 
                 try {
                     schedule.forEach(unit => {
                         unit.weeks.forEach(week => {
                             // Check week title and focus
-                            if ((week.title || '').toLowerCase().includes(query) ||
-                                (week.focus || '').toLowerCase().includes(query)) {
+                            if ((week.title || '').toLowerCase().includes(queryLower) ||
+                                (week.focus || '').toLowerCase().includes(queryLower)) {
                                 results.push({
                                     type: 'week',
                                     title: `Week ${week.num}: ${week.title}`,
@@ -3645,7 +3646,7 @@ Type @ to link a reading."></textarea>
                             // Check readings
                             (week.readings || []).forEach(r => {
                                 const titleText = (r.title || '').replace(/<[^>]*>/g, ''); // Strip HTML
-                                if (titleText.toLowerCase().includes(query)) {
+                                if (titleText.toLowerCase().includes(queryLower)) {
                                     results.push({
                                         type: 'reading',
                                         title: titleText,
@@ -3659,13 +3660,13 @@ Type @ to link a reading."></textarea>
 
                     // Search through notes
                     (notes || []).forEach(note => {
-                        if ((note.title || '').toLowerCase().includes(query) ||
-                            (note.content || '').toLowerCase().includes(query)) {
+                        if ((note.title || '').toLowerCase().includes(queryLower) ||
+                            (note.content || '').toLowerCase().includes(queryLower)) {
                             results.push({
                                 type: 'note',
                                 title: note.title || 'Untitled',
                                 description: (note.content || '').substring(0, 80) + '...',
-                                action: () => { switchView('write'); selectNote(note.id); }
+                                action: () => { switchView('notes'); editNote(note.id); }
                             });
                         }
                     });
@@ -3675,7 +3676,7 @@ Type @ to link a reading."></textarea>
                         (items || []).forEach(a => {
                             const quote = (a.quote || '').toLowerCase();
                             const comment = (a.comment || '').toLowerCase();
-                            if (quote.includes(query) || comment.includes(query)) {
+                            if (quote.includes(queryLower) || comment.includes(queryLower)) {
                                 results.push({
                                     type: 'annotation',
                                     title: `"${(a.quote || '').substring(0, 60)}..."`,
@@ -3685,6 +3686,27 @@ Type @ to link a reading."></textarea>
                             }
                         });
                     });
+
+                    // Full-text search reading content via Supabase
+                    if (db) {
+                        try {
+                            const { data: ftResults, error } = await db
+                                .rpc('search_readings', { search_query: query, limit_count: 10 });
+
+                            if (!error && ftResults && ftResults.length > 0) {
+                                ftResults.forEach(r => {
+                                    results.push({
+                                        type: 'content',
+                                        title: r.title,
+                                        description: r.snippet || `Week ${r.week_num}`,
+                                        action: () => openReading(r.reading_id)
+                                    });
+                                });
+                            }
+                        } catch (ftErr) {
+                            console.warn('Full-text search unavailable:', ftErr);
+                        }
+                    }
 
                     console.log('Search results:', results.length);
 
