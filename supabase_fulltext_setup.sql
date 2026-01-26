@@ -81,6 +81,39 @@ $$ LANGUAGE plpgsql;
 GRANT EXECUTE ON FUNCTION search_readings TO anon, authenticated;
 
 -- =============================================
+-- NOTES TABLE (private per-user notes)
+-- =============================================
+
+CREATE TABLE IF NOT EXISTS notes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT,
+  content TEXT,
+  linked_readings TEXT[],
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create index for user lookups
+CREATE INDEX IF NOT EXISTS idx_notes_user_id ON notes(user_id);
+
+-- Enable Row Level Security
+ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
+
+-- Users can only see their own notes (PRIVATE)
+CREATE POLICY "Users can view own notes" ON notes
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own notes" ON notes
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own notes" ON notes
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own notes" ON notes
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- =============================================
 -- DRAFTS TABLE (for Substack-style essay drafts)
 -- =============================================
 

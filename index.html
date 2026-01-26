@@ -2395,6 +2395,102 @@
         }
         .selection-popup button:hover { background: var(--accent-hover); }
 
+        /* ========== AUTH GATE ========== */
+        .auth-gate {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .auth-gate.hidden { display: none; }
+        .auth-gate-content {
+            max-width: 480px;
+            padding: 3rem;
+            text-align: center;
+        }
+        .auth-gate-content h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem;
+            color: var(--text);
+        }
+        .auth-gate-content .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin: 0 0 2rem;
+        }
+        .auth-gate-info {
+            background: var(--bg-secondary);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .auth-gate-info p { margin: 0; }
+        .auth-gate-info .schedule {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+        .auth-gate-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+        .auth-gate-features .feature {
+            padding: 0.75rem;
+            background: var(--bg-hover);
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+        .auth-gate-cta {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        .auth-gate-form {
+            display: flex;
+            gap: 0.5rem;
+            max-width: 360px;
+            margin: 0 auto;
+        }
+        .auth-gate-form input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text);
+            font-size: 1rem;
+        }
+        .auth-gate-form input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .auth-gate-message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .auth-gate-message:empty { display: none; }
+        .auth-gate-message.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .auth-gate-message.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
         /* ========== AUTH MODAL ========== */
         .modal-overlay {
             display: none;
@@ -2451,6 +2547,34 @@
     </style>
 </head>
 <body>
+    <!-- Auth Gate (shown until user signs in) -->
+    <div class="auth-gate" id="authGate">
+        <div class="auth-gate-content">
+            <h1>Metamodality</h1>
+            <p class="subtitle">An Inquiry into Forms of the Possible</p>
+
+            <div class="auth-gate-info">
+                <p>Center for Possible Minds Reading Group</p>
+                <p class="schedule">Spring 2026 — Wednesdays, 4:00–5:30 PM</p>
+            </div>
+
+            <div class="auth-gate-features">
+                <div class="feature">📖 Weekly readings with shared annotations</div>
+                <div class="feature">📝 Private notes with reading links</div>
+                <div class="feature">✍️ Draft and publish essays</div>
+                <div class="feature">💬 Discuss with the group</div>
+            </div>
+
+            <p class="auth-gate-cta">Sign in with your email to access the workspace.</p>
+
+            <div class="auth-gate-form">
+                <input type="email" id="gateEmail" placeholder="your@email.edu">
+                <button class="btn" onclick="sendGateMagicLink()">Send Magic Link</button>
+            </div>
+            <div class="auth-gate-message" id="gateMessage"></div>
+        </div>
+    </div>
+
     <!-- Header -->
     <header>
         <div class="logo" onclick="switchView('home')">Metamodality</div>
@@ -3230,8 +3354,6 @@ Type @ to link a reading."></textarea>
                 }
             });
 
-            // Show welcome modal for first-time visitors (after auth check)
-            setTimeout(checkFirstVisit, 500);
         }
 
         function updateStatus(status, text) {
@@ -5811,13 +5933,52 @@ Type @ to link a reading."></textarea>
 
         function updateAuthUI(user) {
             const btn = document.getElementById('authBtn');
+            const authGate = document.getElementById('authGate');
+
             if (user) {
-                btn.outerHTML = `<div class="user-avatar" onclick="signOut()" title="Sign out">${user.email[0].toUpperCase()}</div>`;
+                // Hide auth gate, show app
+                authGate.classList.add('hidden');
+                if (btn) {
+                    btn.outerHTML = `<div class="user-avatar" onclick="signOut()" title="Sign out">${user.email[0].toUpperCase()}</div>`;
+                }
             } else {
+                // Show auth gate, hide app content
+                authGate.classList.remove('hidden');
                 const existing = document.querySelector('.user-avatar');
                 if (existing) {
                     existing.outerHTML = `<button class="btn" id="authBtn" onclick="showAuthModal()">Sign In</button>`;
                 }
+            }
+        }
+
+        async function sendGateMagicLink() {
+            const email = document.getElementById('gateEmail').value;
+            const msgEl = document.getElementById('gateMessage');
+
+            if (!email) {
+                msgEl.className = 'auth-gate-message error';
+                msgEl.textContent = 'Please enter your email address.';
+                return;
+            }
+
+            if (db) {
+                try {
+                    const { error } = await db.auth.signInWithOtp({
+                        email,
+                        options: { emailRedirectTo: window.location.href }
+                    });
+
+                    if (error) throw error;
+
+                    msgEl.className = 'auth-gate-message success';
+                    msgEl.textContent = 'Check your email for the magic link!';
+                } catch (e) {
+                    msgEl.className = 'auth-gate-message error';
+                    msgEl.textContent = 'Error: ' + e.message;
+                }
+            } else {
+                msgEl.className = 'auth-gate-message error';
+                msgEl.textContent = 'Database not connected. Please try again.';
             }
         }
 
