@@ -6,18 +6,18 @@
     <title>Metamodality — Reading Group</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
 
-    <!-- PDF.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
+    <!-- PDF.js (self-hosted) -->
+    <script src="libs/pdf.min.js"></script>
+    <link rel="stylesheet" href="libs/pdf_viewer.min.css">
 
-    <!-- Tesseract.js for OCR -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <!-- Tesseract.js for OCR (self-hosted) -->
+    <script src="libs/tesseract.min.js"></script>
 
-    <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase SDK (self-hosted) -->
+    <script src="libs/supabase.min.js"></script>
 
-    <!-- Markdown parser -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Markdown parser (self-hosted) -->
+    <script src="libs/marked.min.js"></script>
 
     <!-- Inter font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -5167,7 +5167,7 @@ Type @ to link a reading."></textarea>
             toggle.classList.toggle('collapsed');
         }
 
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'libs/pdf.worker.min.js';
 
         async function loadReading(readingId) {
             currentReading = readingId;
