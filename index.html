@@ -2215,6 +2215,165 @@
             margin-top: 6px;
         }
 
+        /* ========== READING LINK SYSTEM ========== */
+        .editor-textarea-wrapper {
+            position: relative;
+            flex: 1;
+            display: flex;
+        }
+        .autocomplete-dropdown {
+            display: none;
+            position: absolute;
+            left: 25px;
+            top: 60px;
+            width: 350px;
+            max-height: 300px;
+            overflow-y: auto;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+        .autocomplete-dropdown.active { display: block; }
+        .autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+        }
+        .autocomplete-item:last-child { border-bottom: none; }
+        .autocomplete-item:hover, .autocomplete-item.selected {
+            background: var(--highlight);
+        }
+        .autocomplete-item-title {
+            font-size: 14px;
+            color: var(--text-bright);
+            margin-bottom: 2px;
+        }
+        .autocomplete-item-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .autocomplete-hint {
+            padding: 8px 15px;
+            font-size: 11px;
+            color: var(--text-muted);
+            background: var(--bg-dark);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .linked-readings {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            flex: 1;
+        }
+        .reading-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            background: var(--highlight);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            font-size: 12px;
+            color: var(--text);
+        }
+        .reading-chip-text {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .reading-chip-remove {
+            cursor: pointer;
+            opacity: 0.6;
+            font-size: 14px;
+            line-height: 1;
+        }
+        .reading-chip-remove:hover { opacity: 1; }
+
+        .link-reading-btn {
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .substack-footer-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        /* Reading Picker Modal */
+        .reading-picker-modal {
+            width: 500px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .reading-picker-header {
+            margin-bottom: 15px;
+        }
+        .reading-picker-header h3 {
+            margin-bottom: 12px;
+        }
+        .reading-picker-search {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-editor);
+            color: var(--text);
+            font-size: 14px;
+        }
+        .reading-picker-search:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .reading-picker-body {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 400px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .reading-picker-unit {
+            border-bottom: 1px solid var(--border);
+        }
+        .reading-picker-unit:last-child { border-bottom: none; }
+        .reading-picker-unit-header {
+            padding: 10px 15px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: var(--bg-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .reading-picker-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+        }
+        .reading-picker-item:last-child { border-bottom: none; }
+        .reading-picker-item:hover {
+            background: var(--highlight);
+        }
+        .reading-picker-item-title {
+            font-size: 13px;
+            color: var(--text-bright);
+        }
+        .reading-picker-item-week {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .reading-picker-item.hidden { display: none; }
+
         /* ========== SELECTION POPUP ========== */
         .selection-popup {
             display: none;
@@ -2585,14 +2744,20 @@
                     </div>
                 </div>
                 <div class="editor-body">
-                    <textarea class="editor-textarea" id="noteContentInput" placeholder="Write your notes here...
+                    <div class="editor-textarea-wrapper">
+                        <textarea class="editor-textarea" id="noteContentInput" placeholder="Write your notes here...
 
-Use [[Week 1: Parmenides]] to link to readings."></textarea>
+Type @ to link a reading, or use the 📎 button below."></textarea>
+                        <div class="autocomplete-dropdown" id="noteAutocomplete"></div>
+                    </div>
                 </div>
                 <div class="editor-footer">
-                    <div class="editor-links" id="editorLinks">
-                        Use [[Week Title]] to link to readings
+                    <div class="linked-readings" id="noteLinkedReadings">
+                        <!-- Chips appear here -->
                     </div>
+                    <button class="btn secondary link-reading-btn" onclick="openReadingPicker('note')">
+                        <span>📎</span> Link Reading
+                    </button>
                 </div>
             </div>
         </div>
@@ -2606,15 +2771,23 @@ Use [[Week 1: Parmenides]] to link to readings."></textarea>
                         <input type="text" class="substack-subtitle" id="essaySubtitleInput" placeholder="Add a subtitle...">
                     </div>
                     <div class="substack-body">
-                        <textarea class="substack-textarea" id="essayContentInput" placeholder="Start writing...
+                        <div class="editor-textarea-wrapper">
+                            <textarea class="substack-textarea" id="essayContentInput" placeholder="Start writing...
 
 Your essay will be published to the Discuss feed where others can read and respond.
 
-Use [[Week 1: Parmenides]] to reference readings."></textarea>
+Type @ to link a reading."></textarea>
+                            <div class="autocomplete-dropdown" id="essayAutocomplete"></div>
+                        </div>
                     </div>
                     <div class="substack-footer">
-                        <div class="substack-links" id="essayLinks">
-                            <!-- Reading links will appear here -->
+                        <div class="substack-footer-left">
+                            <div class="linked-readings" id="essayLinkedReadings">
+                                <!-- Chips appear here -->
+                            </div>
+                            <button class="btn secondary link-reading-btn" onclick="openReadingPicker('essay')">
+                                <span>📎</span> Link Reading
+                            </button>
                         </div>
                         <div class="substack-actions">
                             <button class="btn secondary" onclick="saveDraft()">Save Draft</button>
@@ -2698,6 +2871,22 @@ Use [[Week 1: Parmenides]] to reference readings."></textarea>
             <div class="btn-row">
                 <button class="btn secondary" onclick="hideAuthModal()">Cancel</button>
                 <button class="btn" onclick="sendMagicLink()">Send link</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reading Picker Modal -->
+    <div class="modal-overlay" id="readingPickerModal">
+        <div class="modal reading-picker-modal">
+            <div class="reading-picker-header">
+                <h3>Link a Reading</h3>
+                <input type="text" class="reading-picker-search" id="readingPickerSearch" placeholder="Search readings..." oninput="filterReadingPicker()">
+            </div>
+            <div class="reading-picker-body" id="readingPickerBody">
+                <!-- Populated by JS -->
+            </div>
+            <div class="btn-row">
+                <button class="btn secondary" onclick="closeReadingPicker()">Cancel</button>
             </div>
         </div>
     </div>
@@ -4884,7 +5073,9 @@ Use [[Week 1: Parmenides]] to reference readings."></textarea>
             showEditor();
             document.getElementById('noteTitleInput').value = '';
             document.getElementById('noteContentInput').value = '';
-            document.getElementById('editorLinks').innerHTML = 'Use [[Week Title]] to link to readings';
+            // Clear linked readings
+            noteLinkedReadings = [];
+            renderLinkedReadings('note');
         }
 
         function editNote(id) {
@@ -4895,7 +5086,15 @@ Use [[Week 1: Parmenides]] to reference readings."></textarea>
             showEditor();
             document.getElementById('noteTitleInput').value = note.title || '';
             document.getElementById('noteContentInput').value = note.content || '';
-            parseNoteLinks(note.content || '');
+
+            // Load linked readings from note
+            noteLinkedReadings = (note.linked_readings || []).map(lr => {
+                // If it's an object, use it directly; if string (old format), try to find matching reading
+                if (typeof lr === 'object') return lr;
+                const allReadings = getAllReadings();
+                return allReadings.find(r => r.id === lr || r.title.includes(lr)) || { id: lr, title: lr, week: '?' };
+            });
+            renderLinkedReadings('note');
             renderNotesList();
         }
 
@@ -4904,29 +5103,11 @@ Use [[Week 1: Parmenides]] to reference readings."></textarea>
             document.getElementById('editorActive').style.display = 'flex';
         }
 
-        function parseNoteLinks(content) {
-            const links = content.match(/\[\[([^\]]+)\]\]/g) || [];
-            const linksEl = document.getElementById('editorLinks');
-
-            if (links.length === 0) {
-                linksEl.innerHTML = 'Use [[Week Title]] to link to readings';
-                return;
-            }
-
-            linksEl.innerHTML = 'Links: ' + links.map(l => {
-                const text = l.replace(/\[\[|\]\]/g, '');
-                return `<span class="editor-link">${text}</span>`;
-            }).join('');
-        }
-
-        document.getElementById('noteContentInput')?.addEventListener('input', e => {
-            parseNoteLinks(e.target.value);
-        });
-
         async function saveNote() {
             const title = document.getElementById('noteTitleInput').value;
             const content = document.getElementById('noteContentInput').value;
-            const links = (content.match(/\[\[([^\]]+)\]\]/g) || []).map(l => l.replace(/\[\[|\]\]/g, ''));
+            // Use noteLinkedReadings array instead of parsing [[]] syntax
+            const links = noteLinkedReadings.map(r => r.id);
 
             const note = {
                 title,
@@ -5078,7 +5259,14 @@ Use [[Week 1: Parmenides]] to reference readings."></textarea>
             document.getElementById('essayTitleInput').value = draft.title || '';
             document.getElementById('essaySubtitleInput').value = draft.subtitle || '';
             document.getElementById('essayContentInput').value = draft.content || '';
-            parseEssayLinks(draft.content || '');
+
+            // Load linked readings from draft
+            essayLinkedReadings = (draft.linked_readings || []).map(lr => {
+                if (typeof lr === 'object') return lr;
+                const allReadings = getAllReadings();
+                return allReadings.find(r => r.id === lr || r.title.includes(lr)) || { id: lr, title: lr, week: '?' };
+            });
+            renderLinkedReadings('essay');
             renderDraftsList();
         }
 
@@ -5087,14 +5275,17 @@ Use [[Week 1: Parmenides]] to reference readings."></textarea>
             document.getElementById('essayTitleInput').value = '';
             document.getElementById('essaySubtitleInput').value = '';
             document.getElementById('essayContentInput').value = '';
-            document.getElementById('essayLinks').innerHTML = '';
+            // Clear linked readings
+            essayLinkedReadings = [];
+            renderLinkedReadings('essay');
         }
 
         async function saveDraft() {
             const title = document.getElementById('essayTitleInput').value;
             const subtitle = document.getElementById('essaySubtitleInput').value;
             const content = document.getElementById('essayContentInput').value;
-            const links = (content.match(/\[\[([^\]]+)\]\]/g) || []).map(l => l.replace(/\[\[|\]\]/g, ''));
+            // Use essayLinkedReadings array instead of parsing [[]] syntax
+            const links = essayLinkedReadings.map(r => r.id);
 
             const draft = {
                 title,
@@ -5147,7 +5338,8 @@ Use [[Week 1: Parmenides]] to reference readings."></textarea>
                 return;
             }
 
-            const links = (content.match(/\[\[([^\]]+)\]\]/g) || []).map(l => l.replace(/\[\[|\]\]/g, ''));
+            // Use essayLinkedReadings array
+            const links = essayLinkedReadings.map(r => r.id);
 
             const post = {
                 title,
@@ -5190,32 +5382,304 @@ Use [[Week 1: Parmenides]] to reference readings."></textarea>
             document.getElementById('essayTitleInput').value = '';
             document.getElementById('essaySubtitleInput').value = '';
             document.getElementById('essayContentInput').value = '';
-            document.getElementById('essayLinks').innerHTML = '';
+            essayLinkedReadings = [];
+            renderLinkedReadings('essay');
 
             renderDraftsList();
             renderFeed();
             switchView('discuss');
         }
 
-        function parseEssayLinks(content) {
-            const links = content.match(/\[\[([^\]]+)\]\]/g) || [];
-            const linksEl = document.getElementById('essayLinks');
-            if (!linksEl) return;
+        // =============================================
+        // READING LINK SYSTEM (Autocomplete + Picker + Chips)
+        // =============================================
 
-            if (links.length === 0) {
-                linksEl.innerHTML = '';
+        // Track linked readings for notes and essays
+        let noteLinkedReadings = [];
+        let essayLinkedReadings = [];
+        let currentPickerTarget = null; // 'note' or 'essay'
+        let autocompleteSelectedIndex = 0;
+        let currentAutocompleteTarget = null;
+
+        // Get flat list of all readings for autocomplete
+        function getAllReadings() {
+            const readings = [];
+            schedule.forEach(unit => {
+                unit.weeks.forEach(week => {
+                    week.readings.forEach(reading => {
+                        readings.push({
+                            id: reading.id,
+                            title: reading.title.replace(/<[^>]*>/g, ''), // Strip HTML
+                            week: week.num,
+                            weekTitle: week.title,
+                            unit: unit.unit
+                        });
+                    });
+                });
+            });
+            return readings;
+        }
+
+        // Render linked reading chips
+        function renderLinkedReadings(target) {
+            const readings = target === 'note' ? noteLinkedReadings : essayLinkedReadings;
+            const container = document.getElementById(target === 'note' ? 'noteLinkedReadings' : 'essayLinkedReadings');
+            if (!container) return;
+
+            if (readings.length === 0) {
+                container.innerHTML = '<span style="font-size: 12px; color: var(--text-muted);">No readings linked</span>';
                 return;
             }
 
-            linksEl.innerHTML = 'Links: ' + links.map(l => {
-                const text = l.replace(/\[\[|\]\]/g, '');
-                return `<span class="editor-link">${text}</span>`;
-            }).join('');
+            container.innerHTML = readings.map(r => `
+                <span class="reading-chip">
+                    <span class="reading-chip-text" title="${r.title}">Week ${r.week}: ${r.title}</span>
+                    <span class="reading-chip-remove" onclick="removeLinkedReading('${target}', '${r.id}')">&times;</span>
+                </span>
+            `).join('');
         }
 
-        document.getElementById('essayContentInput')?.addEventListener('input', e => {
-            parseEssayLinks(e.target.value);
+        // Add a reading link
+        function addLinkedReading(target, reading) {
+            const readings = target === 'note' ? noteLinkedReadings : essayLinkedReadings;
+            if (!readings.find(r => r.id === reading.id)) {
+                readings.push(reading);
+                renderLinkedReadings(target);
+            }
+        }
+
+        // Remove a reading link
+        function removeLinkedReading(target, readingId) {
+            if (target === 'note') {
+                noteLinkedReadings = noteLinkedReadings.filter(r => r.id !== readingId);
+            } else {
+                essayLinkedReadings = essayLinkedReadings.filter(r => r.id !== readingId);
+            }
+            renderLinkedReadings(target);
+        }
+
+        // Clear all linked readings
+        function clearLinkedReadings(target) {
+            if (target === 'note') {
+                noteLinkedReadings = [];
+            } else {
+                essayLinkedReadings = [];
+            }
+            renderLinkedReadings(target);
+        }
+
+        // ========== AUTOCOMPLETE ==========
+
+        function showAutocomplete(target, searchText) {
+            const dropdown = document.getElementById(target === 'note' ? 'noteAutocomplete' : 'essayAutocomplete');
+            if (!dropdown) return;
+
+            const allReadings = getAllReadings();
+            const query = searchText.toLowerCase();
+            const filtered = query
+                ? allReadings.filter(r =>
+                    r.title.toLowerCase().includes(query) ||
+                    r.weekTitle.toLowerCase().includes(query) ||
+                    `week ${r.week}`.includes(query)
+                  ).slice(0, 8)
+                : allReadings.slice(0, 8);
+
+            if (filtered.length === 0) {
+                dropdown.innerHTML = '<div class="autocomplete-hint">No readings found</div>';
+                dropdown.classList.add('active');
+                return;
+            }
+
+            autocompleteSelectedIndex = 0;
+            currentAutocompleteTarget = target;
+
+            dropdown.innerHTML = `
+                <div class="autocomplete-hint">↑↓ to navigate, Enter to select, Esc to close</div>
+                ${filtered.map((r, i) => `
+                    <div class="autocomplete-item ${i === 0 ? 'selected' : ''}"
+                         data-reading-id="${r.id}"
+                         data-reading-title="${r.title}"
+                         data-reading-week="${r.week}"
+                         onclick="selectAutocompleteReading('${target}', '${r.id}')">
+                        <div class="autocomplete-item-title">${r.title}</div>
+                        <div class="autocomplete-item-meta">Week ${r.week}: ${r.weekTitle}</div>
+                    </div>
+                `).join('')}
+            `;
+            dropdown.classList.add('active');
+        }
+
+        function hideAutocomplete(target) {
+            const dropdown = document.getElementById(target === 'note' ? 'noteAutocomplete' : 'essayAutocomplete');
+            if (dropdown) {
+                dropdown.classList.remove('active');
+            }
+            currentAutocompleteTarget = null;
+        }
+
+        function selectAutocompleteReading(target, readingId) {
+            const allReadings = getAllReadings();
+            const reading = allReadings.find(r => r.id === readingId);
+            if (reading) {
+                addLinkedReading(target, reading);
+            }
+
+            // Remove the @query from the textarea
+            const textarea = document.getElementById(target === 'note' ? 'noteContentInput' : 'essayContentInput');
+            if (textarea) {
+                const text = textarea.value;
+                const cursorPos = textarea.selectionStart;
+                const beforeCursor = text.substring(0, cursorPos);
+                const afterCursor = text.substring(cursorPos);
+
+                // Find and remove the @query
+                const atMatch = beforeCursor.match(/@[\w\s]*$/);
+                if (atMatch) {
+                    const newBeforeCursor = beforeCursor.substring(0, beforeCursor.length - atMatch[0].length);
+                    textarea.value = newBeforeCursor + afterCursor;
+                    textarea.selectionStart = textarea.selectionEnd = newBeforeCursor.length;
+                }
+            }
+
+            hideAutocomplete(target);
+        }
+
+        function handleAutocompleteKeydown(e, target) {
+            const dropdown = document.getElementById(target === 'note' ? 'noteAutocomplete' : 'essayAutocomplete');
+            if (!dropdown || !dropdown.classList.contains('active')) return false;
+
+            const items = dropdown.querySelectorAll('.autocomplete-item');
+            if (items.length === 0) return false;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                items[autocompleteSelectedIndex]?.classList.remove('selected');
+                autocompleteSelectedIndex = Math.min(autocompleteSelectedIndex + 1, items.length - 1);
+                items[autocompleteSelectedIndex]?.classList.add('selected');
+                items[autocompleteSelectedIndex]?.scrollIntoView({ block: 'nearest' });
+                return true;
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                items[autocompleteSelectedIndex]?.classList.remove('selected');
+                autocompleteSelectedIndex = Math.max(autocompleteSelectedIndex - 1, 0);
+                items[autocompleteSelectedIndex]?.classList.add('selected');
+                items[autocompleteSelectedIndex]?.scrollIntoView({ block: 'nearest' });
+                return true;
+            } else if (e.key === 'Enter' || e.key === 'Tab') {
+                e.preventDefault();
+                const selected = items[autocompleteSelectedIndex];
+                if (selected) {
+                    selectAutocompleteReading(target, selected.dataset.readingId);
+                }
+                return true;
+            } else if (e.key === 'Escape') {
+                hideAutocomplete(target);
+                return true;
+            }
+            return false;
+        }
+
+        // Detect @ trigger and show autocomplete
+        function handleTextareaInput(target, textarea) {
+            const text = textarea.value;
+            const cursorPos = textarea.selectionStart;
+            const beforeCursor = text.substring(0, cursorPos);
+
+            // Check for @query pattern
+            const atMatch = beforeCursor.match(/@([\w\s]*)$/);
+            if (atMatch) {
+                showAutocomplete(target, atMatch[1]);
+            } else {
+                hideAutocomplete(target);
+            }
+        }
+
+        // Setup event listeners for textareas
+        document.getElementById('noteContentInput')?.addEventListener('input', e => {
+            handleTextareaInput('note', e.target);
         });
+
+        document.getElementById('noteContentInput')?.addEventListener('keydown', e => {
+            handleAutocompleteKeydown(e, 'note');
+        });
+
+        document.getElementById('essayContentInput')?.addEventListener('input', e => {
+            handleTextareaInput('essay', e.target);
+        });
+
+        document.getElementById('essayContentInput')?.addEventListener('keydown', e => {
+            handleAutocompleteKeydown(e, 'essay');
+        });
+
+        // ========== READING PICKER MODAL ==========
+
+        function openReadingPicker(target) {
+            currentPickerTarget = target;
+            const modal = document.getElementById('readingPickerModal');
+            const body = document.getElementById('readingPickerBody');
+            const search = document.getElementById('readingPickerSearch');
+
+            // Build the picker body organized by unit
+            body.innerHTML = schedule.map(unit => `
+                <div class="reading-picker-unit">
+                    <div class="reading-picker-unit-header">${unit.unit}</div>
+                    ${unit.weeks.map(week =>
+                        week.readings.map(reading => `
+                            <div class="reading-picker-item"
+                                 data-reading-id="${reading.id}"
+                                 data-search-text="${reading.title.toLowerCase()} week ${week.num} ${week.title.toLowerCase()}"
+                                 onclick="selectPickerReading('${reading.id}')">
+                                <div class="reading-picker-item-title">${reading.title.replace(/<[^>]*>/g, '')}</div>
+                                <div class="reading-picker-item-week">Week ${week.num}: ${week.title}</div>
+                            </div>
+                        `).join('')
+                    ).join('')}
+                </div>
+            `).join('');
+
+            search.value = '';
+            modal.classList.add('active');
+            search.focus();
+        }
+
+        function closeReadingPicker() {
+            document.getElementById('readingPickerModal').classList.remove('active');
+            currentPickerTarget = null;
+        }
+
+        function filterReadingPicker() {
+            const query = document.getElementById('readingPickerSearch').value.toLowerCase();
+            const items = document.querySelectorAll('.reading-picker-item');
+
+            items.forEach(item => {
+                const searchText = item.dataset.searchText;
+                if (!query || searchText.includes(query)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+
+        function selectPickerReading(readingId) {
+            const allReadings = getAllReadings();
+            const reading = allReadings.find(r => r.id === readingId);
+            if (reading && currentPickerTarget) {
+                addLinkedReading(currentPickerTarget, reading);
+            }
+            closeReadingPicker();
+        }
+
+        // Close picker on backdrop click
+        document.getElementById('readingPickerModal')?.addEventListener('click', e => {
+            if (e.target.id === 'readingPickerModal') {
+                closeReadingPicker();
+            }
+        });
+
+        // Initialize linked readings display
+        renderLinkedReadings('note');
+        renderLinkedReadings('essay');
 
         // =============================================
         // AUTHENTICATION
