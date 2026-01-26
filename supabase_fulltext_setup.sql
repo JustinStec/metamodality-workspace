@@ -233,3 +233,29 @@ CREATE POLICY "Authenticated insert post comments" ON post_comments
 -- Users can delete their own comments
 CREATE POLICY "Users can delete own post comments" ON post_comments
   FOR DELETE USING (auth.uid() = author_id);
+
+-- =============================================
+-- ALLOWED EMAILS (invite whitelist)
+-- =============================================
+
+CREATE TABLE IF NOT EXISTS allowed_emails (
+  email TEXT PRIMARY KEY,
+  added_by TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Allow public read (so we can check emails before full auth)
+ALTER TABLE allowed_emails ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public read allowed emails" ON allowed_emails
+  FOR SELECT USING (true);
+
+-- Function to check if email is allowed
+CREATE OR REPLACE FUNCTION is_email_allowed(check_email TEXT)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (SELECT 1 FROM allowed_emails WHERE LOWER(email) = LOWER(check_email));
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION is_email_allowed TO anon, authenticated;

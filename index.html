@@ -3642,10 +3642,17 @@ Type @ to link a reading."></textarea>
                 }
             }
 
-            // Auth state
+            // Auth state with whitelist check
             if (db) {
-                db.auth.onAuthStateChange((event, session) => {
+                db.auth.onAuthStateChange(async (event, session) => {
                     if (session?.user) {
+                        // Check if email is in whitelist
+                        const allowed = await checkEmailAllowed(session.user.email);
+                        if (!allowed) {
+                            await db.auth.signOut();
+                            showAuthError('Access denied. Your email is not on the invite list.');
+                            return;
+                        }
                         currentUser = session.user;
                         updateAuthUI(currentUser);
                         hideAuthModal();
@@ -3657,8 +3664,14 @@ Type @ to link a reading."></textarea>
                     }
                 });
 
-                db.auth.getSession().then(({ data: { session } }) => {
+                db.auth.getSession().then(async ({ data: { session } }) => {
                     if (session?.user) {
+                        const allowed = await checkEmailAllowed(session.user.email);
+                        if (!allowed) {
+                            await db.auth.signOut();
+                            showAuthError('Access denied. Your email is not on the invite list.');
+                            return;
+                        }
                         currentUser = session.user;
                         updateAuthUI(currentUser);
                         loadNotes();
@@ -6805,6 +6818,29 @@ Type @ to link a reading."></textarea>
         // =============================================
         // AUTH FUNCTIONS
         // =============================================
+
+        async function checkEmailAllowed(email) {
+            if (!db || !email) return false;
+            try {
+                const { data, error } = await db
+                    .from('allowed_emails')
+                    .select('email')
+                    .ilike('email', email)
+                    .single();
+                return !error && data;
+            } catch (e) {
+                console.warn('Error checking email whitelist:', e);
+                return false;
+            }
+        }
+
+        function showAuthError(message) {
+            const msgEl = document.getElementById('gateMessage');
+            if (msgEl) {
+                msgEl.className = 'auth-gate-message error';
+                msgEl.textContent = message;
+            }
+        }
 
         let bypassClickCount = 0;
         let bypassClickTimer = null;
