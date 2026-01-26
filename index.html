@@ -3630,42 +3630,9 @@ Type @ to link a reading."></textarea>
                     <label for="profileDisplayName" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Display Name (optional)</label>
                     <input type="text" id="profileDisplayName" name="displayName" autocomplete="name" placeholder="Your Full Name" style="width: 100%;" maxlength="50">
                 </div>
-                <hr style="border: none; border-top: 1px solid var(--border); margin: 1.25rem 0;">
-                <div style="margin-bottom: 1rem;">
-                    <span style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Password Login</span>
-                    <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.5rem;">Set up a password to log in without a magic link.</p>
-                    <button type="button" class="btn secondary" onclick="sendPasswordSetupEmail()" id="passwordSetupBtn" style="width: 100%;">
-                        Send password setup email
-                    </button>
-                    <div id="passwordSetupMessage" style="margin-top: 0.5rem; font-size: 0.8rem; display: none;"></div>
-                </div>
                 <div class="btn-row">
                     <button type="button" class="btn secondary" onclick="hideProfileModal()">Cancel</button>
                     <button type="submit" class="btn">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Password Reset Modal -->
-    <div class="modal-overlay" id="passwordResetModal">
-        <div class="modal" style="max-width: 400px;">
-            <h3>Set Your Password</h3>
-            <p style="color: var(--text-muted); margin-bottom: 1rem;">Create a password to log in without a magic link.</p>
-            <div class="message" id="passwordResetMessage" style="display: none;"></div>
-            <form onsubmit="event.preventDefault(); submitNewPassword();" autocomplete="on">
-                <!-- Hidden username for password managers -->
-                <input type="text" id="hiddenUsername" name="username" autocomplete="username" aria-label="Username" tabindex="-1" style="position: absolute; left: -9999px;">
-                <div style="margin-bottom: 1rem;">
-                    <label for="newPassword" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">New Password</label>
-                    <input type="password" id="newPassword" name="new-password" autocomplete="new-password" placeholder="Enter password" style="width: 100%;" minlength="8">
-                </div>
-                <div style="margin-bottom: 1rem;">
-                    <label for="confirmNewPassword" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Confirm Password</label>
-                    <input type="password" id="confirmNewPassword" name="confirm-password" autocomplete="new-password" placeholder="Confirm password" style="width: 100%;">
-                </div>
-                <div class="btn-row">
-                    <button type="submit" class="btn" id="setPasswordBtn">Set Password</button>
                 </div>
             </form>
         </div>
@@ -3688,27 +3655,6 @@ Type @ to link a reading."></textarea>
     </div>
 
     <script>
-        // =============================================
-        // CAPTURE URL HASH IMMEDIATELY (before Supabase modifies it)
-        // =============================================
-        const initialHash = window.location.hash;
-        const initialSearch = window.location.search;
-        let isPasswordRecovery = false;
-
-        console.log('=== PAGE LOAD DEBUG ===');
-        console.log('Full URL:', window.location.href);
-        console.log('Hash:', initialHash);
-        console.log('Search:', initialSearch);
-
-        if (initialHash) {
-            const hashParams = new URLSearchParams(initialHash.substring(1));
-            const hashType = hashParams.get('type');
-            const hasAccessToken = hashParams.has('access_token');
-            isPasswordRecovery = hashType === 'recovery';
-            console.log('Hash params - type:', hashType, 'has access_token:', hasAccessToken);
-            console.log('isPasswordRecovery:', isPasswordRecovery);
-        }
-
         // =============================================
         // CONFIGURATION
         // =============================================
@@ -3945,26 +3891,9 @@ Type @ to link a reading."></textarea>
                 }
             }
 
-            // Check for password recovery (using flag captured at page load, before Supabase modified the hash)
-            if (isPasswordRecovery) {
-                console.log('Password recovery detected, showing modal after Supabase processes token...');
-                // Show password reset modal after Supabase has time to process the token and establish session
-                setTimeout(() => {
-                    showPasswordResetModal();
-                }, 1000);
-            }
-
             // Auth state with whitelist check
             if (db) {
                 db.auth.onAuthStateChange(async (event, session) => {
-                    console.log('Auth event:', event);
-
-                    // Handle password recovery flow
-                    if (event === 'PASSWORD_RECOVERY') {
-                        showPasswordResetModal();
-                        return;
-                    }
-
                     if (session?.user) {
                         // Check if email is in whitelist
                         const allowed = await checkEmailAllowed(session.user.email);
@@ -7583,119 +7512,6 @@ Type @ to link a reading."></textarea>
         function hideProfileModal() {
             document.getElementById('profileModal').classList.remove('active');
             document.getElementById('profileMessage').style.display = 'none';
-        }
-
-        function showPasswordResetModal() {
-            document.getElementById('passwordResetModal').classList.add('active');
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmNewPassword').value = '';
-            document.getElementById('passwordResetMessage').style.display = 'none';
-        }
-
-        function hidePasswordResetModal() {
-            document.getElementById('passwordResetModal').classList.remove('active');
-        }
-
-        async function submitNewPassword() {
-            const password = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmNewPassword').value;
-            const msgEl = document.getElementById('passwordResetMessage');
-            const btn = document.getElementById('setPasswordBtn');
-
-            // Validate
-            if (!password || password.length < 8) {
-                msgEl.className = 'message error';
-                msgEl.textContent = 'Password must be at least 8 characters.';
-                msgEl.style.display = 'block';
-                return;
-            }
-
-            if (password !== confirmPassword) {
-                msgEl.className = 'message error';
-                msgEl.textContent = 'Passwords do not match.';
-                msgEl.style.display = 'block';
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = 'Setting password...';
-
-            try {
-                console.log('Calling updateUser with password...');
-
-                // Add timeout to prevent hanging
-                const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Request timed out after 15 seconds')), 15000)
-                );
-
-                const result = await Promise.race([
-                    db.auth.updateUser({ password }),
-                    timeoutPromise
-                ]);
-
-                console.log('updateUser result:', result);
-                const error = result?.error;
-
-                if (error) {
-                    msgEl.className = 'message error';
-                    msgEl.textContent = 'Failed: ' + error.message;
-                    msgEl.style.display = 'block';
-                } else {
-                    msgEl.className = 'message success';
-                    msgEl.textContent = 'Password set successfully!';
-                    msgEl.style.display = 'block';
-
-                    // Close modal after brief delay
-                    setTimeout(() => {
-                        hidePasswordResetModal();
-                        // Clear the hash from URL
-                        history.replaceState(null, '', window.location.pathname);
-                    }, 1500);
-                }
-            } catch (e) {
-                msgEl.className = 'message error';
-                msgEl.textContent = 'Error: ' + e.message;
-                msgEl.style.display = 'block';
-            }
-
-            btn.disabled = false;
-            btn.textContent = 'Set Password';
-        }
-
-        async function sendPasswordSetupEmail() {
-            const msgEl = document.getElementById('passwordSetupMessage');
-            const btn = document.getElementById('passwordSetupBtn');
-
-            if (!db || !currentUser) {
-                msgEl.style.color = 'var(--error)';
-                msgEl.textContent = 'Not logged in.';
-                msgEl.style.display = 'block';
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = 'Sending...';
-
-            try {
-                const { error } = await db.auth.resetPasswordForEmail(currentUser.email, {
-                    redirectTo: window.location.origin + window.location.pathname
-                });
-
-                if (error) {
-                    msgEl.style.color = 'var(--error)';
-                    msgEl.textContent = 'Failed: ' + error.message;
-                } else {
-                    msgEl.style.color = 'var(--success, #22c55e)';
-                    msgEl.textContent = 'Email sent! Check your inbox to set your password.';
-                }
-            } catch (e) {
-                msgEl.style.color = 'var(--error)';
-                msgEl.textContent = 'Error: ' + e.message;
-            }
-
-            msgEl.style.display = 'block';
-            btn.disabled = false;
-            btn.textContent = 'Send password setup email';
         }
 
         async function saveProfile() {
