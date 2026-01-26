@@ -3604,11 +3604,13 @@ Type @ to link a reading."></textarea>
             <h3>Sign in</h3>
             <p>Enter your email to receive a magic link.</p>
             <div class="message" id="authMessage" style="display: none;"></div>
-            <input type="email" id="authEmail" placeholder="your@email.com">
-            <div class="btn-row">
-                <button class="btn secondary" onclick="hideAuthModal()">Cancel</button>
-                <button class="btn" onclick="sendMagicLink()">Send link</button>
-            </div>
+            <form onsubmit="event.preventDefault(); sendMagicLink();" autocomplete="on">
+                <input type="email" id="authEmail" name="email" autocomplete="email" placeholder="your@email.com">
+                <div class="btn-row">
+                    <button type="button" class="btn secondary" onclick="hideAuthModal()">Cancel</button>
+                    <button type="submit" class="btn">Send link</button>
+                </div>
+            </form>
         </div>
     </div>
 
