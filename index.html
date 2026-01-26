@@ -225,6 +225,53 @@
             cursor: pointer;
         }
 
+        .user-menu-container {
+            position: relative;
+        }
+
+        .user-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 160px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .user-menu.active {
+            display: block;
+        }
+
+        .user-menu-header {
+            padding: 10px 14px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .user-menu-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: background 0.15s;
+        }
+
+        .user-menu-item:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+
+        .user-menu-item:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+
         /* ========== MAIN CONTENT ========== */
         main {
             flex: 1;
@@ -3560,6 +3607,28 @@ Type @ to link a reading."></textarea>
         </div>
     </div>
 
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal" style="max-width: 400px;">
+            <h3>Your Profile</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">Choose how you appear to others.</p>
+            <div class="message" id="profileMessage" style="display: none;"></div>
+            <div style="margin-bottom: 1rem;">
+                <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Username</label>
+                <input type="text" id="profileUsername" placeholder="yourname" style="width: 100%;" maxlength="30">
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Letters, numbers, and underscores only</div>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Display Name (optional)</label>
+                <input type="text" id="profileDisplayName" placeholder="Your Full Name" style="width: 100%;" maxlength="50">
+            </div>
+            <div class="btn-row">
+                <button class="btn secondary" onclick="hideProfileModal()">Cancel</button>
+                <button class="btn" onclick="saveProfile()">Save</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Reading Picker Modal -->
     <div class="modal-overlay" id="readingPickerModal">
         <div class="modal reading-picker-modal">
@@ -3585,6 +3654,8 @@ Type @ to link a reading."></textarea>
 
         let db = null;
         let currentUser = null;
+        let currentProfile = null;
+        let profilesCache = {}; // Cache profiles by user ID
 
         try {
             db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -3823,12 +3894,14 @@ Type @ to link a reading."></textarea>
                             return;
                         }
                         currentUser = session.user;
+                        await loadCurrentProfile();
                         updateAuthUI(currentUser);
                         hideAuthModal();
                         loadNotes();
                         loadDrafts();
                     } else {
                         currentUser = null;
+                        currentProfile = null;
                         updateAuthUI(null);
                     }
                 });
@@ -3842,6 +3915,7 @@ Type @ to link a reading."></textarea>
                             return;
                         }
                         currentUser = session.user;
+                        await loadCurrentProfile();
                         updateAuthUI(currentUser);
                         loadNotes();
                         loadDrafts();
@@ -7230,15 +7304,37 @@ Type @ to link a reading."></textarea>
                 // Hide auth gate, show app
                 authGate.classList.add('hidden');
                 showWelcomeBanner();
+
+                // Get display name for avatar
+                const displayName = currentProfile?.display_name || currentProfile?.username || user.email.split('@')[0];
+                const avatarLetter = displayName[0].toUpperCase();
+
                 if (btn) {
-                    btn.outerHTML = `<div class="user-avatar" onclick="signOut()" title="Sign out">${user.email[0].toUpperCase()}</div>`;
+                    btn.outerHTML = `
+                        <div class="user-menu-container">
+                            <div class="user-avatar" onclick="toggleUserMenu()" title="${displayName}">${avatarLetter}</div>
+                            <div class="user-menu" id="userMenu">
+                                <div class="user-menu-header">${displayName}</div>
+                                <div class="user-menu-item" onclick="showProfileModal(); toggleUserMenu();">Edit Profile</div>
+                                <div class="user-menu-item" onclick="signOut()">Sign Out</div>
+                            </div>
+                        </div>`;
+                }
+
+                // Also update existing avatar if it exists
+                const existingContainer = document.querySelector('.user-menu-container');
+                if (existingContainer) {
+                    const avatar = existingContainer.querySelector('.user-avatar');
+                    const header = existingContainer.querySelector('.user-menu-header');
+                    if (avatar) avatar.textContent = avatarLetter;
+                    if (header) header.textContent = displayName;
                 }
             } else {
                 // Show auth gate, hide app content
                 authGate.classList.remove('hidden');
-                const existing = document.querySelector('.user-avatar');
-                if (existing) {
-                    existing.outerHTML = `<button class="btn" id="authBtn" onclick="showAuthModal()">Sign In</button>`;
+                const existingContainer = document.querySelector('.user-menu-container');
+                if (existingContainer) {
+                    existingContainer.outerHTML = `<button class="btn" id="authBtn" onclick="showAuthModal()">Sign In</button>`;
                 }
             }
         }
@@ -7274,11 +7370,196 @@ Type @ to link a reading."></textarea>
             }
         }
 
+        // =============================================
+        // PROFILE FUNCTIONS
+        // =============================================
+
+        async function loadProfile(userId) {
+            if (!db || !userId) return null;
+
+            // Check cache first
+            if (profilesCache[userId]) return profilesCache[userId];
+
+            try {
+                const { data, error } = await db
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
+
+                if (data) {
+                    profilesCache[userId] = data;
+                    return data;
+                }
+            } catch (e) {
+                console.warn('Error loading profile:', e);
+            }
+            return null;
+        }
+
+        async function loadCurrentProfile() {
+            if (!currentUser) return;
+            currentProfile = await loadProfile(currentUser.id);
+        }
+
+        function getDisplayName(authorEmail, authorId) {
+            // If we have a cached profile with username, use it
+            if (authorId && profilesCache[authorId]) {
+                const profile = profilesCache[authorId];
+                if (profile.display_name) return profile.display_name;
+                if (profile.username) return profile.username;
+            }
+            // Fall back to email prefix
+            if (authorEmail) return authorEmail.split('@')[0];
+            return 'Anonymous';
+        }
+
+        function getAvatarLetter(authorEmail, authorId) {
+            const displayName = getDisplayName(authorEmail, authorId);
+            return displayName[0].toUpperCase();
+        }
+
+        function showProfileModal() {
+            const modal = document.getElementById('profileModal');
+            const usernameInput = document.getElementById('profileUsername');
+            const displayNameInput = document.getElementById('profileDisplayName');
+
+            // Pre-fill with current profile data or email prefix
+            if (currentProfile) {
+                usernameInput.value = currentProfile.username || '';
+                displayNameInput.value = currentProfile.display_name || '';
+            } else if (currentUser) {
+                usernameInput.value = currentUser.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '');
+                displayNameInput.value = '';
+            }
+
+            modal.classList.add('active');
+            usernameInput.focus();
+        }
+
+        function hideProfileModal() {
+            document.getElementById('profileModal').classList.remove('active');
+            document.getElementById('profileMessage').style.display = 'none';
+        }
+
+        async function saveProfile() {
+            const msgEl = document.getElementById('profileMessage');
+            const username = document.getElementById('profileUsername').value.trim().toLowerCase();
+            const displayName = document.getElementById('profileDisplayName').value.trim();
+
+            // Validate username
+            if (!username) {
+                msgEl.className = 'message error';
+                msgEl.textContent = 'Username is required.';
+                msgEl.style.display = 'block';
+                return;
+            }
+
+            if (!/^[a-z0-9_]+$/.test(username)) {
+                msgEl.className = 'message error';
+                msgEl.textContent = 'Username can only contain letters, numbers, and underscores.';
+                msgEl.style.display = 'block';
+                return;
+            }
+
+            if (username.length < 3) {
+                msgEl.className = 'message error';
+                msgEl.textContent = 'Username must be at least 3 characters.';
+                msgEl.style.display = 'block';
+                return;
+            }
+
+            if (!db || !currentUser) return;
+
+            try {
+                // Check if profile exists
+                const { data: existing } = await db
+                    .from('profiles')
+                    .select('id')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                let error;
+                if (existing) {
+                    // Update
+                    const { error: updateError } = await db
+                        .from('profiles')
+                        .update({
+                            username,
+                            display_name: displayName || null,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', currentUser.id);
+                    error = updateError;
+                } else {
+                    // Insert
+                    const { error: insertError } = await db
+                        .from('profiles')
+                        .insert({
+                            id: currentUser.id,
+                            username,
+                            display_name: displayName || null
+                        });
+                    error = insertError;
+                }
+
+                if (error) {
+                    if (error.code === '23505') {
+                        msgEl.className = 'message error';
+                        msgEl.textContent = 'This username is already taken.';
+                        msgEl.style.display = 'block';
+                    } else {
+                        throw error;
+                    }
+                    return;
+                }
+
+                // Update cache and current profile
+                currentProfile = {
+                    id: currentUser.id,
+                    username,
+                    display_name: displayName || null
+                };
+                profilesCache[currentUser.id] = currentProfile;
+
+                // Update UI
+                updateAuthUI(currentUser);
+                hideProfileModal();
+
+                // Refresh displays
+                renderFeed();
+                renderActivityStream();
+
+            } catch (e) {
+                console.error('Error saving profile:', e);
+                msgEl.className = 'message error';
+                msgEl.textContent = 'Failed to save profile. Please try again.';
+                msgEl.style.display = 'block';
+            }
+        }
+
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            if (menu) {
+                menu.classList.toggle('active');
+            }
+        }
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('userMenu');
+            const avatar = document.querySelector('.user-avatar');
+            if (menu && !menu.contains(e.target) && !avatar?.contains(e.target)) {
+                menu.classList.remove('active');
+            }
+        });
+
         async function signOut() {
             if (db) {
                 await db.auth.signOut();
             }
             currentUser = null;
+            currentProfile = null;
             location.reload();
         }
 

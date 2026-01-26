@@ -288,3 +288,143 @@ CREATE POLICY "Authenticated insert thoughts" ON thoughts
 -- Users can delete their own thoughts
 CREATE POLICY "Users can delete own thoughts" ON thoughts
   FOR DELETE USING (auth.uid() = author_id);
+
+-- =============================================
+-- PROFILES TABLE (usernames and display info)
+-- =============================================
+
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+  username TEXT UNIQUE,
+  display_name TEXT,
+  bio TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create index for username lookups
+CREATE INDEX IF NOT EXISTS idx_profiles_username ON profiles(username);
+
+-- Enable Row Level Security
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+-- Everyone can read profiles (to display usernames)
+CREATE POLICY "Public read profiles" ON profiles
+  FOR SELECT USING (true);
+
+-- Users can insert their own profile
+CREATE POLICY "Users can insert own profile" ON profiles
+  FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = id);
+
+-- Users can update their own profile
+CREATE POLICY "Users can update own profile" ON profiles
+  FOR UPDATE TO authenticated
+  USING ((select auth.uid()) = id);
+
+-- =============================================
+-- RLS PERFORMANCE FIXES
+-- Run these to fix auth.uid() performance warnings
+-- =============================================
+
+-- Fix notes policies
+DROP POLICY IF EXISTS "Users can view own notes" ON notes;
+DROP POLICY IF EXISTS "Users can insert own notes" ON notes;
+DROP POLICY IF EXISTS "Users can update own notes" ON notes;
+DROP POLICY IF EXISTS "Users can delete own notes" ON notes;
+DROP POLICY IF EXISTS "Users read own notes" ON notes;
+DROP POLICY IF EXISTS "Users write own notes" ON notes;
+
+CREATE POLICY "Users can view own notes" ON notes
+  FOR SELECT USING ((select auth.uid()) = user_id);
+CREATE POLICY "Users can insert own notes" ON notes
+  FOR INSERT WITH CHECK ((select auth.uid()) = user_id);
+CREATE POLICY "Users can update own notes" ON notes
+  FOR UPDATE USING ((select auth.uid()) = user_id);
+CREATE POLICY "Users can delete own notes" ON notes
+  FOR DELETE USING ((select auth.uid()) = user_id);
+
+-- Fix drafts policies
+DROP POLICY IF EXISTS "Users can view own drafts" ON drafts;
+DROP POLICY IF EXISTS "Users can insert own drafts" ON drafts;
+DROP POLICY IF EXISTS "Users can update own drafts" ON drafts;
+DROP POLICY IF EXISTS "Users can delete own drafts" ON drafts;
+
+CREATE POLICY "Users can view own drafts" ON drafts
+  FOR SELECT USING ((select auth.uid()) = user_id);
+CREATE POLICY "Users can insert own drafts" ON drafts
+  FOR INSERT WITH CHECK ((select auth.uid()) = user_id);
+CREATE POLICY "Users can update own drafts" ON drafts
+  FOR UPDATE USING ((select auth.uid()) = user_id);
+CREATE POLICY "Users can delete own drafts" ON drafts
+  FOR DELETE USING ((select auth.uid()) = user_id);
+
+-- Fix posts policies
+DROP POLICY IF EXISTS "Authenticated insert posts" ON posts;
+DROP POLICY IF EXISTS "Users can update own posts" ON posts;
+DROP POLICY IF EXISTS "Users can delete own posts" ON posts;
+DROP POLICY IF EXISTS "Users write own posts" ON posts;
+DROP POLICY IF EXISTS "Anyone can read posts" ON posts;
+
+CREATE POLICY "Authenticated insert posts" ON posts
+  FOR INSERT TO authenticated
+  WITH CHECK ((select auth.uid()) = author_id);
+CREATE POLICY "Users can update own posts" ON posts
+  FOR UPDATE USING ((select auth.uid()) = author_id);
+CREATE POLICY "Users can delete own posts" ON posts
+  FOR DELETE USING ((select auth.uid()) = author_id);
+
+-- Fix workshop_comments policies
+DROP POLICY IF EXISTS "Authenticated insert workshop comments" ON workshop_comments;
+DROP POLICY IF EXISTS "Users can delete own workshop comments" ON workshop_comments;
+
+CREATE POLICY "Authenticated insert workshop comments" ON workshop_comments
+  FOR INSERT TO authenticated
+  WITH CHECK ((select auth.uid()) = author_id);
+CREATE POLICY "Users can delete own workshop comments" ON workshop_comments
+  FOR DELETE USING ((select auth.uid()) = author_id);
+
+-- Fix post_comments policies
+DROP POLICY IF EXISTS "Authenticated insert post comments" ON post_comments;
+DROP POLICY IF EXISTS "Users can delete own post comments" ON post_comments;
+
+CREATE POLICY "Authenticated insert post comments" ON post_comments
+  FOR INSERT TO authenticated
+  WITH CHECK ((select auth.uid()) = author_id);
+CREATE POLICY "Users can delete own post comments" ON post_comments
+  FOR DELETE USING ((select auth.uid()) = author_id);
+
+-- Fix thoughts policies
+DROP POLICY IF EXISTS "Authenticated insert thoughts" ON thoughts;
+DROP POLICY IF EXISTS "Users can delete own thoughts" ON thoughts;
+
+CREATE POLICY "Authenticated insert thoughts" ON thoughts
+  FOR INSERT TO authenticated
+  WITH CHECK ((select auth.uid()) = author_id);
+CREATE POLICY "Users can delete own thoughts" ON thoughts
+  FOR DELETE USING ((select auth.uid()) = author_id);
+
+-- Fix profiles policies
+DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+
+CREATE POLICY "Users can insert own profile" ON profiles
+  FOR INSERT TO authenticated
+  WITH CHECK ((select auth.uid()) = id);
+CREATE POLICY "Users can update own profile" ON profiles
+  FOR UPDATE TO authenticated
+  USING ((select auth.uid()) = id);
+
+-- Fix annotations policies (if exists)
+DROP POLICY IF EXISTS "Authenticated users can insert annotations" ON annotations;
+
+CREATE POLICY "Authenticated users can insert annotations" ON annotations
+  FOR INSERT TO authenticated
+  WITH CHECK ((select auth.uid()) = author_id);
+
+-- Fix comments policies (if exists)
+DROP POLICY IF EXISTS "Authenticated users can comment" ON comments;
+
+CREATE POLICY "Authenticated users can comment" ON comments
+  FOR INSERT TO authenticated
+  WITH CHECK ((select auth.uid()) = author_id);
