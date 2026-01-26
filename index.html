@@ -7604,7 +7604,20 @@ Type @ to link a reading."></textarea>
             btn.textContent = 'Setting password...';
 
             try {
-                const { error } = await db.auth.updateUser({ password });
+                console.log('Calling updateUser with password...');
+
+                // Add timeout to prevent hanging
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Request timed out after 15 seconds')), 15000)
+                );
+
+                const result = await Promise.race([
+                    db.auth.updateUser({ password }),
+                    timeoutPromise
+                ]);
+
+                console.log('updateUser result:', result);
+                const error = result?.error;
 
                 if (error) {
                     msgEl.className = 'message error';
