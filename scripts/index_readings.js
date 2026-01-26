@@ -28,16 +28,15 @@ const readingsMeta = [
   { id: 'w01_parmenides', week: 1, title: 'Parmenides, "On Nature"', file: 'Week 1_Parmenides/Week 1_Parmenides.pdf' },
   { id: 'w01_kingsley', week: 1, title: 'Kingsley, In the Dark Places of Wisdom', file: 'Week 1_Parmenides/Week 1_Kingsley.pdf' },
   { id: 'w02_meta', week: 2, title: 'Aristotle, Metaphysics Book Θ', file: 'Week 2_Aristotle/Week 2_Aristotle.pdf' },
-  { id: 'w02_di', week: 2, title: 'Aristotle, De Interpretatione ch. 9', file: 'Week 2_Aristotle/Week 2_Conway.pdf' },
   { id: 'w02_witt', week: 2, title: 'Witt, "The Priority of Actuality in Aristotle"', file: 'Week 2_Aristotle/Week 2_Witt.pdf' },
   { id: 'w03_avicenna', week: 3, title: 'Avicenna, The Metaphysics of The Healing', file: 'Week 3_Avicenna/Week 3_Avicenna.pdf' },
   { id: 'w03_adamson', week: 3, title: 'Adamson, "From the Necessary Existent to God"', file: 'Week 3_Avicenna/Week 3_Adamson.pdf' },
   { id: 'w04_nagarjuna', week: 4, title: 'Nāgārjuna, Mūlamadhyamakakārikā', file: 'Week 4_Nagarjuna/Week 4_Nagarjuna.pdf' },
   { id: 'w04_garfield', week: 4, title: 'Garfield, "Dependent Arising and the Emptiness of Emptiness"', file: 'Week 4_Nagarjuna/Week 4_Garfield (Essay).pdf' },
   { id: 'w04_commentary', week: 4, title: 'Garfield, Commentary', file: 'Week 4_Nagarjuna/Week 4_Garfield (Commentary).pdf' },
-  { id: 'w05_monad', week: 5, title: 'Leibniz, Monadology', file: 'Week 5_Leibniz and Du Châtelet/Leibniz_Monadology.pdf' },
-  { id: 'w05_duchat', week: 5, title: 'Du Châtelet, Institutions de physique', file: 'Week 5_Leibniz and Du Châtelet/Week 5_Du Chatelet.pdf' },
-  { id: 'w05_orig', week: 5, title: 'Leibniz, "On the Ultimate Origination of Things"', file: 'Week 5_Leibniz and Du Châtelet/Week 5_Leibniz (Origination).pdf' },
+  { id: 'w05_monad', week: 5, title: 'Leibniz, Monadology', file: 'Week 5_Leibniz and Du Châtelet/Week 5_Strickland (Monadology with Commentary).pdf' },
+  { id: 'w05_duchat', week: 5, title: 'Du Châtelet, Institutions de physique', file: 'Week 5_Leibniz and Du Châtelet/Week 5_Du Châtelet.pdf' },
+  { id: 'w05_orig', week: 5, title: 'Leibniz, "On the Ultimate Origination of Things"', file: 'Week 5_Leibniz and Du Châtelet/Week 5_Leibniz.pdf' },
   { id: 'w06_kant', week: 6, title: 'Kant, Critique of Pure Reason: "Postulates of Empirical Thought"', file: 'Week 6_Kant and Leech/Week 6_Kant.pdf' },
   { id: 'w06_leech', week: 6, title: 'Leech, "The Function of Modal Judgment and the Kantian Gap"', file: 'Week 6_Kant and Leech/Week 6_Leech.pdf' },
   { id: 'w07_arabi', week: 7, title: 'Ibn ʿArabī, Fuṣūṣ al-Ḥikam', file: 'Week 7_al-Adawiyya and Ibn Arabi/Week 7_Arabi.pdf' },
@@ -62,12 +61,24 @@ const readingsMeta = [
   { id: 'w16_borges', week: 16, title: 'Borges, "The Garden of Forking Paths"', file: 'Week 16_Foster/Week 16_Borges.pdf' },
 ];
 
+// Sanitize text to remove problematic Unicode characters
+function sanitizeText(text) {
+  if (!text) return '';
+  // Remove null bytes and other problematic characters
+  // Replace surrogate pairs and invalid sequences
+  return text
+    .replace(/\x00/g, '') // null bytes
+    .replace(/[\uD800-\uDFFF]/g, '') // surrogate pairs
+    .replace(/\\u[0-9a-fA-F]{4}/g, '') // escaped unicode sequences
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, ''); // control characters
+}
+
 async function extractPdfText(filePath) {
   try {
     const dataBuffer = fs.readFileSync(filePath);
     const data = await pdfParse(dataBuffer);
     return {
-      text: data.text,
+      text: sanitizeText(data.text),
       pageCount: data.numpages
     };
   } catch (err) {
