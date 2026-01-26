@@ -3057,7 +3057,11 @@
 
             <div class="auth-gate-form">
                 <input type="email" id="gateEmail" placeholder="your@email.edu">
-                <button class="btn" onclick="sendGateMagicLink()">Magic Link</button>
+                <input type="password" id="gatePassword" placeholder="Password (if set)" style="display: none;">
+                <button class="btn" id="gateSubmitBtn" onclick="handleGateLogin()">Magic Link</button>
+            </div>
+            <div style="margin-top: 0.75rem;">
+                <button onclick="toggleLoginMode()" style="background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.85rem;" id="toggleLoginBtn">Have a password? Sign in with password</button>
             </div>
             <div class="auth-gate-message" id="gateMessage"></div>
             <p style="margin-top: 2rem; font-size: 0.75rem; color: var(--text-muted);">&copy; 2026 Justin Stec. All rights reserved.</p>
@@ -3621,6 +3625,13 @@ Type @ to link a reading."></textarea>
             <div style="margin-bottom: 1rem;">
                 <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Display Name (optional)</label>
                 <input type="text" id="profileDisplayName" placeholder="Your Full Name" style="width: 100%;" maxlength="50">
+            </div>
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 1.25rem 0;">
+            <div style="margin-bottom: 1rem;">
+                <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.25rem;">Set Password (optional)</label>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.5rem;">Set a password to log in without a magic link.</p>
+                <input type="password" id="profilePassword" placeholder="New password" style="width: 100%; margin-bottom: 0.5rem;" minlength="8">
+                <input type="password" id="profilePasswordConfirm" placeholder="Confirm password" style="width: 100%;">
             </div>
             <div class="btn-row">
                 <button class="btn secondary" onclick="hideProfileModal()">Cancel</button>
@@ -7339,6 +7350,69 @@ Type @ to link a reading."></textarea>
             }
         }
 
+        let usePasswordLogin = false;
+
+        function toggleLoginMode() {
+            usePasswordLogin = !usePasswordLogin;
+            const pwField = document.getElementById('gatePassword');
+            const submitBtn = document.getElementById('gateSubmitBtn');
+            const toggleBtn = document.getElementById('toggleLoginBtn');
+
+            if (usePasswordLogin) {
+                pwField.style.display = 'block';
+                submitBtn.textContent = 'Sign In';
+                toggleBtn.textContent = 'Use magic link instead';
+            } else {
+                pwField.style.display = 'none';
+                pwField.value = '';
+                submitBtn.textContent = 'Magic Link';
+                toggleBtn.textContent = 'Have a password? Sign in with password';
+            }
+        }
+
+        async function handleGateLogin() {
+            if (usePasswordLogin) {
+                await signInWithPassword();
+            } else {
+                await sendGateMagicLink();
+            }
+        }
+
+        async function signInWithPassword() {
+            const email = document.getElementById('gateEmail').value;
+            const password = document.getElementById('gatePassword').value;
+            const msgEl = document.getElementById('gateMessage');
+
+            if (!email) {
+                msgEl.className = 'auth-gate-message error';
+                msgEl.textContent = 'Please enter your email address.';
+                return;
+            }
+
+            if (!password) {
+                msgEl.className = 'auth-gate-message error';
+                msgEl.textContent = 'Please enter your password.';
+                return;
+            }
+
+            if (db) {
+                try {
+                    const { error } = await db.auth.signInWithPassword({ email, password });
+
+                    if (error) throw error;
+
+                    msgEl.className = 'auth-gate-message success';
+                    msgEl.textContent = 'Signing in...';
+                } catch (e) {
+                    msgEl.className = 'auth-gate-message error';
+                    msgEl.textContent = 'Error: ' + e.message;
+                }
+            } else {
+                msgEl.className = 'auth-gate-message error';
+                msgEl.textContent = 'Database not connected. Please try again.';
+            }
+        }
+
         async function sendGateMagicLink() {
             const email = document.getElementById('gateEmail').value;
             const msgEl = document.getElementById('gateMessage');
@@ -7446,6 +7520,8 @@ Type @ to link a reading."></textarea>
             const msgEl = document.getElementById('profileMessage');
             const username = document.getElementById('profileUsername').value.trim().toLowerCase();
             const displayName = document.getElementById('profileDisplayName').value.trim();
+            const password = document.getElementById('profilePassword').value;
+            const passwordConfirm = document.getElementById('profilePasswordConfirm').value;
 
             // Validate username
             if (!username) {
@@ -7467,6 +7543,22 @@ Type @ to link a reading."></textarea>
                 msgEl.textContent = 'Username must be at least 3 characters.';
                 msgEl.style.display = 'block';
                 return;
+            }
+
+            // Validate password if provided
+            if (password) {
+                if (password.length < 8) {
+                    msgEl.className = 'message error';
+                    msgEl.textContent = 'Password must be at least 8 characters.';
+                    msgEl.style.display = 'block';
+                    return;
+                }
+                if (password !== passwordConfirm) {
+                    msgEl.className = 'message error';
+                    msgEl.textContent = 'Passwords do not match.';
+                    msgEl.style.display = 'block';
+                    return;
+                }
             }
 
             if (!db || !currentUser) return;
@@ -7521,6 +7613,20 @@ Type @ to link a reading."></textarea>
                     display_name: displayName || null
                 };
                 profilesCache[currentUser.id] = currentProfile;
+
+                // Update password if provided
+                if (password) {
+                    const { error: pwError } = await db.auth.updateUser({ password });
+                    if (pwError) {
+                        msgEl.className = 'message error';
+                        msgEl.textContent = 'Profile saved, but password update failed: ' + pwError.message;
+                        msgEl.style.display = 'block';
+                        return;
+                    }
+                    // Clear password fields
+                    document.getElementById('profilePassword').value = '';
+                    document.getElementById('profilePasswordConfirm').value = '';
+                }
 
                 // Update UI
                 updateAuthUI(currentUser);
