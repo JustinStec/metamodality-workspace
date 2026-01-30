@@ -3983,6 +3983,7 @@ Type @ to link a reading."></textarea>
                         hideAuthModal();
                         loadNotes();
                         loadDrafts();
+                        migrateLocalAnnotationsToSupabase();
                     } else {
                         currentUser = null;
                         currentProfile = null;
@@ -4003,6 +4004,7 @@ Type @ to link a reading."></textarea>
                         updateAuthUI(currentUser);
                         loadNotes();
                         loadDrafts();
+                        migrateLocalAnnotationsToSupabase();
                     }
                 });
             }
@@ -5854,6 +5856,57 @@ Type @ to link a reading."></textarea>
 
             renderAnnotations();
             renderActivityStream();
+        }
+
+        async function migrateLocalAnnotationsToSupabase() {
+            if (!db || !currentUser) return;
+
+            // Check if migration already done
+            if (localStorage.getItem('metamodality_annotations_migrated')) return;
+
+            const localData = localStorage.getItem('metamodality_annotations');
+            if (!localData) return;
+
+            try {
+                const localAnnotations = JSON.parse(localData);
+                let migratedCount = 0;
+
+                // Get all existing annotation IDs from Supabase
+                const { data: existing } = await db.from('annotations').select('id');
+                const existingIds = new Set((existing || []).map(a => a.id));
+
+                // Flatten all annotations from all readings
+                for (const readingId in localAnnotations) {
+                    const items = localAnnotations[readingId] || [];
+                    for (const annotation of items) {
+                        // Skip if already in Supabase
+                        if (existingIds.has(annotation.id)) continue;
+
+                        // Add user_id and upload
+                        const toUpload = {
+                            ...annotation,
+                            user_id: currentUser.id,
+                            author_email: annotation.author_email || currentUser.email
+                        };
+
+                        const { error } = await db.from('annotations').insert([toUpload]);
+                        if (!error) {
+                            migratedCount++;
+                        } else {
+                            console.warn('Migration error for annotation:', annotation.id, error);
+                        }
+                    }
+                }
+
+                if (migratedCount > 0) {
+                    console.log(`Migrated ${migratedCount} local annotations to Supabase`);
+                }
+
+                // Mark migration as done
+                localStorage.setItem('metamodality_annotations_migrated', 'true');
+            } catch (e) {
+                console.warn('Annotation migration failed:', e);
+            }
         }
 
         // Text selection with column filtering
