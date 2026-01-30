@@ -3845,6 +3845,77 @@ Type @ to link a reading."></textarea>
         let editingNoteId = null;
 
         // =============================================
+        // REALTIME SUBSCRIPTIONS
+        // =============================================
+
+        function setupRealtimeSubscriptions() {
+            if (!db) return;
+
+            // Annotations - refresh when changes occur
+            db.channel('realtime-annotations')
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'annotations' },
+                    (payload) => {
+                        console.log('Realtime annotation update:', payload.eventType);
+                        if (currentReading) {
+                            loadAnnotations(currentReading);
+                        }
+                        loadAllAnnotationsForActivity();
+                    }
+                )
+                .subscribe();
+
+            // Thoughts - refresh feed when changes occur
+            db.channel('realtime-thoughts')
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'thoughts' },
+                    (payload) => {
+                        console.log('Realtime thought update:', payload.eventType);
+                        loadThoughts();
+                    }
+                )
+                .subscribe();
+
+            // Posts - refresh feed when changes occur
+            db.channel('realtime-posts')
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'posts' },
+                    (payload) => {
+                        console.log('Realtime post update:', payload.eventType);
+                        loadFeed();
+                    }
+                )
+                .subscribe();
+
+            // Post comments - refresh comments when changes occur
+            db.channel('realtime-post-comments')
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'post_comments' },
+                    (payload) => {
+                        console.log('Realtime post comment update:', payload.eventType);
+                        loadPostComments();
+                    }
+                )
+                .subscribe();
+
+            // Workshop comments - refresh when changes occur
+            db.channel('realtime-workshop-comments')
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'workshop_comments' },
+                    (payload) => {
+                        console.log('Realtime workshop comment update:', payload.eventType);
+                        loadAllWorkshopComments();
+                        if (currentWorkshopId) {
+                            loadWorkshopComments(currentWorkshopId);
+                        }
+                    }
+                )
+                .subscribe();
+
+            console.log('Realtime subscriptions active');
+        }
+
+        // =============================================
         // INITIALIZATION
         // =============================================
 
@@ -3860,6 +3931,7 @@ Type @ to link a reading."></textarea>
                         updateStatus('error', 'Database error');
                     } else {
                         updateStatus('online', 'Connected');
+                        setupRealtimeSubscriptions();
                     }
                 } catch (e) {
                     console.error('Supabase connection test failed:', e);
