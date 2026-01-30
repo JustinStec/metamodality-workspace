@@ -5658,7 +5658,9 @@ Type @ to link a reading."></textarea>
                 return;
             }
 
-            list.innerHTML = items.map((a, index) => `
+            list.innerHTML = items.map((a, index) => {
+                const isAuthor = currentUser && (a.user_id === currentUser.id || a.author_email === currentUser.email);
+                return `
                 <div class="annotation-item${a.pinned ? ' pinned' : ''}" data-id="${a.id}">
                     ${a.pinned
                         ? '<div class="annotation-quote">📌 Pinned note</div>'
@@ -5669,6 +5671,7 @@ Type @ to link a reading."></textarea>
                     <div class="annotation-actions">
                         <button onclick="toggleReplyForm('${a.id}')">Reply</button>
                         ${(a.replies?.length || 0) > 0 ? `<span>${a.replies.length} ${a.replies.length === 1 ? 'reply' : 'replies'}</span>` : ''}
+                        ${isAuthor ? `<button onclick="deleteAnnotation('${a.id}')" style="color: var(--text-muted);">🗑️ Delete</button>` : ''}
                     </div>
                     ${a.replies?.length > 0 ? `
                         <div class="annotation-replies">
@@ -5693,7 +5696,7 @@ Type @ to link a reading."></textarea>
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function escapeHtml(text) {
@@ -5753,6 +5756,28 @@ Type @ to link a reading."></textarea>
             }
 
             renderAnnotations();
+        }
+
+        async function deleteAnnotation(annotationId) {
+            if (!confirm('Delete this annotation?')) return;
+
+            // Remove from local state
+            if (annotations[currentReading]) {
+                annotations[currentReading] = annotations[currentReading].filter(a => a.id !== annotationId);
+                localStorage.setItem('metamodality_annotations', JSON.stringify(annotations));
+            }
+
+            // Try to delete from Supabase
+            if (db && currentUser) {
+                try {
+                    await db.from('annotations').delete().eq('id', annotationId);
+                } catch (e) {
+                    console.warn('Failed to delete annotation from Supabase:', e);
+                }
+            }
+
+            renderAnnotations();
+            renderActivityStream();
         }
 
         // Text selection with column filtering
@@ -6212,15 +6237,18 @@ Type @ to link a reading."></textarea>
                 return;
             }
 
-            container.innerHTML = comments.map(c => `
+            container.innerHTML = comments.map(c => {
+                const isAuthor = currentUser && (c.author_id === currentUser.id || c.author_email === currentUser.email);
+                return `
                 <div class="post-comment">
                     <div class="post-comment-header">
                         <span class="post-comment-author">${c.author_email || 'Anonymous'}</span>
                         <span class="post-comment-date">${new Date(c.created_at).toLocaleDateString()}</span>
+                        ${isAuthor ? `<button onclick="deletePostComment('${postId}', '${c.id}')" style="margin-left: auto; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px;">🗑️</button>` : ''}
                     </div>
                     <div class="post-comment-content">${c.content}</div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         async function postComment(postId) {
@@ -6268,6 +6296,26 @@ Type @ to link a reading."></textarea>
                     alert('Failed to post comment. Please try again.');
                 }
             }
+        }
+
+        async function deletePostComment(postId, commentId) {
+            if (!confirm('Delete this comment?')) return;
+
+            // Remove from local state
+            if (postComments[postId]) {
+                postComments[postId] = postComments[postId].filter(c => c.id !== commentId);
+            }
+
+            // Try to delete from Supabase
+            if (db && currentUser) {
+                try {
+                    await db.from('post_comments').delete().eq('id', commentId);
+                } catch (e) {
+                    console.warn('Failed to delete comment from Supabase:', e);
+                }
+            }
+
+            renderPostComments(postId);
         }
 
         function renderRecentPosts() {
@@ -7164,15 +7212,18 @@ Type @ to link a reading."></textarea>
                 return;
             }
 
-            container.innerHTML = workshopComments.map(c => `
+            container.innerHTML = workshopComments.map(c => {
+                const isAuthor = currentUser && (c.author_id === currentUser.id || c.author_email === currentUser.email);
+                return `
                 <div class="workshop-comment">
                     <div class="workshop-comment-header">
                         <span class="workshop-comment-author">${c.author_email || 'Anonymous'}</span>
                         <span class="workshop-comment-date">${new Date(c.created_at).toLocaleDateString()}</span>
+                        ${isAuthor ? `<button onclick="deleteWorkshopComment('${c.id}')" style="margin-left: auto; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px;">🗑️</button>` : ''}
                     </div>
                     <div class="workshop-comment-content">${c.content}</div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         async function postWorkshopComment() {
@@ -7213,6 +7264,26 @@ Type @ to link a reading."></textarea>
                     alert('Failed to post comment. Please try again.');
                 }
             }
+        }
+
+        async function deleteWorkshopComment(commentId) {
+            if (!confirm('Delete this comment?')) return;
+
+            // Remove from local state
+            workshopComments = workshopComments.filter(c => c.id !== commentId);
+            allWorkshopComments = allWorkshopComments.filter(c => c.id !== commentId);
+
+            // Try to delete from Supabase
+            if (db && currentUser) {
+                try {
+                    await db.from('workshop_comments').delete().eq('id', commentId);
+                } catch (e) {
+                    console.warn('Failed to delete workshop comment from Supabase:', e);
+                }
+            }
+
+            renderWorkshopComments();
+            renderActivityStream();
         }
 
         function viewPost(postId) {
