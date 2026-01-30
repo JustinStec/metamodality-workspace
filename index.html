@@ -5671,6 +5671,7 @@ Type @ to link a reading."></textarea>
                     <div class="annotation-actions">
                         <button onclick="toggleReplyForm('${a.id}')">Reply</button>
                         ${(a.replies?.length || 0) > 0 ? `<span>${a.replies.length} ${a.replies.length === 1 ? 'reply' : 'replies'}</span>` : ''}
+                        ${isAuthor ? `<button onclick="editAnnotation('${a.id}')" style="color: var(--text-muted);">✏️ Edit</button>` : ''}
                         ${isAuthor ? `<button onclick="deleteAnnotation('${a.id}')" style="color: var(--text-muted);">🗑️ Delete</button>` : ''}
                     </div>
                     ${a.replies?.length > 0 ? `
@@ -5852,8 +5853,10 @@ Type @ to link a reading."></textarea>
         });
 
         let isPinnedNote = false;
+        let editingAnnotationId = null;
 
         function startAnnotation() {
+            editingAnnotationId = null;
             isPinnedNote = false;
             document.getElementById('selectionPopup').style.display = 'none';
             const quotePreview = document.getElementById('quotePreview');
@@ -5870,6 +5873,7 @@ Type @ to link a reading."></textarea>
                 alert('Please select a reading first');
                 return;
             }
+            editingAnnotationId = null;
             isPinnedNote = true;
             selectedText = '';
             const quotePreview = document.getElementById('quotePreview');
@@ -5890,6 +5894,31 @@ Type @ to link a reading."></textarea>
             editor.setAttribute('data-placeholder', 'Add your thoughts...');
             selectedText = '';
             isPinnedNote = false;
+            editingAnnotationId = null;
+        }
+
+        function editAnnotation(annotationId) {
+            const items = annotations[currentReading] || [];
+            const annotation = items.find(a => a.id === annotationId);
+            if (!annotation) return;
+
+            editingAnnotationId = annotationId;
+            isPinnedNote = annotation.pinned;
+            selectedText = annotation.quote || '';
+
+            const quotePreview = document.getElementById('quotePreview');
+            if (annotation.pinned) {
+                quotePreview.textContent = '📌 Pinned note (no highlighted text)';
+                quotePreview.classList.add('pinned-note');
+            } else {
+                quotePreview.textContent = annotation.quote;
+                quotePreview.classList.remove('pinned-note');
+            }
+
+            const editor = document.getElementById('annotationComment');
+            editor.innerHTML = annotation.comment || '';
+            document.getElementById('annotationForm').classList.add('active');
+            editor.focus();
         }
 
         // RTF Editor commands
@@ -5900,7 +5929,7 @@ Type @ to link a reading."></textarea>
 
         async function saveAnnotation() {
             if (!currentReading) return;
-            if (!isPinnedNote && !selectedText) return;
+            if (!editingAnnotationId && !isPinnedNote && !selectedText) return;
 
             const editor = document.getElementById('annotationComment');
             const comment = editor.innerHTML.trim();
@@ -5909,6 +5938,36 @@ Type @ to link a reading."></textarea>
                 alert('Please enter a note');
                 return;
             }
+
+            // Editing existing annotation
+            if (editingAnnotationId) {
+                const items = annotations[currentReading] || [];
+                const annotation = items.find(a => a.id === editingAnnotationId);
+                if (annotation) {
+                    annotation.comment = comment;
+                    annotation.updated_at = new Date().toISOString();
+
+                    // Save to localStorage
+                    localStorage.setItem('metamodality_annotations', JSON.stringify(annotations));
+
+                    // Update in Supabase
+                    if (db && currentUser) {
+                        try {
+                            await db.from('annotations')
+                                .update({ comment: comment, updated_at: annotation.updated_at })
+                                .eq('id', editingAnnotationId);
+                        } catch (e) {
+                            console.warn('Failed to update annotation in Supabase:', e);
+                        }
+                    }
+                }
+
+                renderAnnotations();
+                cancelAnnotation();
+                return;
+            }
+
+            // Creating new annotation
             const annotation = {
                 id: Date.now().toString(),
                 reading_id: currentReading,
@@ -5978,6 +6037,34 @@ Type @ to link a reading."></textarea>
                 return;
             }
 
+            // Editing existing thought
+            if (editingThoughtId) {
+                if (db) {
+                    try {
+                        const { error } = await db
+                            .from('thoughts')
+                            .update({ content: content, updated_at: new Date().toISOString() })
+                            .eq('id', editingThoughtId);
+
+                        if (!error) {
+                            const thought = thoughts.find(t => t.id === editingThoughtId);
+                            if (thought) thought.content = content;
+                            input.value = '';
+                            document.getElementById('charCount').textContent = '0';
+                            editingThoughtId = null;
+                            renderFeed();
+                        } else {
+                            alert('Failed to update: ' + error.message);
+                        }
+                    } catch (e) {
+                        console.warn('Failed to update thought:', e);
+                        alert('Failed to update. Please try again.');
+                    }
+                }
+                return;
+            }
+
+            // Creating new thought
             const thought = {
                 content: content,
                 author_id: currentUser.id,
@@ -6086,6 +6173,7 @@ Type @ to link a reading."></textarea>
                             <div class="thought-content">${t.content}</div>
                             <div class="thought-actions">
                                 <button class="thought-action">💬 Reply</button>
+                                ${isAuthor ? `<button class="thought-action" onclick="editThought('${t.id}')">✏️ Edit</button>` : ''}
                                 ${isAuthor ? `<button class="thought-action" onclick="deleteThought('${t.id}')">🗑️ Delete</button>` : ''}
                             </div>
                         </div>
@@ -6144,6 +6232,23 @@ Type @ to link a reading."></textarea>
                 } catch (e) {
                     console.warn('Failed to delete thought:', e);
                 }
+            }
+        }
+
+        let editingThoughtId = null;
+
+        function editThought(thoughtId) {
+            const thought = thoughts.find(t => t.id === thoughtId);
+            if (!thought) return;
+
+            editingThoughtId = thoughtId;
+            const input = document.getElementById('quickPostInput');
+            if (input) {
+                input.value = thought.content;
+                input.focus();
+                document.getElementById('charCount').textContent = thought.content.length;
+                // Scroll to composer
+                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
 
