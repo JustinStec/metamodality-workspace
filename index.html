@@ -5862,51 +5862,90 @@ Type @ to link a reading."></textarea>
             if (!db || !currentUser) return;
 
             // Check if migration already done
-            if (localStorage.getItem('metamodality_annotations_migrated')) return;
+            if (localStorage.getItem('metamodality_data_migrated')) return;
 
-            const localData = localStorage.getItem('metamodality_annotations');
-            if (!localData) return;
+            console.log('Starting localStorage migration to Supabase...');
+            let totalMigrated = 0;
 
+            // Migrate annotations
             try {
-                const localAnnotations = JSON.parse(localData);
-                let migratedCount = 0;
+                const localData = localStorage.getItem('metamodality_annotations');
+                if (localData) {
+                    const localAnnotations = JSON.parse(localData);
+                    const { data: existing } = await db.from('annotations').select('id');
+                    const existingIds = new Set((existing || []).map(a => a.id));
 
-                // Get all existing annotation IDs from Supabase
-                const { data: existing } = await db.from('annotations').select('id');
-                const existingIds = new Set((existing || []).map(a => a.id));
-
-                // Flatten all annotations from all readings
-                for (const readingId in localAnnotations) {
-                    const items = localAnnotations[readingId] || [];
-                    for (const annotation of items) {
-                        // Skip if already in Supabase
-                        if (existingIds.has(annotation.id)) continue;
-
-                        // Add user_id and upload
-                        const toUpload = {
-                            ...annotation,
-                            user_id: currentUser.id,
-                            author_email: annotation.author_email || currentUser.email
-                        };
-
-                        const { error } = await db.from('annotations').insert([toUpload]);
-                        if (!error) {
-                            migratedCount++;
-                        } else {
-                            console.warn('Migration error for annotation:', annotation.id, error);
+                    for (const readingId in localAnnotations) {
+                        const items = localAnnotations[readingId] || [];
+                        for (const annotation of items) {
+                            if (existingIds.has(annotation.id)) continue;
+                            const toUpload = {
+                                ...annotation,
+                                user_id: currentUser.id,
+                                author_email: annotation.author_email || currentUser.email
+                            };
+                            const { error } = await db.from('annotations').insert([toUpload]);
+                            if (!error) totalMigrated++;
+                            else console.warn('Annotation migration error:', error);
                         }
                     }
                 }
-
-                if (migratedCount > 0) {
-                    console.log(`Migrated ${migratedCount} local annotations to Supabase`);
-                }
-
-                // Mark migration as done
-                localStorage.setItem('metamodality_annotations_migrated', 'true');
             } catch (e) {
                 console.warn('Annotation migration failed:', e);
             }
+
+            // Migrate notes
+            try {
+                const localNotes = localStorage.getItem('metamodality_notes');
+                if (localNotes) {
+                    const notesData = JSON.parse(localNotes);
+                    const { data: existing } = await db.from('notes').select('id').eq('user_id', currentUser.id);
+                    const existingIds = new Set((existing || []).map(n => n.id));
+
+                    for (const note of notesData) {
+                        if (existingIds.has(note.id)) continue;
+                        const toUpload = {
+                            ...note,
+                            user_id: currentUser.id
+                        };
+                        const { error } = await db.from('notes').insert([toUpload]);
+                        if (!error) totalMigrated++;
+                        else console.warn('Note migration error:', error);
+                    }
+                }
+            } catch (e) {
+                console.warn('Notes migration failed:', e);
+            }
+
+            // Migrate drafts
+            try {
+                const localDrafts = localStorage.getItem('metamodality_drafts');
+                if (localDrafts) {
+                    const draftsData = JSON.parse(localDrafts);
+                    const { data: existing } = await db.from('drafts').select('id').eq('user_id', currentUser.id);
+                    const existingIds = new Set((existing || []).map(d => d.id));
+
+                    for (const draft of draftsData) {
+                        if (existingIds.has(draft.id)) continue;
+                        const toUpload = {
+                            ...draft,
+                            user_id: currentUser.id
+                        };
+                        const { error } = await db.from('drafts').insert([toUpload]);
+                        if (!error) totalMigrated++;
+                        else console.warn('Draft migration error:', error);
+                    }
+                }
+            } catch (e) {
+                console.warn('Drafts migration failed:', e);
+            }
+
+            if (totalMigrated > 0) {
+                console.log(`Migration complete: ${totalMigrated} items uploaded to Supabase`);
+            }
+
+            // Mark migration as done
+            localStorage.setItem('metamodality_data_migrated', 'true');
         }
 
         // Text selection with column filtering
