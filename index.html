@@ -7553,7 +7553,7 @@ Type @ to link a reading."></textarea>
                     const { data, error } = await db.auth.verifyOtp({
                         email: modalOtpEmail,
                         token: code,
-                        type: 'email'
+                        type: 'magiclink'
                     });
 
                     authDebug.log('verifyOtp returned', {
@@ -8128,7 +8128,7 @@ Type @ to link a reading."></textarea>
                     const { data, error } = await db.auth.verifyOtp({
                         email: otpEmail,
                         token: code,
-                        type: 'email'
+                        type: 'magiclink'
                     });
 
                     authDebug.log('verifyOtp returned', {
