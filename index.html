@@ -3676,6 +3676,56 @@ Type @ to link a reading."></textarea>
         }
 
         // =============================================
+        // AUTH DEBUG LOGGING
+        // =============================================
+        const authDebug = {
+            startTime: Date.now(),
+            log: function(step, details = {}) {
+                const elapsed = Date.now() - this.startTime;
+                const msg = `[AUTH ${elapsed}ms] ${step}`;
+                console.log(msg, details);
+                // Also store in array for easy export
+                if (!window.authDebugLog) window.authDebugLog = [];
+                window.authDebugLog.push({ time: elapsed, step, details, timestamp: new Date().toISOString() });
+            },
+            getReport: function() {
+                return JSON.stringify(window.authDebugLog || [], null, 2);
+            }
+        };
+
+        // Check URL for auth callback parameters
+        (function checkAuthCallback() {
+            const hash = window.location.hash;
+            const search = window.location.search;
+            authDebug.log('Page loaded', {
+                url: window.location.href,
+                hasHash: !!hash,
+                hashPreview: hash ? hash.substring(0, 100) : null,
+                hasSearch: !!search,
+                search: search,
+                referrer: document.referrer
+            });
+
+            // Check for Supabase auth tokens in hash
+            if (hash.includes('access_token') || hash.includes('error')) {
+                authDebug.log('Auth callback detected in URL hash', { hash: hash.substring(0, 200) });
+            }
+            if (search.includes('error')) {
+                authDebug.log('Error parameter in URL', { search });
+            }
+        })();
+
+        // Make debug report accessible globally
+        window.getAuthDebugReport = function() {
+            const report = authDebug.getReport();
+            console.log('=== AUTH DEBUG REPORT ===');
+            console.log(report);
+            console.log('=== END REPORT ===');
+            console.log('Copy the above or run: copy(window.authDebugLog)');
+            return window.authDebugLog;
+        };
+
+        // =============================================
         // SCHEDULE DATA
         // =============================================
         // Tag definitions
@@ -3971,46 +4021,74 @@ Type @ to link a reading."></textarea>
             let authCheckInProgress = false;
 
             if (db) {
+                authDebug.log('Setting up onAuthStateChange listener');
+
                 db.auth.onAuthStateChange(async (event, session) => {
-                    console.log('Auth state change:', event, session?.user?.email);
+                    authDebug.log('onAuthStateChange fired', {
+                        event,
+                        hasSession: !!session,
+                        email: session?.user?.email,
+                        userId: session?.user?.id,
+                        expiresAt: session?.expires_at
+                    });
 
                     // Prevent duplicate checks
                     if (authCheckInProgress) {
-                        console.log('Auth check already in progress, skipping');
+                        authDebug.log('Auth check already in progress, skipping duplicate');
                         return;
                     }
 
                     if (session?.user) {
                         authCheckInProgress = true;
+                        authDebug.log('User session found, starting whitelist check');
+
                         try {
                             // Check if email is in whitelist
-                            console.log('Checking whitelist for:', session.user.email);
+                            const whitelistStart = Date.now();
+                            authDebug.log('Calling checkEmailAllowed', { email: session.user.email });
                             const result = await checkEmailAllowed(session.user.email);
-                            console.log('Whitelist check result:', result);
+                            authDebug.log('checkEmailAllowed returned', {
+                                result,
+                                duration: Date.now() - whitelistStart
+                            });
 
                             if (!result.allowed) {
-                                console.log('Access denied:', result.reason);
+                                authDebug.log('Access DENIED', { reason: result.reason });
                                 // Show error BEFORE signing out so user sees it
                                 if (result.reason === 'not_on_list') {
                                     alert('Access denied. Your email is not on the invite list. Please contact the organizer.');
                                 } else {
                                     alert('Login error: ' + result.reason + '. Please try again.');
                                 }
+                                authDebug.log('Signing out user');
                                 await db.auth.signOut();
+                                authDebug.log('Sign out complete');
                                 return;
                             }
 
+                            authDebug.log('Access GRANTED, setting up user session');
                             currentUser = session.user;
                             await loadCurrentProfile();
+                            authDebug.log('Profile loaded');
                             updateAuthUI(currentUser);
+                            authDebug.log('Auth UI updated');
                             hideAuthModal();
+                            authDebug.log('Auth modal hidden');
                             loadNotes();
                             loadDrafts();
                             migrateLocalAnnotationsToSupabase();
+                            authDebug.log('Login complete - user is now authenticated');
+                        } catch (err) {
+                            authDebug.log('ERROR in auth handler', {
+                                error: err.message,
+                                stack: err.stack
+                            });
+                            alert('Login error: ' + err.message);
                         } finally {
                             authCheckInProgress = false;
                         }
                     } else {
+                        authDebug.log('No session - user is logged out', { event });
                         currentUser = null;
                         currentProfile = null;
                         updateAuthUI(null);
@@ -4018,7 +4096,16 @@ Type @ to link a reading."></textarea>
                 });
 
                 // Just trigger initial session check - onAuthStateChange will handle it
-                db.auth.getSession();
+                authDebug.log('Calling getSession to check for existing session');
+                db.auth.getSession().then(({ data, error }) => {
+                    authDebug.log('getSession returned', {
+                        hasSession: !!data?.session,
+                        email: data?.session?.user?.email,
+                        error: error?.message
+                    });
+                });
+            } else {
+                authDebug.log('ERROR: db not initialized, auth will not work');
             }
 
             // Tab navigation
@@ -7327,15 +7414,30 @@ Type @ to link a reading."></textarea>
 
         async function sendMagicLink() {
             const email = document.getElementById('authEmail').value;
-            if (!email) return;
+            authDebug.log('sendMagicLink (modal) called', { email });
+
+            if (!email) {
+                authDebug.log('No email provided');
+                return;
+            }
 
             const msgEl = document.getElementById('authMessage');
 
             if (db) {
                 try {
+                    const redirectUrl = window.location.origin + window.location.pathname;
+                    authDebug.log('Sending magic link from modal', { email, redirectUrl });
+
+                    const otpStart = Date.now();
                     const { error } = await db.auth.signInWithOtp({
                         email,
-                        options: { emailRedirectTo: window.location.origin + window.location.pathname }
+                        options: { emailRedirectTo: redirectUrl }
+                    });
+
+                    authDebug.log('signInWithOtp returned', {
+                        success: !error,
+                        error: error ? error.message : null,
+                        duration: Date.now() - otpStart
                     });
 
                     if (error) throw error;
@@ -7344,10 +7446,13 @@ Type @ to link a reading."></textarea>
                     msgEl.textContent = 'Check your email for the magic link!';
                     msgEl.style.display = 'block';
                 } catch (e) {
+                    authDebug.log('Magic link send FAILED', { error: e.message });
                     msgEl.className = 'message error';
                     msgEl.textContent = e.message || 'Failed to send link';
                     msgEl.style.display = 'block';
                 }
+            } else {
+                authDebug.log('ERROR: db not initialized');
             }
         }
 
@@ -7585,38 +7690,53 @@ Type @ to link a reading."></textarea>
 
         async function checkEmailAllowed(email) {
             // Return object with allowed status and reason for better error handling
+            authDebug.log('checkEmailAllowed called', { email });
+
             if (!db) {
-                console.log('checkEmailAllowed: db not initialized');
+                authDebug.log('checkEmailAllowed: db not initialized');
                 return { allowed: false, reason: 'database_not_ready' };
             }
             if (!email) {
-                console.log('checkEmailAllowed: email missing');
+                authDebug.log('checkEmailAllowed: email missing');
                 return { allowed: false, reason: 'no_email' };
             }
             try {
+                const queryStart = Date.now();
+                authDebug.log('Querying allowed_emails table', { email });
+
                 const { data, error } = await db
                     .from('allowed_emails')
                     .select('email')
                     .ilike('email', email)
                     .single();
-                console.log('checkEmailAllowed result:', { email, data, error });
+
+                authDebug.log('allowed_emails query returned', {
+                    email,
+                    data,
+                    error: error ? { code: error.code, message: error.message } : null,
+                    queryDuration: Date.now() - queryStart
+                });
 
                 if (error) {
                     // PGRST116 = no rows found (not on list)
                     if (error.code === 'PGRST116') {
+                        authDebug.log('Email NOT FOUND in whitelist', { email });
                         return { allowed: false, reason: 'not_on_list' };
                     }
                     // Other database error
+                    authDebug.log('Database error during whitelist check', { code: error.code, message: error.message });
                     return { allowed: false, reason: 'database_error: ' + error.message };
                 }
 
                 if (data) {
+                    authDebug.log('Email FOUND in whitelist', { email, matchedEmail: data.email });
                     return { allowed: true, reason: 'ok' };
                 }
 
+                authDebug.log('No data returned but no error - treating as not on list', { email });
                 return { allowed: false, reason: 'not_on_list' };
             } catch (e) {
-                console.warn('Error checking email whitelist:', e);
+                authDebug.log('EXCEPTION in checkEmailAllowed', { error: e.message, stack: e.stack });
                 return { allowed: false, reason: 'exception: ' + e.message };
             }
         }
@@ -7793,7 +7913,10 @@ Type @ to link a reading."></textarea>
             const email = document.getElementById('gateEmail').value;
             const msgEl = document.getElementById('gateMessage');
 
+            authDebug.log('sendGateMagicLink called', { email });
+
             if (!email) {
+                authDebug.log('No email provided');
                 msgEl.className = 'auth-gate-message error';
                 msgEl.textContent = 'Please enter your email address.';
                 return;
@@ -7801,9 +7924,19 @@ Type @ to link a reading."></textarea>
 
             if (db) {
                 try {
+                    const redirectUrl = window.location.origin + window.location.pathname;
+                    authDebug.log('Sending magic link', { email, redirectUrl });
+
+                    const otpStart = Date.now();
                     const { error } = await db.auth.signInWithOtp({
                         email,
-                        options: { emailRedirectTo: window.location.origin + window.location.pathname }
+                        options: { emailRedirectTo: redirectUrl }
+                    });
+
+                    authDebug.log('signInWithOtp returned', {
+                        success: !error,
+                        error: error ? error.message : null,
+                        duration: Date.now() - otpStart
                     });
 
                     if (error) throw error;
@@ -7811,10 +7944,12 @@ Type @ to link a reading."></textarea>
                     msgEl.className = 'auth-gate-message success';
                     msgEl.textContent = 'Check your email for the magic link!';
                 } catch (e) {
+                    authDebug.log('Magic link send FAILED', { error: e.message });
                     msgEl.className = 'auth-gate-message error';
                     msgEl.textContent = 'Error: ' + e.message;
                 }
             } else {
+                authDebug.log('ERROR: db not initialized');
                 msgEl.className = 'auth-gate-message error';
                 msgEl.textContent = 'Database not connected. Please try again.';
             }
