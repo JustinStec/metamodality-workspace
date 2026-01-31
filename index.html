@@ -3967,27 +3967,49 @@ Type @ to link a reading."></textarea>
             }
 
             // Auth state with whitelist check
+            // Use a flag to prevent race conditions between handlers
+            let authCheckInProgress = false;
+
             if (db) {
                 db.auth.onAuthStateChange(async (event, session) => {
                     console.log('Auth state change:', event, session?.user?.email);
+
+                    // Prevent duplicate checks
+                    if (authCheckInProgress) {
+                        console.log('Auth check already in progress, skipping');
+                        return;
+                    }
+
                     if (session?.user) {
-                        // Check if email is in whitelist
-                        console.log('Checking whitelist for:', session.user.email);
-                        const allowed = await checkEmailAllowed(session.user.email);
-                        console.log('Whitelist check result:', allowed);
-                        if (!allowed) {
-                            console.log('Access denied - signing out');
-                            await db.auth.signOut();
-                            showAuthError('Access denied. Your email is not on the invite list.');
-                            return;
+                        authCheckInProgress = true;
+                        try {
+                            // Check if email is in whitelist
+                            console.log('Checking whitelist for:', session.user.email);
+                            const result = await checkEmailAllowed(session.user.email);
+                            console.log('Whitelist check result:', result);
+
+                            if (!result.allowed) {
+                                console.log('Access denied:', result.reason);
+                                // Show error BEFORE signing out so user sees it
+                                if (result.reason === 'not_on_list') {
+                                    alert('Access denied. Your email is not on the invite list. Please contact the organizer.');
+                                } else {
+                                    alert('Login error: ' + result.reason + '. Please try again.');
+                                }
+                                await db.auth.signOut();
+                                return;
+                            }
+
+                            currentUser = session.user;
+                            await loadCurrentProfile();
+                            updateAuthUI(currentUser);
+                            hideAuthModal();
+                            loadNotes();
+                            loadDrafts();
+                            migrateLocalAnnotationsToSupabase();
+                        } finally {
+                            authCheckInProgress = false;
                         }
-                        currentUser = session.user;
-                        await loadCurrentProfile();
-                        updateAuthUI(currentUser);
-                        hideAuthModal();
-                        loadNotes();
-                        loadDrafts();
-                        migrateLocalAnnotationsToSupabase();
                     } else {
                         currentUser = null;
                         currentProfile = null;
@@ -3995,22 +4017,8 @@ Type @ to link a reading."></textarea>
                     }
                 });
 
-                db.auth.getSession().then(async ({ data: { session } }) => {
-                    if (session?.user) {
-                        const allowed = await checkEmailAllowed(session.user.email);
-                        if (!allowed) {
-                            await db.auth.signOut();
-                            showAuthError('Access denied. Your email is not on the invite list.');
-                            return;
-                        }
-                        currentUser = session.user;
-                        await loadCurrentProfile();
-                        updateAuthUI(currentUser);
-                        loadNotes();
-                        loadDrafts();
-                        migrateLocalAnnotationsToSupabase();
-                    }
-                });
+                // Just trigger initial session check - onAuthStateChange will handle it
+                db.auth.getSession();
             }
 
             // Tab navigation
@@ -7576,9 +7584,14 @@ Type @ to link a reading."></textarea>
         // =============================================
 
         async function checkEmailAllowed(email) {
-            if (!db || !email) {
-                console.log('checkEmailAllowed: db or email missing', { db: !!db, email });
-                return false;
+            // Return object with allowed status and reason for better error handling
+            if (!db) {
+                console.log('checkEmailAllowed: db not initialized');
+                return { allowed: false, reason: 'database_not_ready' };
+            }
+            if (!email) {
+                console.log('checkEmailAllowed: email missing');
+                return { allowed: false, reason: 'no_email' };
             }
             try {
                 const { data, error } = await db
@@ -7587,10 +7600,24 @@ Type @ to link a reading."></textarea>
                     .ilike('email', email)
                     .single();
                 console.log('checkEmailAllowed result:', { email, data, error });
-                return !error && data;
+
+                if (error) {
+                    // PGRST116 = no rows found (not on list)
+                    if (error.code === 'PGRST116') {
+                        return { allowed: false, reason: 'not_on_list' };
+                    }
+                    // Other database error
+                    return { allowed: false, reason: 'database_error: ' + error.message };
+                }
+
+                if (data) {
+                    return { allowed: true, reason: 'ok' };
+                }
+
+                return { allowed: false, reason: 'not_on_list' };
             } catch (e) {
                 console.warn('Error checking email whitelist:', e);
-                return false;
+                return { allowed: false, reason: 'exception: ' + e.message };
             }
         }
 
