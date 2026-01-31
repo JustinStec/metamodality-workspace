@@ -3969,10 +3969,14 @@ Type @ to link a reading."></textarea>
             // Auth state with whitelist check
             if (db) {
                 db.auth.onAuthStateChange(async (event, session) => {
+                    console.log('Auth state change:', event, session?.user?.email);
                     if (session?.user) {
                         // Check if email is in whitelist
+                        console.log('Checking whitelist for:', session.user.email);
                         const allowed = await checkEmailAllowed(session.user.email);
+                        console.log('Whitelist check result:', allowed);
                         if (!allowed) {
+                            console.log('Access denied - signing out');
                             await db.auth.signOut();
                             showAuthError('Access denied. Your email is not on the invite list.');
                             return;
@@ -7572,13 +7576,17 @@ Type @ to link a reading."></textarea>
         // =============================================
 
         async function checkEmailAllowed(email) {
-            if (!db || !email) return false;
+            if (!db || !email) {
+                console.log('checkEmailAllowed: db or email missing', { db: !!db, email });
+                return false;
+            }
             try {
                 const { data, error } = await db
                     .from('allowed_emails')
                     .select('email')
                     .ilike('email', email)
                     .single();
+                console.log('checkEmailAllowed result:', { email, data, error });
                 return !error && data;
             } catch (e) {
                 console.warn('Error checking email whitelist:', e);
