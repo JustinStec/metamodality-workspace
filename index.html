@@ -3063,7 +3063,7 @@
                 <input type="email" id="gateEmail" name="email" autocomplete="email" placeholder="your@email.edu">
                 <input type="password" id="gatePassword" name="password" autocomplete="current-password" placeholder="Password (if set)" style="display: none;">
                 <div id="otpCodeSection" style="display: none;">
-                    <input type="text" id="gateOtpCode" name="otp" autocomplete="one-time-code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem;">
+                    <input type="text" id="gateOtpCode" name="otp" autocomplete="one-time-code" placeholder="Enter 8-digit code" maxlength="8" pattern="[0-9]{8}" style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem;">
                 </div>
                 <button type="submit" class="btn" id="gateSubmitBtn">Send Code</button>
             </form>
@@ -3613,7 +3613,7 @@ Type @ to link a reading."></textarea>
             <div class="message" id="authMessage" style="display: none;"></div>
             <form onsubmit="event.preventDefault(); handleModalLogin();" autocomplete="on">
                 <input type="email" id="authEmail" name="email" autocomplete="email" placeholder="your@email.com">
-                <input type="text" id="authOtpCode" name="otp" autocomplete="one-time-code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" style="display: none; text-align: center; font-size: 1.25rem; letter-spacing: 0.3rem;">
+                <input type="text" id="authOtpCode" name="otp" autocomplete="one-time-code" placeholder="Enter 8-digit code" maxlength="8" pattern="[0-9]{8}" style="display: none; text-align: center; font-size: 1.25rem; letter-spacing: 0.3rem;">
                 <div class="btn-row">
                     <button type="button" class="btn secondary" onclick="hideAuthModal()">Cancel</button>
                     <button type="submit" class="btn" id="authModalSubmitBtn">Send Code</button>
@@ -7519,7 +7519,7 @@ Type @ to link a reading."></textarea>
                     document.getElementById('authOtpCode').style.display = 'block';
                     document.getElementById('authOtpCode').focus();
                     document.getElementById('authModalSubmitBtn').textContent = 'Verify Code';
-                    document.getElementById('authModalText').textContent = 'Enter the 6-digit code sent to ' + email;
+                    document.getElementById('authModalText').textContent = 'Enter the 8-digit code sent to ' + email;
 
                     msgEl.className = 'message success';
                     msgEl.textContent = 'Code sent! Check your email.';
@@ -7541,9 +7541,9 @@ Type @ to link a reading."></textarea>
 
             authDebug.log('verifyModalOtpCode called', { email: modalOtpEmail, codeLength: code.length });
 
-            if (!code || code.length !== 6) {
+            if (!code || code.length !== 8) {
                 msgEl.className = 'message error';
-                msgEl.textContent = 'Please enter the 6-digit code.';
+                msgEl.textContent = 'Please enter the 8-digit code.';
                 msgEl.style.display = 'block';
                 return;
             }
@@ -8071,7 +8071,7 @@ Type @ to link a reading."></textarea>
                     authDebug.log('Sending OTP code (no redirect)', { email });
 
                     const otpStart = Date.now();
-                    // No emailRedirectTo = sends 6-digit code instead of magic link
+                    // No emailRedirectTo = sends 8-digit code instead of magic link
                     const { error } = await db.auth.signInWithOtp({
                         email
                     });
@@ -8095,7 +8095,7 @@ Type @ to link a reading."></textarea>
                     document.getElementById('resetOtpBtn').style.display = 'inline';
 
                     msgEl.className = 'auth-gate-message success';
-                    msgEl.textContent = 'Code sent! Check your email and enter the 6-digit code.';
+                    msgEl.textContent = 'Code sent! Check your email and enter the 8-digit code.';
                 } catch (e) {
                     authDebug.log('OTP send FAILED', { error: e.message });
                     msgEl.className = 'auth-gate-message error';
@@ -8114,9 +8114,9 @@ Type @ to link a reading."></textarea>
 
             authDebug.log('verifyOtpCode called', { email: otpEmail, codeLength: code.length });
 
-            if (!code || code.length !== 6) {
+            if (!code || code.length !== 8) {
                 msgEl.className = 'auth-gate-message error';
-                msgEl.textContent = 'Please enter the 6-digit code from your email.';
+                msgEl.textContent = 'Please enter the 8-digit code from your email.';
                 return;
             }
 
