@@ -3648,7 +3648,7 @@ Type @ to link a reading."></textarea>
                 </div>
                 <div class="btn-row">
                     <button type="button" class="btn secondary" onclick="hideProfileModal()">Cancel</button>
-                    <button type="submit" class="btn">Save</button>
+                    <button type="button" class="btn" onclick="console.log('Save clicked'); saveProfile();">Save</button>
                 </div>
             </form>
         </div>
@@ -4113,12 +4113,19 @@ Type @ to link a reading."></textarea>
 
                             authDebug.log('Access GRANTED, setting up user session');
                             currentUser = session.user;
-                            await loadCurrentProfile();
-                            authDebug.log('Profile loaded');
+                            const { isNewUser } = await loadCurrentProfile();
+                            authDebug.log('Profile loaded', { isNewUser });
                             updateAuthUI(currentUser);
                             authDebug.log('Auth UI updated');
                             hideAuthModal();
                             authDebug.log('Auth modal hidden');
+
+                            // Prompt new users to customize their profile
+                            if (isNewUser) {
+                                setTimeout(() => {
+                                    showProfileModal();
+                                }, 500);
+                            }
 
                             // Remove auth callback overlay if present
                             const overlay = document.getElementById('authCallbackOverlay');
@@ -7898,29 +7905,6 @@ Type @ to link a reading."></textarea>
             }
         }
 
-        async function signInWithGoogle() {
-            const msgEl = document.getElementById('gateMessage');
-
-            if (db) {
-                try {
-                    const { error } = await db.auth.signInWithOAuth({
-                        provider: 'google',
-                        options: {
-                            redirectTo: window.location.origin + window.location.pathname
-                        }
-                    });
-
-                    if (error) throw error;
-                } catch (e) {
-                    msgEl.className = 'auth-gate-message error';
-                    msgEl.textContent = 'Error: ' + e.message;
-                }
-            } else {
-                msgEl.className = 'auth-gate-message error';
-                msgEl.textContent = 'Database not configured.';
-            }
-        }
-
         function showWelcomeBanner() {
             const banner = document.getElementById('welcomeBanner');
             const dismissed = localStorage.getItem('metamodality_welcome_dismissed');
@@ -8224,8 +8208,56 @@ Type @ to link a reading."></textarea>
         }
 
         async function loadCurrentProfile() {
-            if (!currentUser) return;
+            if (!currentUser) return { isNewUser: false };
             currentProfile = await loadProfile(currentUser.id);
+
+            // Auto-create profile if none exists
+            if (!currentProfile && db) {
+                try {
+                    // Get name from Google metadata or email
+                    const metadata = currentUser.user_metadata || {};
+                    const fullName = metadata.full_name || metadata.name || '';
+                    const emailPrefix = currentUser.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
+
+                    const { data, error } = await db
+                        .from('profiles')
+                        .insert({
+                            id: currentUser.id,
+                            username: emailPrefix,
+                            display_name: fullName || null
+                        })
+                        .select()
+                        .single();
+
+                    if (data && !error) {
+                        currentProfile = data;
+                        profilesCache[currentUser.id] = data;
+                        console.log('Auto-created profile for new user:', data);
+                        return { isNewUser: true };
+                    } else if (error) {
+                        // Username might be taken, try with a suffix
+                        const { data: data2, error: error2 } = await db
+                            .from('profiles')
+                            .insert({
+                                id: currentUser.id,
+                                username: emailPrefix + '_' + Math.floor(Math.random() * 1000),
+                                display_name: fullName || null
+                            })
+                            .select()
+                            .single();
+
+                        if (data2) {
+                            currentProfile = data2;
+                            profilesCache[currentUser.id] = data2;
+                            console.log('Auto-created profile with suffix:', data2);
+                            return { isNewUser: true };
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Could not auto-create profile:', e);
+                }
+            }
+            return { isNewUser: false };
         }
 
         function getDisplayName(authorEmail, authorId) {
@@ -8269,9 +8301,11 @@ Type @ to link a reading."></textarea>
         }
 
         async function saveProfile() {
+            console.log('saveProfile called');
             const msgEl = document.getElementById('profileMessage');
             const username = document.getElementById('profileUsername').value.trim().toLowerCase();
             const displayName = document.getElementById('profileDisplayName').value.trim();
+            console.log('saveProfile values:', { username, displayName, hasDb: !!db, hasUser: !!currentUser, userId: currentUser?.id });
 
             // Validate username
             if (!username) {
@@ -8305,15 +8339,18 @@ Type @ to link a reading."></textarea>
 
             try {
                 // Check if profile exists
-                const { data: existing } = await db
+                console.log('Checking if profile exists for user:', currentUser.id);
+                const { data: existing, error: selectError } = await db
                     .from('profiles')
                     .select('id')
                     .eq('id', currentUser.id)
                     .single();
+                console.log('Profile check result:', { existing, selectError });
 
                 let error;
                 if (existing) {
                     // Update
+                    console.log('Updating existing profile');
                     const { error: updateError } = await db
                         .from('profiles')
                         .update({
@@ -8323,8 +8360,10 @@ Type @ to link a reading."></textarea>
                         })
                         .eq('id', currentUser.id);
                     error = updateError;
+                    console.log('Update result:', { error: updateError });
                 } else {
                     // Insert
+                    console.log('Inserting new profile');
                     const { error: insertError } = await db
                         .from('profiles')
                         .insert({
@@ -8333,9 +8372,11 @@ Type @ to link a reading."></textarea>
                             display_name: displayName || null
                         });
                     error = insertError;
+                    console.log('Insert result:', { error: insertError });
                 }
 
                 if (error) {
+                    console.log('Profile save error:', error);
                     if (error.code === '23505') {
                         msgEl.className = 'message error';
                         msgEl.textContent = 'This username is already taken.';
@@ -8345,6 +8386,7 @@ Type @ to link a reading."></textarea>
                     }
                     return;
                 }
+                console.log('Profile saved successfully');
 
                 // Update cache and current profile
                 currentProfile = {
