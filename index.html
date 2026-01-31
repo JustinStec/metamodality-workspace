@@ -3694,6 +3694,7 @@ Type @ to link a reading."></textarea>
         };
 
         // Check URL for auth callback parameters
+        let isAuthCallback = false;
         (function checkAuthCallback() {
             const hash = window.location.hash;
             const search = window.location.search;
@@ -3707,11 +3708,42 @@ Type @ to link a reading."></textarea>
             });
 
             // Check for Supabase auth tokens in hash
-            if (hash.includes('access_token') || hash.includes('error')) {
-                authDebug.log('Auth callback detected in URL hash', { hash: hash.substring(0, 200) });
+            if (hash.includes('access_token')) {
+                authDebug.log('Auth callback detected - access_token in URL hash');
+                isAuthCallback = true;
+                // Show loading feedback
+                document.body.insertAdjacentHTML('afterbegin',
+                    '<div id="authCallbackOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.95);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:system-ui,sans-serif;">' +
+                    '<div style="font-size:24px;margin-bottom:16px;">Completing login...</div>' +
+                    '<div style="font-size:14px;color:#666;">Please wait</div>' +
+                    '</div>'
+                );
+
+                // Timeout - if still showing after 10 seconds, something went wrong
+                setTimeout(() => {
+                    const overlay = document.getElementById('authCallbackOverlay');
+                    if (overlay) {
+                        authDebug.log('Auth callback timeout - login may have failed');
+                        overlay.innerHTML =
+                            '<div style="font-size:24px;margin-bottom:16px;color:#c00;">Login failed</div>' +
+                            '<div style="font-size:14px;color:#666;margin-bottom:20px;">The magic link may have expired or already been used.</div>' +
+                            '<button onclick="document.getElementById(\'authCallbackOverlay\').remove();window.location.hash=\'\';" style="padding:12px 24px;font-size:16px;cursor:pointer;">Try Again</button>';
+                    }
+                }, 10000);
             }
+
+            // Check for error in hash (Supabase returns errors this way)
+            if (hash.includes('error')) {
+                authDebug.log('Auth ERROR detected in URL hash', { hash: hash.substring(0, 500) });
+                const hashParams = new URLSearchParams(hash.substring(1));
+                const error = hashParams.get('error');
+                const errorDescription = hashParams.get('error_description');
+                alert('Login failed: ' + (errorDescription || error || 'Unknown error'));
+                window.location.hash = '';
+            }
+
             if (search.includes('error')) {
-                authDebug.log('Error parameter in URL', { search });
+                authDebug.log('Error parameter in URL search', { search });
             }
         })();
 
@@ -4074,6 +4106,16 @@ Type @ to link a reading."></textarea>
                             authDebug.log('Auth UI updated');
                             hideAuthModal();
                             authDebug.log('Auth modal hidden');
+
+                            // Remove auth callback overlay if present
+                            const overlay = document.getElementById('authCallbackOverlay');
+                            if (overlay) overlay.remove();
+
+                            // Clear the hash from URL (clean up tokens)
+                            if (window.location.hash.includes('access_token')) {
+                                history.replaceState(null, '', window.location.pathname + window.location.search);
+                            }
+
                             loadNotes();
                             loadDrafts();
                             migrateLocalAnnotationsToSupabase();
