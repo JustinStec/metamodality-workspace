@@ -3062,10 +3062,14 @@
             <form class="auth-gate-form" onsubmit="event.preventDefault(); handleGateLogin();" autocomplete="on">
                 <input type="email" id="gateEmail" name="email" autocomplete="email" placeholder="your@email.edu">
                 <input type="password" id="gatePassword" name="password" autocomplete="current-password" placeholder="Password (if set)" style="display: none;">
-                <button type="submit" class="btn" id="gateSubmitBtn">Magic Link</button>
+                <div id="otpCodeSection" style="display: none;">
+                    <input type="text" id="gateOtpCode" name="otp" autocomplete="one-time-code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem;">
+                </div>
+                <button type="submit" class="btn" id="gateSubmitBtn">Send Code</button>
             </form>
             <div style="margin-top: 0.75rem;">
                 <button onclick="toggleLoginMode()" style="background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.85rem;" id="toggleLoginBtn">Have a password? Sign in with password</button>
+                <button onclick="resetOtpFlow()" id="resetOtpBtn" style="display: none; background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.85rem; margin-left: 1rem;">Use different email</button>
             </div>
             <div class="auth-gate-message" id="gateMessage"></div>
             <p style="margin-top: 2rem; font-size: 0.75rem; color: var(--text-muted);">&copy; 2026 Justin Stec. All rights reserved.</p>
@@ -3605,13 +3609,14 @@ Type @ to link a reading."></textarea>
     <div class="modal-overlay" id="authModal">
         <div class="modal">
             <h3>Sign in</h3>
-            <p>Enter your email to receive a magic link.</p>
+            <p id="authModalText">Enter your email to receive a login code.</p>
             <div class="message" id="authMessage" style="display: none;"></div>
-            <form onsubmit="event.preventDefault(); sendMagicLink();" autocomplete="on">
+            <form onsubmit="event.preventDefault(); handleModalLogin();" autocomplete="on">
                 <input type="email" id="authEmail" name="email" autocomplete="email" placeholder="your@email.com">
+                <input type="text" id="authOtpCode" name="otp" autocomplete="one-time-code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" style="display: none; text-align: center; font-size: 1.25rem; letter-spacing: 0.3rem;">
                 <div class="btn-row">
                     <button type="button" class="btn secondary" onclick="hideAuthModal()">Cancel</button>
-                    <button type="submit" class="btn">Send link</button>
+                    <button type="submit" class="btn" id="authModalSubmitBtn">Send Code</button>
                 </div>
             </form>
         </div>
@@ -7429,6 +7434,17 @@ Type @ to link a reading."></textarea>
         // =============================================
 
         function showAuthModal() {
+            // Reset OTP state
+            modalOtpSent = false;
+            modalOtpEmail = '';
+            document.getElementById('authEmail').style.display = 'block';
+            document.getElementById('authEmail').value = '';
+            document.getElementById('authOtpCode').style.display = 'none';
+            document.getElementById('authOtpCode').value = '';
+            document.getElementById('authModalSubmitBtn').textContent = 'Send Code';
+            document.getElementById('authModalText').textContent = 'Enter your email to receive a login code.';
+            document.getElementById('authMessage').style.display = 'none';
+
             document.getElementById('authModal').classList.add('active');
             document.getElementById('authEmail').focus();
         }
@@ -7436,6 +7452,9 @@ Type @ to link a reading."></textarea>
         function hideAuthModal() {
             document.getElementById('authModal').classList.remove('active');
             document.getElementById('authMessage').style.display = 'none';
+            // Reset OTP state
+            modalOtpSent = false;
+            modalOtpEmail = '';
         }
 
         function showWelcomeModal() {
@@ -7454,9 +7473,20 @@ Type @ to link a reading."></textarea>
             }
         }
 
-        async function sendMagicLink() {
+        let modalOtpSent = false;
+        let modalOtpEmail = '';
+
+        async function handleModalLogin() {
+            if (modalOtpSent) {
+                await verifyModalOtpCode();
+            } else {
+                await sendModalOtpCode();
+            }
+        }
+
+        async function sendModalOtpCode() {
             const email = document.getElementById('authEmail').value;
-            authDebug.log('sendMagicLink (modal) called', { email });
+            authDebug.log('sendModalOtpCode called', { email });
 
             if (!email) {
                 authDebug.log('No email provided');
@@ -7467,13 +7497,11 @@ Type @ to link a reading."></textarea>
 
             if (db) {
                 try {
-                    const redirectUrl = window.location.origin + window.location.pathname;
-                    authDebug.log('Sending magic link from modal', { email, redirectUrl });
+                    authDebug.log('Sending OTP code from modal', { email });
 
                     const otpStart = Date.now();
                     const { error } = await db.auth.signInWithOtp({
-                        email,
-                        options: { emailRedirectTo: redirectUrl }
+                        email
                     });
 
                     authDebug.log('signInWithOtp returned', {
@@ -7484,18 +7512,74 @@ Type @ to link a reading."></textarea>
 
                     if (error) throw error;
 
+                    // Show code input
+                    modalOtpSent = true;
+                    modalOtpEmail = email;
+                    document.getElementById('authEmail').style.display = 'none';
+                    document.getElementById('authOtpCode').style.display = 'block';
+                    document.getElementById('authOtpCode').focus();
+                    document.getElementById('authModalSubmitBtn').textContent = 'Verify Code';
+                    document.getElementById('authModalText').textContent = 'Enter the 6-digit code sent to ' + email;
+
                     msgEl.className = 'message success';
-                    msgEl.textContent = 'Check your email for the magic link!';
+                    msgEl.textContent = 'Code sent! Check your email.';
                     msgEl.style.display = 'block';
                 } catch (e) {
-                    authDebug.log('Magic link send FAILED', { error: e.message });
+                    authDebug.log('OTP send FAILED', { error: e.message });
                     msgEl.className = 'message error';
-                    msgEl.textContent = e.message || 'Failed to send link';
+                    msgEl.textContent = e.message || 'Failed to send code';
                     msgEl.style.display = 'block';
                 }
             } else {
                 authDebug.log('ERROR: db not initialized');
             }
+        }
+
+        async function verifyModalOtpCode() {
+            const code = document.getElementById('authOtpCode').value.trim();
+            const msgEl = document.getElementById('authMessage');
+
+            authDebug.log('verifyModalOtpCode called', { email: modalOtpEmail, codeLength: code.length });
+
+            if (!code || code.length !== 6) {
+                msgEl.className = 'message error';
+                msgEl.textContent = 'Please enter the 6-digit code.';
+                msgEl.style.display = 'block';
+                return;
+            }
+
+            if (db) {
+                try {
+                    const { data, error } = await db.auth.verifyOtp({
+                        email: modalOtpEmail,
+                        token: code,
+                        type: 'email'
+                    });
+
+                    authDebug.log('verifyOtp returned', {
+                        success: !error,
+                        hasSession: !!data?.session,
+                        error: error ? error.message : null
+                    });
+
+                    if (error) throw error;
+
+                    msgEl.className = 'message success';
+                    msgEl.textContent = 'Verified!';
+                    msgEl.style.display = 'block';
+                    // onAuthStateChange will handle the rest and close the modal
+                } catch (e) {
+                    authDebug.log('OTP verify FAILED', { error: e.message });
+                    msgEl.className = 'message error';
+                    msgEl.textContent = 'Invalid code. Please try again.';
+                    msgEl.style.display = 'block';
+                }
+            }
+        }
+
+        // Keep for backwards compatibility
+        async function sendMagicLink() {
+            await sendModalOtpCode();
         }
 
         // =============================================
@@ -7908,12 +7992,30 @@ Type @ to link a reading."></textarea>
             }
         }
 
+        let otpEmailSent = false;
+        let otpEmail = '';
+
         async function handleGateLogin() {
             if (usePasswordLogin) {
                 await signInWithPassword();
+            } else if (otpEmailSent) {
+                await verifyOtpCode();
             } else {
-                await sendGateMagicLink();
+                await sendOtpCode();
             }
+        }
+
+        function resetOtpFlow() {
+            otpEmailSent = false;
+            otpEmail = '';
+            document.getElementById('otpCodeSection').style.display = 'none';
+            document.getElementById('gateEmail').style.display = 'block';
+            document.getElementById('gateEmail').disabled = false;
+            document.getElementById('gateOtpCode').value = '';
+            document.getElementById('gateSubmitBtn').textContent = 'Send Code';
+            document.getElementById('toggleLoginBtn').style.display = 'inline';
+            document.getElementById('resetOtpBtn').style.display = 'none';
+            document.getElementById('gateMessage').textContent = '';
         }
 
         async function signInWithPassword() {
@@ -7951,11 +8053,11 @@ Type @ to link a reading."></textarea>
             }
         }
 
-        async function sendGateMagicLink() {
+        async function sendOtpCode() {
             const email = document.getElementById('gateEmail').value;
             const msgEl = document.getElementById('gateMessage');
 
-            authDebug.log('sendGateMagicLink called', { email });
+            authDebug.log('sendOtpCode called', { email });
 
             if (!email) {
                 authDebug.log('No email provided');
@@ -7966,13 +8068,12 @@ Type @ to link a reading."></textarea>
 
             if (db) {
                 try {
-                    const redirectUrl = window.location.origin + window.location.pathname;
-                    authDebug.log('Sending magic link', { email, redirectUrl });
+                    authDebug.log('Sending OTP code (no redirect)', { email });
 
                     const otpStart = Date.now();
+                    // No emailRedirectTo = sends 6-digit code instead of magic link
                     const { error } = await db.auth.signInWithOtp({
-                        email,
-                        options: { emailRedirectTo: redirectUrl }
+                        email
                     });
 
                     authDebug.log('signInWithOtp returned', {
@@ -7983,10 +8084,20 @@ Type @ to link a reading."></textarea>
 
                     if (error) throw error;
 
+                    // Success - show code input
+                    otpEmailSent = true;
+                    otpEmail = email;
+                    document.getElementById('gateEmail').style.display = 'none';
+                    document.getElementById('otpCodeSection').style.display = 'block';
+                    document.getElementById('gateOtpCode').focus();
+                    document.getElementById('gateSubmitBtn').textContent = 'Verify Code';
+                    document.getElementById('toggleLoginBtn').style.display = 'none';
+                    document.getElementById('resetOtpBtn').style.display = 'inline';
+
                     msgEl.className = 'auth-gate-message success';
-                    msgEl.textContent = 'Check your email for the magic link!';
+                    msgEl.textContent = 'Code sent! Check your email and enter the 6-digit code.';
                 } catch (e) {
-                    authDebug.log('Magic link send FAILED', { error: e.message });
+                    authDebug.log('OTP send FAILED', { error: e.message });
                     msgEl.className = 'auth-gate-message error';
                     msgEl.textContent = 'Error: ' + e.message;
                 }
@@ -7995,6 +8106,58 @@ Type @ to link a reading."></textarea>
                 msgEl.className = 'auth-gate-message error';
                 msgEl.textContent = 'Database not connected. Please try again.';
             }
+        }
+
+        async function verifyOtpCode() {
+            const code = document.getElementById('gateOtpCode').value.trim();
+            const msgEl = document.getElementById('gateMessage');
+
+            authDebug.log('verifyOtpCode called', { email: otpEmail, codeLength: code.length });
+
+            if (!code || code.length !== 6) {
+                msgEl.className = 'auth-gate-message error';
+                msgEl.textContent = 'Please enter the 6-digit code from your email.';
+                return;
+            }
+
+            if (db) {
+                try {
+                    authDebug.log('Verifying OTP code', { email: otpEmail });
+
+                    const verifyStart = Date.now();
+                    const { data, error } = await db.auth.verifyOtp({
+                        email: otpEmail,
+                        token: code,
+                        type: 'email'
+                    });
+
+                    authDebug.log('verifyOtp returned', {
+                        success: !error,
+                        hasSession: !!data?.session,
+                        error: error ? error.message : null,
+                        duration: Date.now() - verifyStart
+                    });
+
+                    if (error) throw error;
+
+                    msgEl.className = 'auth-gate-message success';
+                    msgEl.textContent = 'Verified! Logging in...';
+                    // onAuthStateChange will handle the rest
+                } catch (e) {
+                    authDebug.log('OTP verify FAILED', { error: e.message });
+                    msgEl.className = 'auth-gate-message error';
+                    msgEl.textContent = 'Invalid code. Please try again or request a new code.';
+                }
+            } else {
+                authDebug.log('ERROR: db not initialized');
+                msgEl.className = 'auth-gate-message error';
+                msgEl.textContent = 'Database not connected. Please try again.';
+            }
+        }
+
+        // Keep for backwards compatibility with magic links already sent
+        async function sendGateMagicLink() {
+            await sendOtpCode();
         }
 
         // =============================================
