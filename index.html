@@ -3294,6 +3294,7 @@
             overflow: hidden;
             transition: box-shadow 0.2s, transform 0.2s;
             border: 1px solid var(--border);
+            max-width: 900px;
         }
         .essay-card:hover {
             box-shadow: 0 4px 16px rgba(0,0,0,0.12);
@@ -3404,7 +3405,7 @@
             border-top: 1px solid var(--border);
         }
         .essay-card-body-content {
-            padding: 48px 72px 64px;
+            padding: 48px 64px 64px;
             font-family: 'Literata', Georgia, 'Times New Roman', serif;
             font-size: 19px;
             font-weight: 480;
@@ -3415,7 +3416,6 @@
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: auto;
             font-optical-sizing: auto;
-            max-width: 780px;
         }
         .essay-card-body-content p,
         .essay-card-body-content div:not(:empty) {
@@ -3461,9 +3461,9 @@
         }
         /* Works Cited styling - detect via JS and add class */
         .essay-card-body-content .works-cited-section {
-            margin-top: 3em !important;
-            padding-top: 3em;
-            border-top: 1px solid #888;
+            margin-top: 2.5em !important;
+            padding-top: 0;
+            border-top: none;
         }
         .essay-card-body-content .works-cited-section p,
         .essay-card-body-content .works-cited-section div:not(.works-cited-title) {
@@ -3481,7 +3481,7 @@
             font-weight: 600;
             font-size: 1em;
             margin-top: 0 !important;
-            margin-bottom: 1.8em !important;
+            margin-bottom: 1.2em !important;
             text-transform: uppercase;
             letter-spacing: 0.1em;
         }
