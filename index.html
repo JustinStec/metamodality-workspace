@@ -2018,6 +2018,13 @@
             background: var(--border);
             margin: 4px 4px;
         }
+        .rtf-toolbar .zoom-display {
+            font-size: 11px;
+            color: var(--text-muted);
+            min-width: 40px;
+            text-align: center;
+            padding: 0 4px;
+        }
         .rtf-editor:focus {
             outline: none;
             border-color: var(--accent);
@@ -2874,19 +2881,20 @@
         .substack-body .rtf-editor {
             width: 100%;
             flex: 1;
-            border: none;
-            border-radius: 0;
-            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-editor, var(--bg-secondary));
             font-size: 18px;
             line-height: 1.9;
             font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
             color: var(--text);
             min-height: 300px;
             max-height: none;
-            padding: 0;
+            padding: 30px 40px;
             margin: 0;
             white-space: pre-wrap;
             word-wrap: break-word;
+            overflow-y: auto;
         }
         .substack-body .rtf-editor:focus { outline: none; }
         .substack-footer {
@@ -2936,15 +2944,20 @@
             background: var(--highlight);
             color: var(--text);
         }
-            display: flex;
-            flex-direction: column;
-        }
         .substack-sidebar-header {
-            padding: 15px;
+            padding: 12px 15px;
             font-size: 14px;
             font-weight: 600;
             color: var(--text-bright);
             border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 50px;
+            flex-shrink: 0;
+        }
+        .substack-sidebar-header .btn {
+            flex-shrink: 0;
         }
         .drafts-list {
             flex: 1;
@@ -2972,6 +2985,30 @@
             font-size: 11px;
             color: var(--text-muted);
             margin-top: 6px;
+        }
+        .draft-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .draft-item-delete {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 2px 6px;
+            font-size: 14px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .draft-item:hover .draft-item-delete {
+            opacity: 1;
+        }
+        .draft-item-delete:hover {
+            background: rgba(255,100,100,0.2);
+            color: #ff6b6b;
         }
 
         /* ========== READING LINK SYSTEM ========== */
@@ -3758,12 +3795,27 @@
                                     <option value="Arial, sans-serif">Arial</option>
                                     <option value="'Courier New', monospace">Courier</option>
                                 </select>
+                                <select onchange="rtfFontSizeFor('essayContentInput', this.value)" title="Font size">
+                                    <option value="">Size</option>
+                                    <option value="12px">12</option>
+                                    <option value="14px">14</option>
+                                    <option value="16px">16</option>
+                                    <option value="18px">18</option>
+                                    <option value="20px">20</option>
+                                    <option value="24px">24</option>
+                                    <option value="28px">28</option>
+                                    <option value="32px">32</option>
+                                </select>
                                 <select onchange="rtfLineHeightFor('essayContentInput', this.value)" title="Line spacing">
                                     <option value="">Spacing</option>
                                     <option value="1">Single</option>
                                     <option value="1.5">1.5</option>
                                     <option value="2">Double</option>
                                 </select>
+                                <div class="separator"></div>
+                                <button onclick="zoomEditor('essayContentInput', -5)" title="Zoom out 5%">-</button>
+                                <span class="zoom-display" id="essayZoomDisplay">100%</span>
+                                <button onclick="zoomEditor('essayContentInput', 5)" title="Zoom in 5%">+</button>
                             </div>
                             <div class="rtf-editor" id="essayContentInput" contenteditable="true" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-placeholder="Start writing... Type @ to link a reading."></div>
                             <div class="autocomplete-dropdown" id="essayAutocomplete"></div>
@@ -6848,6 +6900,43 @@
             event.target.selectedIndex = 0;
         }
 
+        // Font size for RTF editor
+        function rtfFontSizeFor(editorId, fontSize) {
+            if (!fontSize) return;
+            const editor = document.getElementById(editorId);
+            editor.focus();
+            document.execCommand('fontSize', false, '7'); // Use largest size as base
+            // Replace the font size with our custom size
+            editor.querySelectorAll('font[size="7"]').forEach(el => {
+                el.removeAttribute('size');
+                el.style.fontSize = fontSize;
+            });
+            event.target.selectedIndex = 0;
+        }
+
+        // Zoom levels for editors
+        let editorZoomLevels = {};
+
+        function zoomEditor(editorId, delta) {
+            const editor = document.getElementById(editorId);
+            const display = document.getElementById(editorId.replace('Input', 'ZoomDisplay'));
+
+            if (!editorZoomLevels[editorId]) {
+                editorZoomLevels[editorId] = 100;
+            }
+
+            editorZoomLevels[editorId] = Math.max(50, Math.min(200, editorZoomLevels[editorId] + delta));
+            const zoom = editorZoomLevels[editorId];
+
+            editor.style.transform = `scale(${zoom / 100})`;
+            editor.style.transformOrigin = 'top left';
+            editor.style.width = `${10000 / zoom}%`;
+
+            if (display) {
+                display.textContent = zoom + '%';
+            }
+        }
+
         // Handle Tab key in RTF editors - insert tab character instead of moving focus
         function setupRtfEditorKeyHandlers() {
             document.querySelectorAll('.rtf-editor').forEach(editor => {
@@ -7718,11 +7807,38 @@
 
             container.innerHTML = drafts.map(d => `
                 <div class="draft-item ${editingDraftId === d.id ? 'active' : ''}" onclick="editDraft('${d.id}')">
-                    <div class="draft-item-title">${d.title || 'Untitled'}</div>
-                    <div class="draft-item-preview">${(d.content || '').substring(0, 60)}...</div>
+                    <div class="draft-item-header">
+                        <div class="draft-item-title">${d.title || 'Untitled'}</div>
+                        <button class="draft-item-delete" onclick="event.stopPropagation(); deleteDraft('${d.id}')" title="Delete draft">&times;</button>
+                    </div>
+                    <div class="draft-item-preview">${(d.content || '').replace(/<[^>]*>/g, '').substring(0, 60)}...</div>
                     <div class="draft-item-date">${new Date(d.updated_at).toLocaleDateString()}</div>
                 </div>
             `).join('');
+        }
+
+        async function deleteDraft(id) {
+            if (!confirm('Delete this draft?')) return;
+
+            if (db && currentUser) {
+                try {
+                    await db.from('drafts').delete().eq('id', id);
+                } catch (e) {
+                    console.warn('Failed to delete draft from Supabase:', e);
+                }
+            }
+
+            drafts = drafts.filter(d => d.id !== id);
+            localStorage.setItem('metamodality_drafts', JSON.stringify(drafts));
+
+            if (editingDraftId === id) {
+                editingDraftId = null;
+                document.getElementById('essayTitleInput').value = '';
+                document.getElementById('essaySubtitleInput').value = '';
+                document.getElementById('essayContentInput').innerHTML = '';
+            }
+
+            renderDraftsList();
         }
 
         function editDraft(id) {
