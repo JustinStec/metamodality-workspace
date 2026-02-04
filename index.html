@@ -3307,9 +3307,17 @@
             justify-content: space-between;
             align-items: center;
             gap: 12px;
+            transition: padding 0.3s;
+        }
+        .essay-card.expanded .essay-card-header {
+            padding: 28px 40px;
+            align-items: flex-start;
         }
         .essay-card-header:hover {
             background: var(--highlight);
+        }
+        .essay-card.expanded .essay-card-header:hover {
+            background: transparent;
         }
         .essay-card-info {
             flex: 1;
@@ -3321,12 +3329,21 @@
             color: var(--text-bright);
             margin: 0;
             font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            transition: font-size 0.3s;
+        }
+        .essay-card.expanded .essay-card-title {
+            font-size: 24px;
         }
         .essay-card-subtitle {
             font-size: 14px;
             color: var(--text-muted);
             margin: 4px 0 0 0;
             font-style: italic;
+            transition: font-size 0.3s;
+        }
+        .essay-card.expanded .essay-card-subtitle {
+            font-size: 16px;
+            margin-top: 8px;
         }
         .essay-card-meta {
             font-size: 12px;
@@ -3335,6 +3352,11 @@
             align-items: center;
             gap: 8px;
             margin-top: 6px;
+        }
+        .essay-card.expanded .essay-card-meta {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
         }
         .essay-card-author {
             color: var(--accent);
@@ -3379,19 +3401,46 @@
             transition: max-height 0.6s ease-in;
         }
         .essay-card-body {
-            padding: 20px;
-            border-top: 1px solid var(--border);
-            background: var(--bg-secondary);
+            padding: 0;
+            border-top: none;
         }
         .essay-card-body-content {
-            font-size: 15px;
-            line-height: 1.8;
+            padding: 32px 40px 40px;
+            font-size: 17px;
+            line-height: 1.9;
             color: var(--text);
             font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-            max-width: 680px;
+            max-width: 720px;
+            background: linear-gradient(to bottom, var(--bg-panel) 0%, #faf9f7 100%);
+            border-top: 1px solid var(--border);
         }
         .essay-card-body-content p {
-            margin: 0 0 1em 0;
+            margin: 0 0 1.4em 0;
+            text-align: justify;
+            text-justify: inter-word;
+            hyphens: auto;
+        }
+        .essay-card-body-content p:first-child::first-letter {
+            font-size: 3.2em;
+            float: left;
+            line-height: 0.8;
+            padding-right: 8px;
+            padding-top: 4px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+        .essay-card-body-content blockquote {
+            margin: 1.5em 0;
+            padding: 0 0 0 24px;
+            border-left: 3px solid var(--accent);
+            font-style: italic;
+            color: var(--text-muted);
+        }
+        .essay-card-body-content em, .essay-card-body-content i {
+            font-style: italic;
+        }
+        .essay-card-body-content strong, .essay-card-body-content b {
+            font-weight: 600;
         }
         .essay-card-your-badge {
             font-size: 10px;
