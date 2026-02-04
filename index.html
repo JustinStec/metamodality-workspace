@@ -3414,13 +3414,19 @@
             background: linear-gradient(to bottom, var(--bg-panel) 0%, #faf9f7 100%);
             border-top: 1px solid var(--border);
         }
-        .essay-card-body-content p {
-            margin: 0 0 1.4em 0;
+        .essay-card-body-content p,
+        .essay-card-body-content div {
+            margin: 0 0 1em 0;
             text-align: justify;
             text-justify: inter-word;
             hyphens: auto;
         }
-        .essay-card-body-content p:first-child::first-letter {
+        .essay-card-body-content br {
+            display: block;
+            content: "";
+            margin: 0.5em 0;
+        }
+        .essay-card-body-content > *:first-child::first-letter {
             font-size: 3.2em;
             float: left;
             line-height: 0.8;
@@ -3441,6 +3447,50 @@
         }
         .essay-card-body-content strong, .essay-card-body-content b {
             font-weight: 600;
+        }
+        /* Fullscreen essay reader */
+        .essay-card.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            border-radius: 0;
+            overflow-y: auto;
+            margin: 0;
+        }
+        .essay-card.fullscreen .essay-card-header {
+            position: sticky;
+            top: 0;
+            background: var(--bg-panel);
+            z-index: 10;
+            border-bottom: 1px solid var(--border);
+        }
+        .essay-card.fullscreen .essay-card-body-content {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 40px 60px 80px;
+            font-size: 18px;
+        }
+        .essay-fullscreen-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .essay-fullscreen-btn:hover {
+            background: var(--highlight);
+            border-color: var(--accent);
+            color: var(--accent);
         }
         .essay-card-your-badge {
             font-size: 10px;
@@ -7521,6 +7571,7 @@
                             </div>
                             <div class="essay-card-actions">
                                 ${isAuthor ? `<button class="essay-card-edit" onclick="event.stopPropagation(); editPublishedEssay('${p.id}')" title="Edit">✎</button>` : ''}
+                                <button class="essay-fullscreen-btn" onclick="event.stopPropagation(); toggleEssayFullscreen('${p.id}')" title="Fullscreen">⛶</button>
                                 <button class="essay-card-toggle" title="Expand/collapse">▼</button>
                             </div>
                         </div>
@@ -7568,6 +7619,34 @@
             const card = document.getElementById('essay-card-' + id);
             if (card) {
                 card.classList.toggle('expanded');
+            }
+        }
+
+        // Toggle essay fullscreen mode
+        function toggleEssayFullscreen(id) {
+            const card = document.getElementById('essay-card-' + id);
+            if (!card) return;
+
+            // Make sure it's expanded first
+            if (!card.classList.contains('expanded')) {
+                card.classList.add('expanded');
+            }
+
+            card.classList.toggle('fullscreen');
+
+            // Handle escape key to exit fullscreen
+            if (card.classList.contains('fullscreen')) {
+                document.body.style.overflow = 'hidden';
+                const escHandler = (e) => {
+                    if (e.key === 'Escape') {
+                        card.classList.remove('fullscreen');
+                        document.body.style.overflow = '';
+                        document.removeEventListener('keydown', escHandler);
+                    }
+                };
+                document.addEventListener('keydown', escHandler);
+            } else {
+                document.body.style.overflow = '';
             }
         }
 
