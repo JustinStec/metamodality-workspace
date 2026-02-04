@@ -2099,6 +2099,165 @@
             color: var(--text-bright);
         }
 
+        /* Community Sections */
+        .community-section {
+            margin-bottom: 40px;
+        }
+        .community-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .essay-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .essay-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .essay-card-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .essay-card-meta {
+            flex: 1;
+        }
+        .essay-card-author {
+            font-weight: 500;
+            color: var(--text-bright);
+            font-size: 14px;
+        }
+        .essay-card-date {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .essay-card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin-bottom: 6px;
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+        }
+        .essay-card-subtitle {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        .essay-card-preview {
+            font-size: 14px;
+            color: var(--text);
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .essay-card-actions {
+            display: flex;
+            gap: 15px;
+        }
+        .essay-card-action {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            cursor: pointer;
+            padding: 5px 0;
+        }
+        .essay-card-action:hover {
+            color: var(--accent);
+        }
+
+        /* Essay Reader Modal */
+        .essay-reader-modal {
+            max-width: 750px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            overflow: hidden;
+        }
+        .essay-reader-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-muted);
+            z-index: 10;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .essay-reader-close:hover {
+            background: var(--highlight);
+            color: var(--text);
+        }
+        .essay-reader-article {
+            flex: 1;
+            overflow-y: auto;
+            padding: 50px 60px;
+        }
+        .essay-reader-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+        .essay-reader-header h1 {
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            font-size: 36px;
+            font-weight: 600;
+            line-height: 1.2;
+            color: var(--text-bright);
+            margin: 0 0 12px 0;
+        }
+        .essay-reader-subtitle {
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            font-size: 20px;
+            color: var(--text-muted);
+            margin: 0 0 20px 0;
+            font-style: italic;
+        }
+        .essay-reader-meta {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        .essay-reader-body {
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            font-size: 18px;
+            line-height: 1.9;
+            color: var(--text);
+        }
+        .essay-reader-body p {
+            margin-bottom: 1.5em;
+        }
+        .essay-reader-body blockquote {
+            margin: 1.5em 0;
+            padding-left: 20px;
+            border-left: 3px solid var(--accent);
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
         /* Quick Post Composer */
         .quick-post-composer {
             display: flex;
@@ -3481,7 +3640,7 @@
             <button class="nav-tab" data-view="read">Read</button>
             <button class="nav-tab" data-view="notes">Notes</button>
             <button class="nav-tab" data-view="write">Write</button>
-            <button class="nav-tab" data-view="discuss">Discuss</button>
+            <button class="nav-tab" data-view="discuss">Community</button>
         </nav>
         <div class="header-right">
             <div class="search-box">
@@ -3914,28 +4073,42 @@
             </div>
         </div>
 
-        <!-- DISCUSS VIEW (Quick Thoughts & Discussion) -->
+        <!-- DISCUSS VIEW (Community: Essays + Quick Thoughts) -->
         <div class="view" id="view-discuss">
             <div class="discuss-view">
                 <div class="discuss-header">
-                    <h1>Discussion</h1>
+                    <h1>Community</h1>
                 </div>
 
-                <!-- Quick Post Composer -->
-                <div class="quick-post-composer">
-                    <div class="composer-avatar" id="composerAvatar">?</div>
-                    <div class="composer-input-area">
-                        <textarea id="quickPostInput" placeholder="What's on your mind about the readings?" maxlength="500"></textarea>
-                        <div class="composer-footer">
-                            <span class="char-count"><span id="charCount">0</span>/500</span>
-                            <button class="btn" onclick="postQuickThought()">Post</button>
+                <!-- Published Essays Section -->
+                <div class="community-section">
+                    <h2 class="community-section-title">Essays</h2>
+                    <div id="communityEssaysContainer">
+                        <div class="empty-state" style="padding: 40px 20px;">
+                            No essays published yet.
                         </div>
                     </div>
                 </div>
 
-                <div id="thoughtsContainer">
-                    <div class="empty-state" style="padding: 60px 20px;">
-                        No thoughts yet. Share what's on your mind about the readings!
+                <!-- Quick Thoughts Section -->
+                <div class="community-section">
+                    <h2 class="community-section-title">Quick Thoughts</h2>
+                    <!-- Quick Post Composer -->
+                    <div class="quick-post-composer">
+                        <div class="composer-avatar" id="composerAvatar">?</div>
+                        <div class="composer-input-area">
+                            <textarea id="quickPostInput" placeholder="What's on your mind about the readings?" maxlength="500"></textarea>
+                            <div class="composer-footer">
+                                <span class="char-count"><span id="charCount">0</span>/500</span>
+                                <button class="btn" onclick="postQuickThought()">Post</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="thoughtsContainer">
+                        <div class="empty-state" style="padding: 40px 20px;">
+                            No thoughts yet. Share what's on your mind!
+                        </div>
                     </div>
                 </div>
             </div>
@@ -4146,6 +4319,21 @@
             <div class="btn-row">
                 <button class="btn secondary" onclick="closeReadingPicker()">Cancel</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Essay Reader Modal -->
+    <div class="modal-overlay" id="essayReaderModal">
+        <div class="modal essay-reader-modal">
+            <button class="essay-reader-close" onclick="closeEssayReader()">&times;</button>
+            <article class="essay-reader-article">
+                <header class="essay-reader-header">
+                    <h1 id="essayReaderTitle"></h1>
+                    <p id="essayReaderSubtitle" class="essay-reader-subtitle"></p>
+                    <div id="essayReaderMeta" class="essay-reader-meta"></div>
+                </header>
+                <div id="essayReaderContent" class="essay-reader-body"></div>
+            </article>
         </div>
     </div>
 
@@ -5507,14 +5695,14 @@
             // Combine all activity types into a single stream
             const activities = [];
 
-            // Add posts (essays)
+            // Add posts (essays) - clicking opens read-only view
             posts.forEach(p => {
                 activities.push({
                     type: 'post',
                     author: p.author_email || 'Anonymous',
                     title: p.title,
                     time: new Date(p.published_at),
-                    onClick: `viewPublishedEssay('${p.id}'); switchView('write'); switchSidebarTab('published');`
+                    onClick: `openEssayReader('${p.id}')`
                 });
             });
 
@@ -7045,17 +7233,20 @@
             }
         }
 
-        // Render published essays in sidebar
+        // Render published essays in sidebar (your own essays)
         function renderPublishedList() {
             const container = document.getElementById('publishedList');
             if (!container) return;
 
-            if (posts.length === 0) {
+            // Filter to only show current user's posts
+            const myPosts = currentUser ? posts.filter(p => p.author_id === currentUser.id) : [];
+
+            if (myPosts.length === 0) {
                 container.innerHTML = '<div class="empty-state" style="padding: 30px; font-size: 13px;">No published essays yet.</div>';
                 return;
             }
 
-            const sortedPosts = [...posts].sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+            const sortedPosts = [...myPosts].sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
 
             container.innerHTML = sortedPosts.map(p => `
                 <div class="published-item" onclick="viewPublishedEssay('${p.id}')">
@@ -7065,7 +7256,43 @@
             `).join('');
         }
 
-        // View a published essay (load into editor for viewing/editing)
+        // Render all essays in Community view (all users, read-only)
+        function renderCommunityEssays() {
+            const container = document.getElementById('communityEssaysContainer');
+            if (!container) return;
+
+            if (posts.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 40px 20px;">No essays published yet.</div>';
+                return;
+            }
+
+            const sortedPosts = [...posts].sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+
+            container.innerHTML = sortedPosts.map(p => {
+                const preview = (p.content || '').replace(/<[^>]*>/g, '').substring(0, 200);
+                const isAuthor = currentUser && p.author_id === currentUser.id;
+                return `
+                    <div class="essay-card">
+                        <div class="essay-card-header">
+                            <div class="essay-card-avatar">${(p.author_email || 'A')[0].toUpperCase()}</div>
+                            <div class="essay-card-meta">
+                                <div class="essay-card-author">${p.author_email?.split('@')[0] || 'Anonymous'}</div>
+                                <div class="essay-card-date">${new Date(p.published_at).toLocaleDateString()}</div>
+                            </div>
+                        </div>
+                        <div class="essay-card-title">${p.title || 'Untitled'}</div>
+                        ${p.subtitle ? `<div class="essay-card-subtitle">${p.subtitle}</div>` : ''}
+                        <div class="essay-card-preview">${preview}${preview.length >= 200 ? '...' : ''}</div>
+                        <div class="essay-card-actions">
+                            <button class="essay-card-action" onclick="openEssayReader('${p.id}')">Read more</button>
+                            ${isAuthor ? `<button class="essay-card-action" onclick="viewPublishedEssay('${p.id}'); switchView('write');">Edit</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // View a published essay (load into editor for editing - only for author)
         function viewPublishedEssay(id) {
             const post = posts.find(p => p.id === id);
             if (!post) return;
@@ -7084,6 +7311,23 @@
 
             // Switch to drafts tab to show we're editing
             switchSidebarTab('drafts');
+        }
+
+        // Open essay reader modal (read-only view for everyone)
+        function openEssayReader(id) {
+            const post = posts.find(p => p.id === id);
+            if (!post) return;
+
+            document.getElementById('essayReaderTitle').textContent = post.title || 'Untitled';
+            document.getElementById('essayReaderSubtitle').textContent = post.subtitle || '';
+            document.getElementById('essayReaderMeta').textContent = `By ${post.author_email?.split('@')[0] || 'Anonymous'} · ${new Date(post.published_at).toLocaleDateString()}`;
+            document.getElementById('essayReaderContent').innerHTML = post.content || '';
+
+            document.getElementById('essayReaderModal').classList.add('active');
+        }
+
+        function closeEssayReader() {
+            document.getElementById('essayReaderModal').classList.remove('active');
         }
 
         async function saveAnnotation() {
@@ -7379,62 +7623,12 @@
             // Also update home view
             renderRecentPosts();
 
-            // Also update separate Essays and Thoughts views
-            renderEssays();
+            // Also update Community view
+            renderCommunityEssays();
             renderThoughts();
         }
 
-        // Render essays to the Essays view
-        function renderEssays() {
-            const container = document.getElementById('essaysContainer');
-            if (!container) return;
-
-            if (posts.length === 0) {
-                container.innerHTML = '<div class="empty-state" style="padding: 60px 20px;">No essays published yet. Be the first to share your analysis!</div>';
-                return;
-            }
-
-            const sortedPosts = [...posts].sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
-
-            container.innerHTML = sortedPosts.map(p => {
-                const isAuthor = currentUser && p.author_id === currentUser.id;
-                const commentCount = (postComments[p.id] || []).length;
-                const time = new Date(p.published_at);
-                return `
-                    <div class="post-card" data-post-id="${p.id}">
-                        <div class="post-header">
-                            <div class="post-avatar">${(p.author_email || 'A')[0].toUpperCase()}</div>
-                            <div>
-                                <div class="post-author">${p.author_email?.split('@')[0] || 'Anonymous'}</div>
-                                <div class="post-date">${formatTimeAgo(time)}</div>
-                            </div>
-                        </div>
-                        <div class="post-title">${p.title}</div>
-                        ${p.subtitle ? `<div class="post-subtitle">${p.subtitle}</div>` : ''}
-                        <div class="post-content">${marked.parse(p.content || '')}</div>
-                        ${p.linked_readings?.length ? `<div class="post-links">📎 ${p.linked_readings.join(', ')}</div>` : ''}
-                        <div class="post-actions">
-                            <button class="post-action" onclick="togglePostComments('${p.id}')">
-                                💬 ${commentCount} Comment${commentCount !== 1 ? 's' : ''}
-                            </button>
-                            ${isAuthor ? `
-                                <button class="post-action" onclick="editPost('${p.id}')">✏️ Edit</button>
-                                <button class="post-action" onclick="deletePost('${p.id}')">🗑️ Delete</button>
-                            ` : ''}
-                        </div>
-                        <div class="post-comments-section" id="essay-comments-${p.id}" style="display: none;">
-                            <div class="post-comments-list" id="essay-comments-list-${p.id}"></div>
-                            <div class="post-comment-form">
-                                <textarea id="essay-comment-input-${p.id}" placeholder="Write a comment..."></textarea>
-                                <button class="btn" onclick="postComment('${p.id}')">Post</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Render thoughts to the Discussion view
+        // Render thoughts to the Community view
         function renderThoughts() {
             const container = document.getElementById('thoughtsContainer');
             if (!container) return;
