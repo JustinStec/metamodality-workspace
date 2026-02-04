@@ -1994,6 +1994,8 @@
             overflow-y: auto;
             margin-bottom: 10px;
             background: var(--bg-panel);
+            white-space: pre-wrap;
+            word-wrap: break-word;
             line-height: 1.5;
         }
         /* Grammarly blocking - add these attributes in HTML: data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" */
@@ -2489,6 +2491,8 @@
             background: var(--bg-secondary);
             color: var(--text);
             font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
         .workshop-comment-form .rtf-editor:focus {
             outline: none;
@@ -2670,6 +2674,8 @@
             min-height: auto;
             max-height: none;
             overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
         .editor-body .rtf-editor:focus { outline: none; }
 
@@ -2831,6 +2837,8 @@
             max-height: none;
             padding: 0;
             margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
         .substack-body .rtf-editor:focus { outline: none; }
         .substack-footer {
@@ -6753,6 +6761,20 @@
             // Reset dropdown to show placeholder after selection
             event.target.selectedIndex = 0;
         }
+
+        // Handle Tab key in RTF editors - insert tab character instead of moving focus
+        function setupRtfEditorKeyHandlers() {
+            document.querySelectorAll('.rtf-editor').forEach(editor => {
+                editor.addEventListener('keydown', function(e) {
+                    if (e.key === 'Tab') {
+                        e.preventDefault();
+                        document.execCommand('insertText', false, '\t');
+                    }
+                });
+            });
+        }
+        // Call on DOM ready
+        document.addEventListener('DOMContentLoaded', setupRtfEditorKeyHandlers);
 
         async function saveAnnotation() {
             if (!currentReading) return;
