@@ -2438,8 +2438,27 @@
             margin-bottom: 20px;
         }
         .workshop-comment-form .rtf-toolbar {
+            display: flex;
+            gap: 2px;
+            padding: 6px 8px;
             border-radius: 8px 8px 0 0;
             background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-bottom: none;
+        }
+        .workshop-comment-form .rtf-toolbar button {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .workshop-comment-form .rtf-toolbar button:hover {
+            background: var(--highlight);
         }
         .workshop-comment-form .rtf-editor {
             width: 100%;
@@ -2595,11 +2614,28 @@
             top: 0;
             left: 0;
             right: 0;
+            display: flex;
+            gap: 2px;
+            padding: 6px 25px;
             border-radius: 0;
             background: var(--bg-panel);
             border: none;
             border-bottom: 1px solid var(--border);
             z-index: 5;
+        }
+        .editor-body .rtf-toolbar button {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .editor-body .rtf-toolbar button:hover {
+            background: var(--highlight);
         }
         .editor-body .rtf-editor {
             flex: 1;
