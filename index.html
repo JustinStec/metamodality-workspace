@@ -22,7 +22,7 @@
     <!-- Inter font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -3406,33 +3406,31 @@
         }
         .essay-card-body-content {
             padding: 36px 48px 48px;
-            font-family: Georgia, 'Times New Roman', Times, serif;
+            font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
             font-size: 18px;
             line-height: 1.7;
             color: #2c2c2c;
             background: #fffefa;
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
+            font-optical-sizing: auto;
         }
         .essay-card-body-content p,
-        .essay-card-body-content div {
-            margin: 0;
-            padding: 0;
+        .essay-card-body-content div:not(:empty) {
+            margin: 0 !important;
+            padding: 0 !important;
             text-indent: 1.5em;
             text-align: justify;
             text-justify: inter-word;
         }
-        .essay-card-body-content p:first-of-type,
-        .essay-card-body-content div:first-of-type,
         .essay-card-body-content > *:first-child {
-            text-indent: 0;
+            text-indent: 0 !important;
         }
-        .essay-card-body-content p + p,
-        .essay-card-body-content div + div {
-            margin-top: 0;
-        }
-        .essay-card-body-content br {
-            display: none;
+        .essay-card-body-content br,
+        .essay-card-body-content div:empty {
+            display: none !important;
+            height: 0 !important;
+            margin: 0 !important;
         }
         .essay-card-body-content > *:first-child::first-letter {
             font-size: 3.5em;
@@ -3440,23 +3438,30 @@
             line-height: 0.75;
             padding-right: 10px;
             padding-top: 6px;
-            font-weight: 400;
+            font-weight: 600;
             color: var(--accent);
-            font-family: Georgia, serif;
+            font-family: 'Source Serif 4', Georgia, serif;
         }
         .essay-card-body-content blockquote {
-            margin: 1.2em 0 1.2em 2em;
-            padding: 0 0 0 1.5em;
+            margin: 1.2em 0 1.2em 2em !important;
+            padding: 0 0 0 1.5em !important;
             border-left: 2px solid var(--accent);
             font-style: italic;
             color: #555;
-            text-indent: 0;
+            text-indent: 0 !important;
         }
         .essay-card-body-content em, .essay-card-body-content i {
             font-style: italic;
         }
         .essay-card-body-content strong, .essay-card-body-content b {
             font-weight: 700;
+        }
+        /* Works Cited / Bibliography - hanging indent, no first-line indent */
+        .essay-card-body-content p:has(~ p strong:first-child),
+        .essay-card-body-content div:has(strong:only-child),
+        .essay-card-body-content p + p:last-of-type,
+        .essay-card-body-content strong:only-child {
+            text-indent: 0 !important;
         }
         /* Fullscreen essay reader */
         .essay-card.fullscreen {
