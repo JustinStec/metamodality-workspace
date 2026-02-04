@@ -2719,13 +2719,33 @@
         .substack-textarea::placeholder { color: var(--text-muted); opacity: 0.5; }
 
         /* Substack RTF Editor */
+        .substack-body .editor-textarea-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
         .substack-body .rtf-toolbar {
-            border-radius: 0;
-            background: transparent;
+            display: inline-flex;
+            gap: 2px;
+            padding: 4px 8px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 15px;
+            width: fit-content;
+        }
+        .substack-body .rtf-toolbar button {
+            width: 28px;
+            height: 28px;
             border: none;
-            border-bottom: 1px solid var(--border);
-            padding: 8px 0;
-            margin-bottom: 10px;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .substack-body .rtf-toolbar button:hover {
+            background: var(--highlight);
         }
         .substack-body .rtf-editor {
             width: 100%;
