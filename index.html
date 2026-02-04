@@ -3300,6 +3300,10 @@
             transition: box-shadow 0.2s, transform 0.2s;
             border: 1px solid var(--border);
             max-width: 900px;
+            position: relative;
+        }
+        .essay-card.expanded {
+            overflow: visible;
         }
         .essay-card:hover {
             box-shadow: 0 4px 16px rgba(0,0,0,0.12);
@@ -3408,19 +3412,22 @@
         .essay-card-body {
             padding: 0;
             border-top: 1px solid var(--border);
-            display: flex;
         }
         .essay-card-body-main {
-            flex: 1;
-            min-width: 0;
+            width: 100%;
         }
         .essay-card-comments {
+            position: absolute;
+            top: 0;
+            right: -300px;
             width: 280px;
-            flex-shrink: 0;
-            background: var(--bg-secondary);
-            border-left: 1px solid var(--border);
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
+            max-height: 600px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         .essay-card-comments-header {
             padding: 16px;
@@ -3435,6 +3442,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 12px;
+            min-height: 200px;
             max-height: 400px;
         }
         .essay-comment {
