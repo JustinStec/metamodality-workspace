@@ -2923,15 +2923,20 @@
             overflow: hidden;
         }
         .substack-header {
-            padding: 16px 32px 0 32px;
-            margin-bottom: 12px;
+            padding: 12px 24px 0 24px;
+            margin-bottom: 8px;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .substack-header-fields {
+            flex: 1;
         }
         .substack-header-top {
             display: flex;
-            justify-content: flex-end;
-            margin-bottom: 8px;
+            flex-shrink: 0;
         }
         .fullscreen-btn {
             background: var(--bg-secondary);
@@ -2977,7 +2982,7 @@
         .substack-body {
             flex: 1;
             display: flex;
-            padding: 0 40px;
+            padding: 0 24px;
             overflow: hidden;
         }
         .substack-textarea {
@@ -4383,14 +4388,16 @@
             <div class="substack-editor" id="substackEditor">
                 <div class="substack-editor-container">
                     <div class="substack-header">
+                        <div class="substack-header-fields">
+                            <input type="text" class="substack-title" id="essayTitleInput" placeholder="Title">
+                            <input type="text" class="substack-subtitle" id="essaySubtitleInput" placeholder="Add a subtitle...">
+                        </div>
                         <div class="substack-header-top">
                             <button class="fullscreen-btn" onclick="toggleEditorFullscreen()" title="Toggle fullscreen">
                                 <span id="fullscreenIcon">&#x26F6;</span>
                                 <span id="fullscreenText">Focus</span>
                             </button>
                         </div>
-                        <input type="text" class="substack-title" id="essayTitleInput" placeholder="Title">
-                        <input type="text" class="substack-subtitle" id="essaySubtitleInput" placeholder="Add a subtitle...">
                     </div>
                     <div class="substack-body">
                         <div class="editor-textarea-wrapper">
