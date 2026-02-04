@@ -7889,18 +7889,30 @@
                 draft.user_id = currentUser.id;
                 try {
                     if (editingDraftId) {
-                        await db.from('drafts').update(draft).eq('id', editingDraftId);
+                        const { error } = await db.from('drafts').update(draft).eq('id', editingDraftId);
+                        if (error) {
+                            console.error('Failed to update draft:', error);
+                            alert('Failed to save draft: ' + error.message);
+                            return;
+                        }
                         const idx = drafts.findIndex(d => d.id === editingDraftId);
                         if (idx >= 0) drafts[idx] = { ...drafts[idx], ...draft };
                     } else {
-                        const { data } = await db.from('drafts').insert([draft]).select();
+                        const { data, error } = await db.from('drafts').insert([draft]).select();
+                        if (error) {
+                            console.error('Failed to save draft:', error);
+                            alert('Failed to save draft: ' + error.message);
+                            return;
+                        }
                         if (data?.[0]) {
                             drafts.unshift(data[0]);
                             editingDraftId = data[0].id;
                         }
                     }
                 } catch (e) {
-                    console.warn('Failed to save draft:', e);
+                    console.error('Failed to save draft:', e);
+                    alert('Failed to save draft. Please try again.');
+                    return;
                 }
             } else {
                 if (editingDraftId) {
@@ -7940,6 +7952,8 @@
                 updated_at: new Date().toISOString()
             };
 
+            let publishSuccess = false;
+
             if (db && currentUser) {
                 try {
                     // If editing an existing post, update it
@@ -7950,9 +7964,16 @@
                             .eq('id', editingPostId)
                             .select();
 
-                        if (!error && data?.[0]) {
+                        if (error) {
+                            console.error('Failed to update post:', error);
+                            alert('Failed to publish: ' + error.message);
+                            return;
+                        }
+
+                        if (data?.[0]) {
                             const idx = posts.findIndex(p => p.id === editingPostId);
                             if (idx >= 0) posts[idx] = { ...posts[idx], ...data[0] };
+                            publishSuccess = true;
                         }
                         editingPostId = null;
                     } else {
@@ -7962,18 +7983,24 @@
                         postData.author_email = currentUser.email || 'Anonymous';
                         postData.reactions = {};
 
-                        const { data } = await db.from('posts').insert([postData]).select();
-                        if (data?.[0]) posts.unshift(data[0]);
+                        const { data, error } = await db.from('posts').insert([postData]).select();
 
-                        // Delete draft after publishing
-                        if (editingDraftId) {
-                            await db.from('drafts').delete().eq('id', editingDraftId);
-                            drafts = drafts.filter(d => d.id !== editingDraftId);
-                            editingDraftId = null;
+                        if (error) {
+                            console.error('Failed to publish:', error);
+                            alert('Failed to publish: ' + error.message);
+                            return;
+                        }
+
+                        if (data?.[0]) {
+                            posts.unshift(data[0]);
+                            publishSuccess = true;
+                            // Keep draft - user can delete manually if desired
                         }
                     }
                 } catch (e) {
-                    console.warn('Failed to publish:', e);
+                    console.error('Failed to publish:', e);
+                    alert('Failed to publish. Please try again.');
+                    return;
                 }
             } else {
                 postData.id = Date.now().toString();
@@ -7981,25 +8008,22 @@
                 postData.author_email = 'Anonymous';
                 postData.reactions = {};
                 posts.unshift(postData);
-
-                // Delete draft from local storage after publishing
-                if (editingDraftId) {
-                    drafts = drafts.filter(d => d.id !== editingDraftId);
-                    localStorage.setItem('metamodality_drafts', JSON.stringify(drafts));
-                    editingDraftId = null;
-                }
+                publishSuccess = true;
+                // Keep draft - user can delete manually if desired
             }
 
-            // Clear editor
-            document.getElementById('essayTitleInput').value = '';
-            document.getElementById('essaySubtitleInput').value = '';
-            document.getElementById('essayContentInput').innerHTML = '';
-            essayLinkedReadings = [];
-            renderLinkedReadings('essay');
+            // Only clear editor if publish succeeded
+            if (publishSuccess) {
+                document.getElementById('essayTitleInput').value = '';
+                document.getElementById('essaySubtitleInput').value = '';
+                document.getElementById('essayContentInput').innerHTML = '';
+                essayLinkedReadings = [];
+                renderLinkedReadings('essay');
 
-            renderDraftsList();
-            renderFeed();
-            switchView('essays');
+                renderDraftsList();
+                renderFeed();
+                switchView('essays');
+            }
         }
 
         // =============================================
