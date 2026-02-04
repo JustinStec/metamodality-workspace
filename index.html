@@ -6312,6 +6312,7 @@ Type @ to link a reading."></textarea>
             editingAnnotationId = null;
             isPinnedNote = true;
             selectedText = '';
+            selectedPageNum = null;
             const quotePreview = document.getElementById('quotePreview');
             quotePreview.textContent = '📌 Pinned note (no highlighted text)';
             quotePreview.classList.add('pinned-note');
@@ -6329,6 +6330,7 @@ Type @ to link a reading."></textarea>
             editor.innerHTML = '';
             editor.setAttribute('data-placeholder', 'Add your thoughts...');
             selectedText = '';
+            selectedPageNum = null;
             isPinnedNote = false;
             editingAnnotationId = null;
         }
