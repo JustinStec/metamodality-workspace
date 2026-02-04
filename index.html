@@ -2803,6 +2803,20 @@
         .substack-body .rtf-toolbar button:hover {
             background: var(--highlight);
         }
+        .substack-body .editor-textarea-wrapper {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .substack-body .editor-textarea-wrapper .rtf-toolbar {
+            margin: -20px -20px 15px -20px;
+            padding: 10px 15px;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+        }
         .substack-body .rtf-editor {
             width: 100%;
             flex: 1;
@@ -3291,6 +3305,7 @@
             <button class="nav-tab" data-view="read">Read</button>
             <button class="nav-tab" data-view="notes">Notes</button>
             <button class="nav-tab" data-view="write">Write</button>
+            <button class="nav-tab" data-view="essays">Essays</button>
             <button class="nav-tab" data-view="discuss">Discuss</button>
         </nav>
         <div class="header-right">
@@ -3692,12 +3707,27 @@
             </div>
         </div>
 
-        <!-- DISCUSS VIEW (Published Essays Feed) -->
+        <!-- ESSAYS VIEW (Published Essays Feed) -->
+        <div class="view" id="view-essays">
+            <div class="discuss-view">
+                <div class="discuss-header">
+                    <h1>Essays</h1>
+                    <button class="btn" onclick="switchView('write')">Write Essay</button>
+                </div>
+
+                <div id="essaysContainer">
+                    <div class="empty-state" style="padding: 60px 20px;">
+                        No essays published yet. Be the first to share your analysis!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DISCUSS VIEW (Quick Thoughts & Discussion) -->
         <div class="view" id="view-discuss">
             <div class="discuss-view">
                 <div class="discuss-header">
                     <h1>Discussion</h1>
-                    <button class="btn secondary" onclick="switchView('write')">Write Essay</button>
                 </div>
 
                 <!-- Quick Post Composer -->
@@ -3712,16 +3742,9 @@
                     </div>
                 </div>
 
-                <!-- Feed -->
-                <div class="feed-tabs">
-                    <button class="feed-tab active" onclick="switchFeedTab('all')">All</button>
-                    <button class="feed-tab" onclick="switchFeedTab('thoughts')">Thoughts</button>
-                    <button class="feed-tab" onclick="switchFeedTab('essays')">Essays</button>
-                </div>
-
-                <div id="postsContainer">
+                <div id="thoughtsContainer">
                     <div class="empty-state" style="padding: 60px 20px;">
-                        No posts yet. Share your thoughts about the readings!
+                        No thoughts yet. Share what's on your mind about the readings!
                     </div>
                 </div>
             </div>
@@ -6724,19 +6747,11 @@
         function rtfLineHeightFor(editorId, lineHeight) {
             if (!lineHeight) return;
             const editor = document.getElementById(editorId);
-            const selection = window.getSelection();
-            if (selection.rangeCount > 0 && !selection.isCollapsed) {
-                // Wrap selection in span with line-height
-                const range = selection.getRangeAt(0);
-                const span = document.createElement('span');
-                span.style.lineHeight = lineHeight;
-                span.style.display = 'inline-block';
-                range.surroundContents(span);
-            } else {
-                // Apply to entire editor
-                editor.style.lineHeight = lineHeight;
-            }
+            // Apply to entire editor with !important via setProperty
+            editor.style.setProperty('line-height', lineHeight, 'important');
             editor.focus();
+            // Reset dropdown to show placeholder after selection
+            event.target.selectedIndex = 0;
         }
 
         async function saveAnnotation() {
@@ -7031,6 +7046,95 @@
 
             // Also update home view
             renderRecentPosts();
+
+            // Also update separate Essays and Thoughts views
+            renderEssays();
+            renderThoughts();
+        }
+
+        // Render essays to the Essays view
+        function renderEssays() {
+            const container = document.getElementById('essaysContainer');
+            if (!container) return;
+
+            if (posts.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 60px 20px;">No essays published yet. Be the first to share your analysis!</div>';
+                return;
+            }
+
+            const sortedPosts = [...posts].sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+
+            container.innerHTML = sortedPosts.map(p => {
+                const isAuthor = currentUser && p.author_id === currentUser.id;
+                const commentCount = (postComments[p.id] || []).length;
+                const time = new Date(p.published_at);
+                return `
+                    <div class="post-card" data-post-id="${p.id}">
+                        <div class="post-header">
+                            <div class="post-avatar">${(p.author_email || 'A')[0].toUpperCase()}</div>
+                            <div>
+                                <div class="post-author">${p.author_email?.split('@')[0] || 'Anonymous'}</div>
+                                <div class="post-date">${formatTimeAgo(time)}</div>
+                            </div>
+                        </div>
+                        <div class="post-title">${p.title}</div>
+                        ${p.subtitle ? `<div class="post-subtitle">${p.subtitle}</div>` : ''}
+                        <div class="post-content">${marked.parse(p.content || '')}</div>
+                        ${p.linked_readings?.length ? `<div class="post-links">📎 ${p.linked_readings.join(', ')}</div>` : ''}
+                        <div class="post-actions">
+                            <button class="post-action" onclick="togglePostComments('${p.id}')">
+                                💬 ${commentCount} Comment${commentCount !== 1 ? 's' : ''}
+                            </button>
+                            ${isAuthor ? `
+                                <button class="post-action" onclick="editPost('${p.id}')">✏️ Edit</button>
+                                <button class="post-action" onclick="deletePost('${p.id}')">🗑️ Delete</button>
+                            ` : ''}
+                        </div>
+                        <div class="post-comments-section" id="essay-comments-${p.id}" style="display: none;">
+                            <div class="post-comments-list" id="essay-comments-list-${p.id}"></div>
+                            <div class="post-comment-form">
+                                <textarea id="essay-comment-input-${p.id}" placeholder="Write a comment..."></textarea>
+                                <button class="btn" onclick="postComment('${p.id}')">Post</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render thoughts to the Discussion view
+        function renderThoughts() {
+            const container = document.getElementById('thoughtsContainer');
+            if (!container) return;
+
+            if (thoughts.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 60px 20px;">No thoughts yet. Share what\'s on your mind about the readings!</div>';
+                return;
+            }
+
+            const sortedThoughts = [...thoughts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            container.innerHTML = sortedThoughts.map(t => {
+                const isAuthor = currentUser && t.author_id === currentUser.id;
+                const time = new Date(t.created_at);
+                return `
+                    <div class="thought-card" data-thought-id="${t.id}">
+                        <div class="thought-header">
+                            <div class="thought-avatar">${(t.author_email || 'A')[0].toUpperCase()}</div>
+                            <div>
+                                <span class="thought-author">${t.author_email?.split('@')[0] || 'Anonymous'}</span>
+                                <span class="thought-time">· ${formatTimeAgo(time)}</span>
+                            </div>
+                        </div>
+                        <div class="thought-content">${t.content}</div>
+                        <div class="thought-actions">
+                            <button class="thought-action">💬 Reply</button>
+                            ${isAuthor ? `<button class="thought-action" onclick="editThought('${t.id}')">✏️ Edit</button>` : ''}
+                            ${isAuthor ? `<button class="thought-action" onclick="deleteThought('${t.id}')">🗑️ Delete</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         async function deleteThought(thoughtId) {
@@ -7638,7 +7742,7 @@
 
             renderDraftsList();
             renderFeed();
-            switchView('discuss');
+            switchView('essays');
         }
 
         // =============================================
