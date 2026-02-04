@@ -3455,6 +3455,26 @@
         .essay-card-body-content strong, .essay-card-body-content b {
             font-weight: 700;
         }
+        /* Works Cited styling - detect via JS and add class */
+        .essay-card-body-content .works-cited-section {
+            margin-top: 2em !important;
+            padding-top: 1.5em;
+            border-top: 1px solid #ddd;
+        }
+        .essay-card-body-content .works-cited-section p,
+        .essay-card-body-content .works-cited-section div {
+            text-indent: 0 !important;
+            padding-left: 2em !important;
+            text-indent: -2em !important;
+            margin-bottom: 0.5em !important;
+            text-align: left !important;
+        }
+        .essay-card-body-content .works-cited-title {
+            text-indent: 0 !important;
+            padding-left: 0 !important;
+            font-weight: 700;
+            margin-bottom: 1em !important;
+        }
         /* Fullscreen essay reader */
         .essay-card.fullscreen {
             position: fixed;
@@ -7603,6 +7623,39 @@
             btn.innerHTML = sidebar.classList.contains('collapsed') ? '&#x2630;' : '&#x2630;';
         }
 
+        // Format essay content - detect Works Cited and style appropriately
+        function formatEssayContent(content) {
+            if (!content) return '';
+
+            // Create a temp div to parse the HTML
+            const temp = document.createElement('div');
+            temp.innerHTML = content;
+
+            // Find "Works Cited" or "Bibliography" heading
+            const allElements = temp.querySelectorAll('p, div');
+            let foundWorksCited = false;
+
+            allElements.forEach(el => {
+                const text = el.textContent.trim();
+                if (/^(Works?\s*Cited|Bibliography|References)$/i.test(text)) {
+                    el.classList.add('works-cited-title');
+                    foundWorksCited = true;
+                    // Wrap this and all following siblings in a section
+                    const section = document.createElement('div');
+                    section.className = 'works-cited-section';
+                    el.parentNode.insertBefore(section, el);
+                    section.appendChild(el);
+
+                    // Move all following siblings into the section
+                    while (section.nextSibling) {
+                        section.appendChild(section.nextSibling);
+                    }
+                }
+            });
+
+            return temp.innerHTML;
+        }
+
         // Render all published essays inline as collapsible cards
         function renderPublishedList() {
             const container = document.getElementById('publishedEssaysInline');
@@ -7643,7 +7696,7 @@
                         </div>
                         <div class="essay-card-content">
                             <div class="essay-card-body">
-                                <div class="essay-card-body-content">${p.content || ''}</div>
+                                <div class="essay-card-body-content">${formatEssayContent(p.content || '')}</div>
                             </div>
                         </div>
                     </div>
