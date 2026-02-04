@@ -1996,6 +1996,26 @@
             background: var(--bg-panel);
             line-height: 1.5;
         }
+        /* Grammarly blocking - add these attributes in HTML: data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" */
+        .rtf-toolbar select {
+            height: 28px;
+            border: 1px solid var(--border);
+            background: var(--bg-panel);
+            color: var(--text);
+            border-radius: 4px;
+            font-size: 11px;
+            padding: 0 4px;
+            cursor: pointer;
+        }
+        .rtf-toolbar select:hover {
+            background: var(--highlight);
+        }
+        .rtf-toolbar .separator {
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+            margin: 4px 4px;
+        }
         .rtf-editor:focus {
             outline: none;
             border-color: var(--accent);
@@ -3532,7 +3552,7 @@
                         <button onclick="rtfCommand('insertUnorderedList')" title="Bullet list">•</button>
                         <button onclick="rtfCommand('insertOrderedList')" title="Numbered list">1.</button>
                     </div>
-                    <div class="rtf-editor" id="annotationComment" contenteditable="true" data-placeholder="Add your thoughts..."></div>
+                    <div class="rtf-editor" id="annotationComment" contenteditable="true" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-placeholder="Add your thoughts..."></div>
                     <div class="form-actions">
                         <button class="btn secondary" onclick="cancelAnnotation()">Cancel</button>
                         <button class="btn" onclick="saveAnnotation()">Save</button>
@@ -3577,8 +3597,23 @@
                             <button onclick="rtfCommandFor('noteContentInput', 'strikeThrough')" title="Strikethrough"><s>S</s></button>
                             <button onclick="rtfCommandFor('noteContentInput', 'insertUnorderedList')" title="Bullet list">•</button>
                             <button onclick="rtfCommandFor('noteContentInput', 'insertOrderedList')" title="Numbered list">1.</button>
+                            <div class="separator"></div>
+                            <select onchange="rtfFontFor('noteContentInput', this.value)" title="Font">
+                                <option value="">Font</option>
+                                <option value="Georgia, serif">Georgia</option>
+                                <option value="'Times New Roman', serif">Times</option>
+                                <option value="Inter, sans-serif">Inter</option>
+                                <option value="Arial, sans-serif">Arial</option>
+                                <option value="'Courier New', monospace">Courier</option>
+                            </select>
+                            <select onchange="rtfLineHeightFor('noteContentInput', this.value)" title="Line spacing">
+                                <option value="">Spacing</option>
+                                <option value="1">Single</option>
+                                <option value="1.5">1.5</option>
+                                <option value="2">Double</option>
+                            </select>
                         </div>
-                        <div class="rtf-editor" id="noteContentInput" contenteditable="true" data-placeholder="Write your notes here... Type @ to link a reading, or use the 📎 button below."></div>
+                        <div class="rtf-editor" id="noteContentInput" contenteditable="true" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-placeholder="Write your notes here... Type @ to link a reading, or use the 📎 button below."></div>
                         <div class="autocomplete-dropdown" id="noteAutocomplete"></div>
                     </div>
                 </div>
@@ -3610,8 +3645,23 @@
                                 <button onclick="rtfCommandFor('essayContentInput', 'strikeThrough')" title="Strikethrough"><s>S</s></button>
                                 <button onclick="rtfCommandFor('essayContentInput', 'insertUnorderedList')" title="Bullet list">•</button>
                                 <button onclick="rtfCommandFor('essayContentInput', 'insertOrderedList')" title="Numbered list">1.</button>
+                                <div class="separator"></div>
+                                <select onchange="rtfFontFor('essayContentInput', this.value)" title="Font">
+                                    <option value="">Font</option>
+                                    <option value="Georgia, serif">Georgia</option>
+                                    <option value="'Times New Roman', serif">Times</option>
+                                    <option value="Inter, sans-serif">Inter</option>
+                                    <option value="Arial, sans-serif">Arial</option>
+                                    <option value="'Courier New', monospace">Courier</option>
+                                </select>
+                                <select onchange="rtfLineHeightFor('essayContentInput', this.value)" title="Line spacing">
+                                    <option value="">Spacing</option>
+                                    <option value="1">Single</option>
+                                    <option value="1.5">1.5</option>
+                                    <option value="2">Double</option>
+                                </select>
                             </div>
-                            <div class="rtf-editor" id="essayContentInput" contenteditable="true" data-placeholder="Start writing... Your essay will be published to the Discuss feed. Type @ to link a reading."></div>
+                            <div class="rtf-editor" id="essayContentInput" contenteditable="true" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-placeholder="Start writing... Type @ to link a reading."></div>
                             <div class="autocomplete-dropdown" id="essayAutocomplete"></div>
                         </div>
                     </div>
@@ -3718,8 +3768,23 @@
                                     <button onclick="rtfCommandFor('workshopCommentInput', 'strikeThrough')" title="Strikethrough"><s>S</s></button>
                                     <button onclick="rtfCommandFor('workshopCommentInput', 'insertUnorderedList')" title="Bullet list">•</button>
                                     <button onclick="rtfCommandFor('workshopCommentInput', 'insertOrderedList')" title="Numbered list">1.</button>
+                                    <div class="separator"></div>
+                                    <select onchange="rtfFontFor('workshopCommentInput', this.value)" title="Font">
+                                        <option value="">Font</option>
+                                        <option value="Georgia, serif">Georgia</option>
+                                        <option value="'Times New Roman', serif">Times</option>
+                                        <option value="Inter, sans-serif">Inter</option>
+                                        <option value="Arial, sans-serif">Arial</option>
+                                        <option value="'Courier New', monospace">Courier</option>
+                                    </select>
+                                    <select onchange="rtfLineHeightFor('workshopCommentInput', this.value)" title="Line spacing">
+                                        <option value="">Spacing</option>
+                                        <option value="1">Single</option>
+                                        <option value="1.5">1.5</option>
+                                        <option value="2">Double</option>
+                                    </select>
                                 </div>
-                                <div class="rtf-editor" id="workshopCommentInput" contenteditable="true" data-placeholder="Share thoughts, questions, or ideas for the workshop..."></div>
+                                <div class="rtf-editor" id="workshopCommentInput" contenteditable="true" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-placeholder="Share thoughts, questions, or ideas for the workshop..."></div>
                                 <button class="btn" onclick="postWorkshopComment()">Post</button>
                             </div>
                             <div class="workshop-comments" id="workshopComments">
@@ -6640,6 +6705,38 @@
         function rtfCommandFor(editorId, command, value = null) {
             document.execCommand(command, false, value);
             document.getElementById(editorId).focus();
+        }
+
+        // Font family for RTF editor
+        function rtfFontFor(editorId, fontFamily) {
+            if (!fontFamily) return;
+            const editor = document.getElementById(editorId);
+            editor.focus();
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                document.execCommand('fontName', false, fontFamily);
+            } else {
+                editor.style.fontFamily = fontFamily;
+            }
+        }
+
+        // Line height for RTF editor
+        function rtfLineHeightFor(editorId, lineHeight) {
+            if (!lineHeight) return;
+            const editor = document.getElementById(editorId);
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0 && !selection.isCollapsed) {
+                // Wrap selection in span with line-height
+                const range = selection.getRangeAt(0);
+                const span = document.createElement('span');
+                span.style.lineHeight = lineHeight;
+                span.style.display = 'inline-block';
+                range.surroundContents(span);
+            } else {
+                // Apply to entire editor
+                editor.style.lineHeight = lineHeight;
+            }
+            editor.focus();
         }
 
         async function saveAnnotation() {
