@@ -3402,54 +3402,61 @@
         }
         .essay-card-body {
             padding: 0;
-            border-top: none;
-        }
-        .essay-card-body-content {
-            padding: 32px 40px 40px;
-            font-size: 17px;
-            line-height: 1.9;
-            color: var(--text);
-            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-            background: linear-gradient(to bottom, var(--bg-panel) 0%, #faf9f7 100%);
             border-top: 1px solid var(--border);
         }
+        .essay-card-body-content {
+            padding: 36px 48px 48px;
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            font-size: 18px;
+            line-height: 1.7;
+            color: #2c2c2c;
+            background: #fffefa;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+        }
         .essay-card-body-content p,
-        .essay-card-body-content div:not(:empty) {
-            margin: 0 0 0.8em 0;
+        .essay-card-body-content div {
+            margin: 0;
+            padding: 0;
+            text-indent: 1.5em;
             text-align: justify;
             text-justify: inter-word;
-            hyphens: auto;
         }
-        .essay-card-body-content div:empty,
-        .essay-card-body-content br + br {
-            display: none;
+        .essay-card-body-content p:first-of-type,
+        .essay-card-body-content div:first-of-type,
+        .essay-card-body-content > *:first-child {
+            text-indent: 0;
+        }
+        .essay-card-body-content p + p,
+        .essay-card-body-content div + div {
+            margin-top: 0;
         }
         .essay-card-body-content br {
-            display: block;
-            content: "";
-            margin: 0;
+            display: none;
         }
         .essay-card-body-content > *:first-child::first-letter {
-            font-size: 3.2em;
+            font-size: 3.5em;
             float: left;
-            line-height: 0.8;
-            padding-right: 8px;
-            padding-top: 4px;
-            font-weight: 600;
+            line-height: 0.75;
+            padding-right: 10px;
+            padding-top: 6px;
+            font-weight: 400;
             color: var(--accent);
+            font-family: Georgia, serif;
         }
         .essay-card-body-content blockquote {
-            margin: 1.5em 0;
-            padding: 0 0 0 24px;
-            border-left: 3px solid var(--accent);
+            margin: 1.2em 0 1.2em 2em;
+            padding: 0 0 0 1.5em;
+            border-left: 2px solid var(--accent);
             font-style: italic;
-            color: var(--text-muted);
+            color: #555;
+            text-indent: 0;
         }
         .essay-card-body-content em, .essay-card-body-content i {
             font-style: italic;
         }
         .essay-card-body-content strong, .essay-card-body-content b {
-            font-weight: 600;
+            font-weight: 700;
         }
         /* Fullscreen essay reader */
         .essay-card.fullscreen {
@@ -3460,28 +3467,41 @@
             bottom: 0;
             z-index: 1000;
             border-radius: 0;
-            overflow-y: auto;
             margin: 0;
-            display: flex;
-            flex-direction: column;
+            background: #fffefa;
+            overflow: hidden;
         }
         .essay-card.fullscreen .essay-card-header {
-            position: sticky;
+            position: fixed;
             top: 0;
-            background: var(--bg-panel);
+            left: 0;
+            right: 0;
+            background: rgba(255,254,250,0.95);
+            backdrop-filter: blur(10px);
             z-index: 10;
             border-bottom: 1px solid var(--border);
-            padding: 20px 60px;
-            flex-shrink: 0;
+            padding: 16px 60px;
         }
         .essay-card.fullscreen .essay-card-content {
-            flex: 1;
+            position: fixed;
+            top: 80px;
+            left: 0;
+            right: 0;
+            bottom: 0;
             max-height: none;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .essay-card.fullscreen .essay-card-body {
+            border-top: none;
         }
         .essay-card.fullscreen .essay-card-body-content {
-            padding: 40px 60px 80px;
-            font-size: 18px;
-            min-height: 100%;
+            padding: 48px 80px 120px;
+            font-size: 19px;
+            line-height: 1.75;
+            max-width: 900px;
+            margin: 0 auto;
+            min-height: calc(100vh - 80px);
         }
         .essay-fullscreen-btn {
             background: var(--bg-secondary);
