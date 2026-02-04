@@ -5531,6 +5531,8 @@ Type @ to link a reading."></textarea>
                 btn.textContent = '⛶ Fullscreen';
                 document.body.style.overflow = '';
             }
+            // Re-calculate current page after layout change
+            setTimeout(updateCurrentPageFromScroll, 100);
         }
 
         function toggleOrientation() {
@@ -5545,6 +5547,7 @@ Type @ to link a reading."></textarea>
         async function loadReading(readingId) {
             currentReading = readingId;
             pdfHasText = false; // Reset for new PDF
+            pageTrackingSetup = false; // Reset so tracking gets re-initialized
 
             // Reset zoom for new PDF
             currentZoom = 1.0;
@@ -5658,56 +5661,88 @@ Type @ to link a reading."></textarea>
         // Scroll to a specific page in the PDF viewer
         function goToPage(pageNum) {
             if (!pageNum) return;
+            const viewer = document.getElementById('pdfViewer');
             const pageContainer = document.getElementById('page-container-' + pageNum);
-            if (pageContainer) {
-                pageContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (pageContainer && viewer) {
+                // Calculate scroll position within the viewer
+                const viewerRect = viewer.getBoundingClientRect();
+                const pageRect = pageContainer.getBoundingClientRect();
+                const scrollTop = viewer.scrollTop + (pageRect.top - viewerRect.top) - 20;
+
+                viewer.scrollTo({ top: scrollTop, behavior: 'smooth' });
+
+                // Update current page
+                window.currentPageNum = pageNum;
+                document.getElementById('currentPage').textContent = pageNum;
+
                 // Brief highlight effect
                 pageContainer.style.outline = '3px solid var(--accent)';
                 setTimeout(() => {
                     pageContainer.style.outline = '';
                 }, 1500);
+
+                // Re-render annotations if filtering by page
+                if (showCurrentPageOnly) {
+                    renderAnnotations();
+                }
             }
         }
 
-        // Track current visible page using IntersectionObserver
-        let pageObserver = null;
+        // Track current visible page using scroll events
+        let pageTrackingSetup = false;
         function setupPageTracking() {
-            if (pageObserver) pageObserver.disconnect();
+            const viewer = document.getElementById('pdfViewer');
+            if (!viewer || pageTrackingSetup) return;
 
+            pageTrackingSetup = true;
+
+            // Use scroll event to track current page
+            let scrollTimeout = null;
+            viewer.addEventListener('scroll', () => {
+                if (scrollTimeout) clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    updateCurrentPageFromScroll();
+                }, 100);
+            });
+
+            // Initial update
+            setTimeout(updateCurrentPageFromScroll, 500);
+        }
+
+        function updateCurrentPageFromScroll() {
             const viewer = document.getElementById('pdfViewer');
             if (!viewer) return;
 
-            pageObserver = new IntersectionObserver((entries) => {
-                // Find the most visible page
-                let mostVisible = null;
-                let maxRatio = 0;
-                entries.forEach(entry => {
-                    if (entry.isIntersecting && entry.intersectionRatio > maxRatio) {
-                        maxRatio = entry.intersectionRatio;
-                        mostVisible = entry.target;
-                    }
-                });
+            const viewerRect = viewer.getBoundingClientRect();
+            const viewerCenter = viewerRect.top + viewerRect.height / 3; // Check top third
 
-                if (mostVisible) {
-                    const pageNum = parseInt(mostVisible.dataset.pageNum);
-                    if (pageNum && pageNum !== window.currentPageNum) {
-                        window.currentPageNum = pageNum;
-                        document.getElementById('currentPage').textContent = pageNum;
-                        // Re-render annotations if filtering by page
-                        if (showCurrentPageOnly) {
-                            renderAnnotations();
-                        }
+            let closestPage = 1;
+            let closestDistance = Infinity;
+
+            document.querySelectorAll('.pdf-page-container').forEach(container => {
+                const rect = container.getBoundingClientRect();
+                const pageCenter = rect.top + rect.height / 2;
+                const distance = Math.abs(pageCenter - viewerCenter);
+
+                if (rect.top < viewerRect.bottom && rect.bottom > viewerRect.top) {
+                    // Page is visible
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestPage = parseInt(container.dataset.pageNum) || 1;
                     }
                 }
-            }, {
-                root: viewer,
-                threshold: [0, 0.25, 0.5, 0.75, 1.0]
             });
 
-            // Observe all page containers
-            document.querySelectorAll('.pdf-page-container').forEach(container => {
-                pageObserver.observe(container);
-            });
+            if (closestPage !== window.currentPageNum) {
+                window.currentPageNum = closestPage;
+                const pageDisplay = document.getElementById('currentPage');
+                if (pageDisplay) pageDisplay.textContent = closestPage;
+
+                // Re-render annotations if filtering by page
+                if (showCurrentPageOnly) {
+                    renderAnnotations();
+                }
+            }
         }
 
         async function rerenderAllPages() {
@@ -6326,6 +6361,7 @@ Type @ to link a reading."></textarea>
                 // Check if selection is in PDF area
                 const inPdfViewer = e.target.closest('.pdf-viewer') ||
                                     e.target.closest('.pdf-text-layer') ||
+                                    e.target.closest('.textLayer') ||
                                     e.target.closest('.pdf-page-container');
 
                 // If column mode is active, filter selection to only include text from that column
