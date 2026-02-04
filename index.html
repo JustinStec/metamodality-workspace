@@ -3204,15 +3204,7 @@
                             <!-- Populated by JS -->
                         </div>
 
-                        <!-- Recent Discussion -->
-                        <div class="home-section">
-                            <h3><span class="icon">💬</span> Recent Discussion</h3>
-                            <div id="recentPosts">
-                                <div class="empty-state">No posts yet. Be the first to share your thoughts.</div>
-                            </div>
-                        </div>
-
-                        <!-- Recent Activity -->
+                        <!-- Recent Activity (unified feed) -->
                         <div class="home-section">
                             <h3><span class="icon">⚡</span> Recent Activity</h3>
                             <div id="activityStream">
@@ -5076,17 +5068,49 @@ Type @ to link a reading."></textarea>
                 });
             });
 
-            // Add annotations from all readings
+            // Add annotations - consolidated by reading and author
+            // Group annotations by reading+author, show count instead of individual items
+            const annotationGroups = {};
             Object.entries(annotations).forEach(([readingId, items]) => {
                 (items || []).forEach(a => {
-                    activities.push({
-                        type: 'annotation',
-                        author: a.author_email || 'Anonymous',
-                        quote: a.quote?.substring(0, 40) + '...',
-                        readingId: readingId,
-                        time: new Date(a.created_at),
-                        onClick: `openReading('${readingId}')`
-                    });
+                    const key = `${readingId}__${a.author_email || 'Anonymous'}`;
+                    if (!annotationGroups[key]) {
+                        annotationGroups[key] = {
+                            readingId,
+                            author: a.author_email || 'Anonymous',
+                            count: 0,
+                            latestTime: new Date(a.created_at)
+                        };
+                    }
+                    annotationGroups[key].count++;
+                    const time = new Date(a.created_at);
+                    if (time > annotationGroups[key].latestTime) {
+                        annotationGroups[key].latestTime = time;
+                    }
+                });
+            });
+
+            // Convert groups to activities
+            Object.values(annotationGroups).forEach(group => {
+                // Find reading title
+                let readingTitle = group.readingId;
+                for (const unit of schedule) {
+                    for (const week of unit.weeks) {
+                        for (const r of week.readings) {
+                            if (r.id === group.readingId) {
+                                readingTitle = r.title?.split(',')[0] || r.title || group.readingId;
+                            }
+                        }
+                    }
+                }
+                activities.push({
+                    type: 'annotation_group',
+                    author: group.author,
+                    count: group.count,
+                    readingTitle: readingTitle,
+                    readingId: group.readingId,
+                    time: group.latestTime,
+                    onClick: `openReading('${group.readingId}')`
                 });
             });
 
@@ -5157,19 +5181,22 @@ Type @ to link a reading."></textarea>
                             </div>
                         </div>
                     `;
-                } else {
+                } else if (a.type === 'annotation_group') {
+                    const annotationText = a.count === 1 ? '1 annotation' : `${a.count} annotations`;
                     return `
                         <div class="stream-item" onclick="${a.onClick}">
                             <div class="stream-avatar">${initial}</div>
                             <div class="stream-content">
                                 <div class="stream-text">
-                                    <span class="author">${a.author.split('@')[0]}</span> annotated
-                                    <span class="target">"${a.quote}"</span>
+                                    <span class="author">${a.author.split('@')[0]}</span> made ${annotationText} on
+                                    <span class="target">${a.readingTitle}</span>
                                 </div>
                                 <div class="stream-meta">${timeAgo}</div>
                             </div>
                         </div>
                     `;
+                } else {
+                    return '';
                 }
             }).join('');
         }
@@ -6864,6 +6891,7 @@ Type @ to link a reading."></textarea>
 
         function renderRecentPosts() {
             const container = document.getElementById('recentPosts');
+            if (!container) return;  // Container removed - using unified activity stream now
             const recent = posts.slice(0, 3);
 
             if (recent.length === 0) {
