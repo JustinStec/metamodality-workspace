@@ -2727,8 +2727,8 @@
             width: 100%;
             height: 100%;
             background: var(--bg-secondary);
-            padding: 20px;
-            gap: 20px;
+            padding: 30px 40px;
+            gap: 25px;
         }
         .substack-editor.fullscreen {
             position: fixed;
@@ -2829,14 +2829,16 @@
             flex-direction: column;
         }
         .substack-body .rtf-toolbar {
-            display: inline-flex;
-            gap: 2px;
-            padding: 4px 8px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            margin-bottom: 15px;
-            width: fit-content;
+            display: flex;
+            gap: 4px;
+            padding: 12px 0;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--border);
+            border-radius: 0;
+            margin-bottom: 20px;
+            width: 100%;
+            flex-wrap: wrap;
         }
         .substack-body .rtf-toolbar button {
             width: 28px;
@@ -6835,8 +6837,12 @@
         function rtfLineHeightFor(editorId, lineHeight) {
             if (!lineHeight) return;
             const editor = document.getElementById(editorId);
-            // Apply to entire editor with !important via setProperty
+            // Apply to entire editor
             editor.style.setProperty('line-height', lineHeight, 'important');
+            // Also apply to all child elements (for pasted content)
+            editor.querySelectorAll('*').forEach(el => {
+                el.style.setProperty('line-height', lineHeight, 'important');
+            });
             editor.focus();
             // Reset dropdown to show placeholder after selection
             event.target.selectedIndex = 0;
@@ -6850,6 +6856,16 @@
                         e.preventDefault();
                         document.execCommand('insertText', false, '\t');
                     }
+                });
+                // Handle paste - strip problematic inline styles but keep basic formatting
+                editor.addEventListener('paste', function(e) {
+                    // Let the paste happen, then clean up after
+                    setTimeout(() => {
+                        // Remove fixed line-heights from pasted content so our controls work
+                        editor.querySelectorAll('*').forEach(el => {
+                            el.style.removeProperty('line-height');
+                        });
+                    }, 0);
                 });
             });
         }
