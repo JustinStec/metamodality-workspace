@@ -2726,17 +2726,58 @@
             display: flex;
             width: 100%;
             height: 100%;
+            background: var(--bg-secondary);
+            padding: 20px;
+            gap: 20px;
+        }
+        .substack-editor.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            padding: 30px;
+        }
+        .substack-editor.fullscreen .substack-sidebar {
+            display: none;
         }
         .substack-editor-container {
             flex: 1;
             display: flex;
             flex-direction: column;
-            max-width: 720px;
-            margin: 0 auto;
-            padding: 40px 20px;
+            background: var(--bg-panel);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            overflow: hidden;
         }
         .substack-header {
-            margin-bottom: 30px;
+            padding: 30px 40px 0 40px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .substack-header-top {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        .fullscreen-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .fullscreen-btn:hover {
+            background: var(--highlight);
+            border-color: var(--accent);
         }
         .substack-title {
             width: 100%;
@@ -2765,6 +2806,8 @@
         .substack-body {
             flex: 1;
             display: flex;
+            padding: 0 40px;
+            overflow: hidden;
         }
         .substack-textarea {
             width: 100%;
@@ -2810,18 +2853,21 @@
             background: var(--highlight);
         }
         .substack-body .editor-textarea-wrapper {
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: transparent;
+            border: none;
+            padding: 0;
+            box-shadow: none;
+            overflow: hidden;
         }
         .substack-body .editor-textarea-wrapper .rtf-toolbar {
-            margin: -20px -20px 15px -20px;
-            padding: 10px 15px;
-            border-radius: 8px 8px 0 0;
+            padding: 12px 0;
+            margin-bottom: 15px;
             border-bottom: 1px solid var(--border);
-            background: var(--bg-secondary);
+            background: transparent;
+            border-radius: 0;
         }
         .substack-body .rtf-editor {
             width: 100%;
@@ -2842,12 +2888,12 @@
         }
         .substack-body .rtf-editor:focus { outline: none; }
         .substack-footer {
-            padding-top: 20px;
+            padding: 20px 40px 30px 40px;
             border-top: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 20px;
+            background: var(--bg-panel);
         }
         .substack-links {
             font-size: 13px;
@@ -2858,9 +2904,36 @@
             gap: 10px;
         }
         .substack-sidebar {
-            width: 260px;
-            background: var(--bg-sidebar);
-            border-left: 1px solid var(--border);
+            width: 280px;
+            background: var(--bg-panel);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease, opacity 0.3s ease;
+        }
+        .substack-sidebar.collapsed {
+            width: 50px;
+        }
+        .substack-sidebar.collapsed .substack-sidebar-header span,
+        .substack-sidebar.collapsed .substack-sidebar-header .btn,
+        .substack-sidebar.collapsed .drafts-list {
+            display: none;
+        }
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 16px;
+            border-radius: 4px;
+        }
+        .sidebar-toggle:hover {
+            background: var(--highlight);
+            color: var(--text);
+        }
             display: flex;
             flex-direction: column;
         }
@@ -3653,9 +3726,15 @@
 
         <!-- WRITE VIEW (Substack-style Essay Editor) -->
         <div class="view write-view" id="view-write">
-            <div class="substack-editor">
+            <div class="substack-editor" id="substackEditor">
                 <div class="substack-editor-container">
                     <div class="substack-header">
+                        <div class="substack-header-top">
+                            <button class="fullscreen-btn" onclick="toggleEditorFullscreen()" title="Toggle fullscreen">
+                                <span id="fullscreenIcon">&#x26F6;</span>
+                                <span id="fullscreenText">Focus</span>
+                            </button>
+                        </div>
                         <input type="text" class="substack-title" id="essayTitleInput" placeholder="Title">
                         <input type="text" class="substack-subtitle" id="essaySubtitleInput" placeholder="Add a subtitle...">
                     </div>
@@ -3703,9 +3782,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="substack-sidebar">
-                    <div class="substack-sidebar-header" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span>Your Drafts</span>
+                <div class="substack-sidebar" id="draftsSidebar">
+                    <div class="substack-sidebar-header" style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                        <button class="sidebar-toggle" onclick="toggleDraftsSidebar()" title="Toggle sidebar" id="sidebarToggleBtn">&#x2630;</button>
+                        <span style="flex: 1;">Your Drafts</span>
                         <button class="btn" onclick="newDraft()" style="padding: 4px 10px; font-size: 12px;">+ New</button>
                     </div>
                     <div class="drafts-list" id="draftsList">
@@ -6775,6 +6855,29 @@
         }
         // Call on DOM ready
         document.addEventListener('DOMContentLoaded', setupRtfEditorKeyHandlers);
+
+        // Toggle essay editor fullscreen mode
+        function toggleEditorFullscreen() {
+            const editor = document.getElementById('substackEditor');
+            const icon = document.getElementById('fullscreenIcon');
+            const text = document.getElementById('fullscreenText');
+            editor.classList.toggle('fullscreen');
+            if (editor.classList.contains('fullscreen')) {
+                icon.innerHTML = '&#x2716;';
+                text.textContent = 'Exit';
+            } else {
+                icon.innerHTML = '&#x26F6;';
+                text.textContent = 'Focus';
+            }
+        }
+
+        // Toggle drafts sidebar
+        function toggleDraftsSidebar() {
+            const sidebar = document.getElementById('draftsSidebar');
+            const btn = document.getElementById('sidebarToggleBtn');
+            sidebar.classList.toggle('collapsed');
+            btn.innerHTML = sidebar.classList.contains('collapsed') ? '&#x2630;' : '&#x2630;';
+        }
 
         async function saveAnnotation() {
             if (!currentReading) return;
