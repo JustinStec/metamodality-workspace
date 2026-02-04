@@ -3410,7 +3410,6 @@
             line-height: 1.9;
             color: var(--text);
             font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-            max-width: 720px;
             background: linear-gradient(to bottom, var(--bg-panel) 0%, #faf9f7 100%);
             border-top: 1px solid var(--border);
         }
@@ -3468,9 +3467,7 @@
             border-bottom: 1px solid var(--border);
         }
         .essay-card.fullscreen .essay-card-body-content {
-            max-width: 680px;
-            margin: 0 auto;
-            padding: 40px 60px 80px;
+            padding: 40px 80px 80px;
             font-size: 18px;
         }
         .essay-fullscreen-btn {
@@ -3491,6 +3488,42 @@
             background: var(--highlight);
             border-color: var(--accent);
             color: var(--accent);
+        }
+        /* Essay zoom controls */
+        .essay-zoom-controls {
+            display: none;
+            align-items: center;
+            gap: 4px;
+            margin-right: 8px;
+        }
+        .essay-card.expanded .essay-zoom-controls {
+            display: flex;
+        }
+        .essay-zoom-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .essay-zoom-btn:hover {
+            background: var(--highlight);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .essay-zoom-display {
+            font-size: 11px;
+            color: var(--text-muted);
+            min-width: 36px;
+            text-align: center;
         }
         .essay-card-your-badge {
             font-size: 10px;
@@ -7570,6 +7603,11 @@
                                 </div>
                             </div>
                             <div class="essay-card-actions">
+                                <div class="essay-zoom-controls">
+                                    <button class="essay-zoom-btn" onclick="event.stopPropagation(); zoomEssay('${p.id}', -10)" title="Zoom out">−</button>
+                                    <span class="essay-zoom-display" id="essay-zoom-${p.id}">100%</span>
+                                    <button class="essay-zoom-btn" onclick="event.stopPropagation(); zoomEssay('${p.id}', 10)" title="Zoom in">+</button>
+                                </div>
                                 ${isAuthor ? `<button class="essay-card-edit" onclick="event.stopPropagation(); editPublishedEssay('${p.id}')" title="Edit">✎</button>` : ''}
                                 <button class="essay-fullscreen-btn" onclick="event.stopPropagation(); toggleEssayFullscreen('${p.id}')" title="Fullscreen">⛶</button>
                                 <button class="essay-card-toggle" title="Expand/collapse">▼</button>
@@ -7619,6 +7657,28 @@
             const card = document.getElementById('essay-card-' + id);
             if (card) {
                 card.classList.toggle('expanded');
+            }
+        }
+
+        // Track zoom levels for essays
+        const essayZoomLevels = {};
+
+        // Zoom essay content
+        function zoomEssay(id, delta) {
+            if (!essayZoomLevels[id]) essayZoomLevels[id] = 100;
+            essayZoomLevels[id] = Math.max(50, Math.min(200, essayZoomLevels[id] + delta));
+
+            const card = document.getElementById('essay-card-' + id);
+            const content = card?.querySelector('.essay-card-body-content');
+            const display = document.getElementById('essay-zoom-' + id);
+
+            if (content) {
+                const baseFontSize = 17;
+                const newSize = baseFontSize * (essayZoomLevels[id] / 100);
+                content.style.fontSize = newSize + 'px';
+            }
+            if (display) {
+                display.textContent = essayZoomLevels[id] + '%';
             }
         }
 
