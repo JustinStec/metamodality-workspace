@@ -2945,7 +2945,7 @@
             color: var(--text);
         }
         .substack-sidebar-header {
-            padding: 12px 15px;
+            padding: 10px 12px;
             font-size: 14px;
             font-weight: 600;
             color: var(--text-bright);
@@ -2958,6 +2958,62 @@
         }
         .substack-sidebar-header .btn {
             flex-shrink: 0;
+        }
+        .sidebar-tabs {
+            display: flex;
+            flex: 1;
+            gap: 4px;
+        }
+        .sidebar-tab {
+            flex: 1;
+            padding: 6px 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .sidebar-tab:hover {
+            background: var(--highlight);
+            color: var(--text);
+        }
+        .sidebar-tab.active {
+            background: var(--accent);
+            color: white;
+        }
+        .sidebar-tab-content {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+        }
+        .sidebar-tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .published-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .published-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .published-item:hover {
+            background: var(--highlight);
+        }
+        .published-item-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-bright);
+            margin-bottom: 4px;
+        }
+        .published-item-date {
+            font-size: 11px;
+            color: var(--text-muted);
         }
         .drafts-list {
             flex: 1;
@@ -3425,7 +3481,6 @@
             <button class="nav-tab" data-view="read">Read</button>
             <button class="nav-tab" data-view="notes">Notes</button>
             <button class="nav-tab" data-view="write">Write</button>
-            <button class="nav-tab" data-view="essays">Essays</button>
             <button class="nav-tab" data-view="discuss">Discuss</button>
         </nav>
         <div class="header-right">
@@ -3837,29 +3892,23 @@
                     </div>
                 </div>
                 <div class="substack-sidebar" id="draftsSidebar">
-                    <div class="substack-sidebar-header" style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                    <div class="substack-sidebar-header">
                         <button class="sidebar-toggle" onclick="toggleDraftsSidebar()" title="Toggle sidebar" id="sidebarToggleBtn">&#x2630;</button>
-                        <span style="flex: 1;">Your Drafts</span>
+                        <div class="sidebar-tabs">
+                            <button class="sidebar-tab active" data-tab="drafts" onclick="switchSidebarTab('drafts')">Drafts</button>
+                            <button class="sidebar-tab" data-tab="published" onclick="switchSidebarTab('published')">Published</button>
+                        </div>
                         <button class="btn" onclick="newDraft()" style="padding: 4px 10px; font-size: 12px;">+ New</button>
                     </div>
-                    <div class="drafts-list" id="draftsList">
-                        <!-- Populated by JS -->
+                    <div class="sidebar-tab-content active" id="draftsTabContent">
+                        <div class="drafts-list" id="draftsList">
+                            <!-- Populated by JS -->
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ESSAYS VIEW (Published Essays Feed) -->
-        <div class="view" id="view-essays">
-            <div class="discuss-view">
-                <div class="discuss-header">
-                    <h1>Essays</h1>
-                    <button class="btn" onclick="switchView('write')">Write Essay</button>
-                </div>
-
-                <div id="essaysContainer">
-                    <div class="empty-state" style="padding: 60px 20px;">
-                        No essays published yet. Be the first to share your analysis!
+                    <div class="sidebar-tab-content" id="publishedTabContent">
+                        <div class="published-list" id="publishedList">
+                            <!-- Populated by JS -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -5465,7 +5514,7 @@
                     author: p.author_email || 'Anonymous',
                     title: p.title,
                     time: new Date(p.published_at),
-                    onClick: `switchView('discuss')`
+                    onClick: `viewPublishedEssay('${p.id}'); switchView('write'); switchSidebarTab('published');`
                 });
             });
 
@@ -6984,6 +7033,59 @@
             btn.innerHTML = sidebar.classList.contains('collapsed') ? '&#x2630;' : '&#x2630;';
         }
 
+        // Switch sidebar tabs (Drafts / Published)
+        function switchSidebarTab(tab) {
+            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.sidebar-tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector(`.sidebar-tab[data-tab="${tab}"]`).classList.add('active');
+            document.getElementById(tab === 'drafts' ? 'draftsTabContent' : 'publishedTabContent').classList.add('active');
+
+            if (tab === 'published') {
+                renderPublishedList();
+            }
+        }
+
+        // Render published essays in sidebar
+        function renderPublishedList() {
+            const container = document.getElementById('publishedList');
+            if (!container) return;
+
+            if (posts.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 30px; font-size: 13px;">No published essays yet.</div>';
+                return;
+            }
+
+            const sortedPosts = [...posts].sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+
+            container.innerHTML = sortedPosts.map(p => `
+                <div class="published-item" onclick="viewPublishedEssay('${p.id}')">
+                    <div class="published-item-title">${p.title || 'Untitled'}</div>
+                    <div class="published-item-date">${new Date(p.published_at).toLocaleDateString()}</div>
+                </div>
+            `).join('');
+        }
+
+        // View a published essay (load into editor for viewing/editing)
+        function viewPublishedEssay(id) {
+            const post = posts.find(p => p.id === id);
+            if (!post) return;
+
+            editingPostId = id;
+            document.getElementById('essayTitleInput').value = post.title || '';
+            document.getElementById('essaySubtitleInput').value = post.subtitle || '';
+            document.getElementById('essayContentInput').innerHTML = post.content || '';
+
+            essayLinkedReadings = (post.linked_readings || []).map(lr => {
+                if (typeof lr === 'object') return lr;
+                const allReadings = getAllReadings();
+                return allReadings.find(r => r.id === lr) || { id: lr, title: lr, week: '?' };
+            });
+            renderLinkedReadings('essay');
+
+            // Switch to drafts tab to show we're editing
+            switchSidebarTab('drafts');
+        }
+
         async function saveAnnotation() {
             if (!currentReading) return;
             if (!editingAnnotationId && !isPinnedNote && !selectedText) return;
@@ -8018,11 +8120,15 @@
                 document.getElementById('essaySubtitleInput').value = '';
                 document.getElementById('essayContentInput').innerHTML = '';
                 essayLinkedReadings = [];
+                editingPostId = null;
                 renderLinkedReadings('essay');
 
                 renderDraftsList();
+                renderPublishedList();
                 renderFeed();
-                switchView('essays');
+
+                // Switch to Published tab to show the new essay
+                switchSidebarTab('published');
             }
         }
 
