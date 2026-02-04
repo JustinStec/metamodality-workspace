@@ -3168,11 +3168,25 @@
             font-size: 13px;
             font-weight: 500;
             color: var(--text-bright);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
+        }
+        .published-item-author {
+            font-size: 11px;
+            color: var(--accent);
+            margin-bottom: 2px;
         }
         .published-item-date {
             font-size: 11px;
             color: var(--text-muted);
+        }
+        .published-item-badge {
+            font-size: 10px;
+            color: var(--accent);
+            background: rgba(var(--accent-rgb, 99, 102, 241), 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 4px;
+            display: inline-block;
         }
         .drafts-list {
             flex: 1;
@@ -3639,8 +3653,8 @@
             <button class="nav-tab" data-view="syllabus">Syllabus</button>
             <button class="nav-tab" data-view="read">Read</button>
             <button class="nav-tab" data-view="notes">Notes</button>
-            <button class="nav-tab" data-view="write">Write</button>
-            <button class="nav-tab" data-view="discuss">Community</button>
+            <button class="nav-tab" data-view="write">Essays</button>
+            <button class="nav-tab" data-view="discuss">Discuss</button>
         </nav>
         <div class="header-right">
             <div class="search-box">
@@ -4054,8 +4068,8 @@
                     <div class="substack-sidebar-header">
                         <button class="sidebar-toggle" onclick="toggleDraftsSidebar()" title="Toggle sidebar" id="sidebarToggleBtn">&#x2630;</button>
                         <div class="sidebar-tabs">
-                            <button class="sidebar-tab active" data-tab="drafts" onclick="switchSidebarTab('drafts')">Drafts</button>
-                            <button class="sidebar-tab" data-tab="published" onclick="switchSidebarTab('published')">Published</button>
+                            <button class="sidebar-tab active" data-tab="drafts" onclick="switchSidebarTab('drafts')">My Drafts</button>
+                            <button class="sidebar-tab" data-tab="published" onclick="switchSidebarTab('published')">All Essays</button>
                         </div>
                         <button class="btn" onclick="newDraft()" style="padding: 4px 10px; font-size: 12px;">+ New</button>
                     </div>
@@ -4066,49 +4080,35 @@
                     </div>
                     <div class="sidebar-tab-content" id="publishedTabContent">
                         <div class="published-list" id="publishedList">
-                            <!-- Populated by JS -->
+                            <!-- All published essays from all users -->
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- DISCUSS VIEW (Community: Essays + Quick Thoughts) -->
+        <!-- DISCUSS VIEW (Quick Thoughts) -->
         <div class="view" id="view-discuss">
             <div class="discuss-view">
                 <div class="discuss-header">
-                    <h1>Community</h1>
+                    <h1>Discussion</h1>
                 </div>
 
-                <!-- Published Essays Section -->
-                <div class="community-section">
-                    <h2 class="community-section-title">Essays</h2>
-                    <div id="communityEssaysContainer">
-                        <div class="empty-state" style="padding: 40px 20px;">
-                            No essays published yet.
+                <!-- Quick Post Composer -->
+                <div class="quick-post-composer">
+                    <div class="composer-avatar" id="composerAvatar">?</div>
+                    <div class="composer-input-area">
+                        <textarea id="quickPostInput" placeholder="What's on your mind about the readings?" maxlength="500"></textarea>
+                        <div class="composer-footer">
+                            <span class="char-count"><span id="charCount">0</span>/500</span>
+                            <button class="btn" onclick="postQuickThought()">Post</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Quick Thoughts Section -->
-                <div class="community-section">
-                    <h2 class="community-section-title">Quick Thoughts</h2>
-                    <!-- Quick Post Composer -->
-                    <div class="quick-post-composer">
-                        <div class="composer-avatar" id="composerAvatar">?</div>
-                        <div class="composer-input-area">
-                            <textarea id="quickPostInput" placeholder="What's on your mind about the readings?" maxlength="500"></textarea>
-                            <div class="composer-footer">
-                                <span class="char-count"><span id="charCount">0</span>/500</span>
-                                <button class="btn" onclick="postQuickThought()">Post</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="thoughtsContainer">
-                        <div class="empty-state" style="padding: 40px 20px;">
-                            No thoughts yet. Share what's on your mind!
-                        </div>
+                <div id="thoughtsContainer">
+                    <div class="empty-state" style="padding: 40px 20px;">
+                        No thoughts yet. Share what's on your mind!
                     </div>
                 </div>
             </div>
@@ -7233,60 +7233,26 @@
             }
         }
 
-        // Render published essays in sidebar (your own essays)
+        // Render all published essays in sidebar (from all users)
         function renderPublishedList() {
             const container = document.getElementById('publishedList');
             if (!container) return;
 
-            // Filter to only show current user's posts
-            const myPosts = currentUser ? posts.filter(p => p.author_id === currentUser.id) : [];
-
-            if (myPosts.length === 0) {
-                container.innerHTML = '<div class="empty-state" style="padding: 30px; font-size: 13px;">No published essays yet.</div>';
-                return;
-            }
-
-            const sortedPosts = [...myPosts].sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
-
-            container.innerHTML = sortedPosts.map(p => `
-                <div class="published-item" onclick="viewPublishedEssay('${p.id}')">
-                    <div class="published-item-title">${p.title || 'Untitled'}</div>
-                    <div class="published-item-date">${new Date(p.published_at).toLocaleDateString()}</div>
-                </div>
-            `).join('');
-        }
-
-        // Render all essays in Community view (all users, read-only)
-        function renderCommunityEssays() {
-            const container = document.getElementById('communityEssaysContainer');
-            if (!container) return;
-
             if (posts.length === 0) {
-                container.innerHTML = '<div class="empty-state" style="padding: 40px 20px;">No essays published yet.</div>';
+                container.innerHTML = '<div class="empty-state" style="padding: 30px; font-size: 13px;">No published essays yet.</div>';
                 return;
             }
 
             const sortedPosts = [...posts].sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
 
             container.innerHTML = sortedPosts.map(p => {
-                const preview = (p.content || '').replace(/<[^>]*>/g, '').substring(0, 200);
                 const isAuthor = currentUser && p.author_id === currentUser.id;
                 return `
-                    <div class="essay-card">
-                        <div class="essay-card-header">
-                            <div class="essay-card-avatar">${(p.author_email || 'A')[0].toUpperCase()}</div>
-                            <div class="essay-card-meta">
-                                <div class="essay-card-author">${p.author_email?.split('@')[0] || 'Anonymous'}</div>
-                                <div class="essay-card-date">${new Date(p.published_at).toLocaleDateString()}</div>
-                            </div>
-                        </div>
-                        <div class="essay-card-title">${p.title || 'Untitled'}</div>
-                        ${p.subtitle ? `<div class="essay-card-subtitle">${p.subtitle}</div>` : ''}
-                        <div class="essay-card-preview">${preview}${preview.length >= 200 ? '...' : ''}</div>
-                        <div class="essay-card-actions">
-                            <button class="essay-card-action" onclick="openEssayReader('${p.id}')">Read more</button>
-                            ${isAuthor ? `<button class="essay-card-action" onclick="viewPublishedEssay('${p.id}'); switchView('write');">Edit</button>` : ''}
-                        </div>
+                    <div class="published-item" onclick="openEssayReader('${p.id}')">
+                        <div class="published-item-title">${p.title || 'Untitled'}</div>
+                        <div class="published-item-author">${p.author_email?.split('@')[0] || 'Anonymous'}</div>
+                        <div class="published-item-date">${new Date(p.published_at).toLocaleDateString()}</div>
+                        ${isAuthor ? '<div class="published-item-badge">Your essay</div>' : ''}
                     </div>
                 `;
             }).join('');
@@ -7623,8 +7589,8 @@
             // Also update home view
             renderRecentPosts();
 
-            // Also update Community view
-            renderCommunityEssays();
+            // Also update Essays sidebar and Discuss view
+            renderPublishedList();
             renderThoughts();
         }
 
