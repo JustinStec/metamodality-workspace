@@ -2437,18 +2437,21 @@
             gap: 10px;
             margin-bottom: 20px;
         }
-        .workshop-comment-form textarea {
+        .workshop-comment-form .rtf-toolbar {
+            border-radius: 8px 8px 0 0;
+            background: var(--bg-secondary);
+        }
+        .workshop-comment-form .rtf-editor {
             width: 100%;
             min-height: 80px;
             padding: 12px;
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 0 0 8px 8px;
             background: var(--bg-secondary);
             color: var(--text);
             font-size: 0.9rem;
-            resize: vertical;
         }
-        .workshop-comment-form textarea:focus {
+        .workshop-comment-form .rtf-editor:focus {
             outline: none;
             border-color: var(--accent);
         }
@@ -2586,6 +2589,34 @@
         .editor-textarea:focus { outline: none; }
         .editor-textarea::placeholder { color: var(--text-muted); }
 
+        /* Notes RTF Editor */
+        .editor-body .rtf-toolbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            border-radius: 0;
+            background: var(--bg-panel);
+            border: none;
+            border-bottom: 1px solid var(--border);
+            z-index: 5;
+        }
+        .editor-body .rtf-editor {
+            flex: 1;
+            padding: 45px 25px 25px 25px;
+            border: none;
+            border-radius: 0;
+            font-size: 15px;
+            line-height: 1.8;
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            background: var(--bg-editor);
+            color: var(--text);
+            min-height: auto;
+            max-height: none;
+            overflow-y: auto;
+        }
+        .editor-body .rtf-editor:focus { outline: none; }
+
         .editor-footer {
             padding: 12px 25px;
             border-top: 1px solid var(--border);
@@ -2686,6 +2717,32 @@
         }
         .substack-textarea:focus { outline: none; }
         .substack-textarea::placeholder { color: var(--text-muted); opacity: 0.5; }
+
+        /* Substack RTF Editor */
+        .substack-body .rtf-toolbar {
+            border-radius: 0;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--border);
+            padding: 8px 0;
+            margin-bottom: 10px;
+        }
+        .substack-body .rtf-editor {
+            width: 100%;
+            flex: 1;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            font-size: 18px;
+            line-height: 1.9;
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            color: var(--text);
+            min-height: 300px;
+            max-height: none;
+            padding: 0;
+            margin: 0;
+        }
+        .substack-body .rtf-editor:focus { outline: none; }
         .substack-footer {
             padding-top: 20px;
             border-top: 1px solid var(--border);
@@ -3457,9 +3514,15 @@
                 </div>
                 <div class="editor-body">
                     <div class="editor-textarea-wrapper">
-                        <textarea class="editor-textarea" id="noteContentInput" placeholder="Write your notes here...
-
-Type @ to link a reading, or use the 📎 button below."></textarea>
+                        <div class="rtf-toolbar">
+                            <button onclick="rtfCommandFor('noteContentInput', 'bold')" title="Bold"><b>B</b></button>
+                            <button onclick="rtfCommandFor('noteContentInput', 'italic')" title="Italic"><i>I</i></button>
+                            <button onclick="rtfCommandFor('noteContentInput', 'underline')" title="Underline"><u>U</u></button>
+                            <button onclick="rtfCommandFor('noteContentInput', 'strikeThrough')" title="Strikethrough"><s>S</s></button>
+                            <button onclick="rtfCommandFor('noteContentInput', 'insertUnorderedList')" title="Bullet list">•</button>
+                            <button onclick="rtfCommandFor('noteContentInput', 'insertOrderedList')" title="Numbered list">1.</button>
+                        </div>
+                        <div class="rtf-editor" id="noteContentInput" contenteditable="true" data-placeholder="Write your notes here... Type @ to link a reading, or use the 📎 button below."></div>
                         <div class="autocomplete-dropdown" id="noteAutocomplete"></div>
                     </div>
                 </div>
@@ -3484,11 +3547,15 @@ Type @ to link a reading, or use the 📎 button below."></textarea>
                     </div>
                     <div class="substack-body">
                         <div class="editor-textarea-wrapper">
-                            <textarea class="substack-textarea" id="essayContentInput" placeholder="Start writing...
-
-Your essay will be published to the Discuss feed where others can read and respond.
-
-Type @ to link a reading."></textarea>
+                            <div class="rtf-toolbar">
+                                <button onclick="rtfCommandFor('essayContentInput', 'bold')" title="Bold"><b>B</b></button>
+                                <button onclick="rtfCommandFor('essayContentInput', 'italic')" title="Italic"><i>I</i></button>
+                                <button onclick="rtfCommandFor('essayContentInput', 'underline')" title="Underline"><u>U</u></button>
+                                <button onclick="rtfCommandFor('essayContentInput', 'strikeThrough')" title="Strikethrough"><s>S</s></button>
+                                <button onclick="rtfCommandFor('essayContentInput', 'insertUnorderedList')" title="Bullet list">•</button>
+                                <button onclick="rtfCommandFor('essayContentInput', 'insertOrderedList')" title="Numbered list">1.</button>
+                            </div>
+                            <div class="rtf-editor" id="essayContentInput" contenteditable="true" data-placeholder="Start writing... Your essay will be published to the Discuss feed. Type @ to link a reading."></div>
                             <div class="autocomplete-dropdown" id="essayAutocomplete"></div>
                         </div>
                     </div>
@@ -3588,7 +3655,15 @@ Type @ to link a reading."></textarea>
                         <h2>Discussion</h2>
                         <div class="workshop-discussion">
                             <div class="workshop-comment-form">
-                                <textarea id="workshopCommentInput" placeholder="Share thoughts, questions, or ideas for the workshop..."></textarea>
+                                <div class="rtf-toolbar">
+                                    <button onclick="rtfCommandFor('workshopCommentInput', 'bold')" title="Bold"><b>B</b></button>
+                                    <button onclick="rtfCommandFor('workshopCommentInput', 'italic')" title="Italic"><i>I</i></button>
+                                    <button onclick="rtfCommandFor('workshopCommentInput', 'underline')" title="Underline"><u>U</u></button>
+                                    <button onclick="rtfCommandFor('workshopCommentInput', 'strikeThrough')" title="Strikethrough"><s>S</s></button>
+                                    <button onclick="rtfCommandFor('workshopCommentInput', 'insertUnorderedList')" title="Bullet list">•</button>
+                                    <button onclick="rtfCommandFor('workshopCommentInput', 'insertOrderedList')" title="Numbered list">1.</button>
+                                </div>
+                                <div class="rtf-editor" id="workshopCommentInput" contenteditable="true" data-placeholder="Share thoughts, questions, or ideas for the workshop..."></div>
                                 <button class="btn" onclick="postWorkshopComment()">Post</button>
                             </div>
                             <div class="workshop-comments" id="workshopComments">
@@ -6505,6 +6580,12 @@ Type @ to link a reading."></textarea>
             document.getElementById('annotationComment').focus();
         }
 
+        // General RTF command for any editor
+        function rtfCommandFor(editorId, command, value = null) {
+            document.execCommand(command, false, value);
+            document.getElementById(editorId).focus();
+        }
+
         async function saveAnnotation() {
             if (!currentReading) return;
             if (!editingAnnotationId && !isPinnedNote && !selectedText) return;
@@ -6842,7 +6923,7 @@ Type @ to link a reading."></textarea>
             // Load post into Write view
             document.getElementById('essayTitleInput').value = post.title || '';
             document.getElementById('essaySubtitleInput').value = post.subtitle || '';
-            document.getElementById('essayContentInput').value = post.content || '';
+            document.getElementById('essayContentInput').innerHTML = post.content || '';
 
             // Load linked readings
             essayLinkedReadings = (post.linked_readings || []).map(lr => {
@@ -7066,7 +7147,7 @@ Type @ to link a reading."></textarea>
             editingNoteId = null;
             showEditor();
             document.getElementById('noteTitleInput').value = '';
-            document.getElementById('noteContentInput').value = '';
+            document.getElementById('noteContentInput').innerHTML = '';
             // Clear linked readings
             noteLinkedReadings = [];
             renderLinkedReadings('note');
@@ -7079,7 +7160,7 @@ Type @ to link a reading."></textarea>
             editingNoteId = id;
             showEditor();
             document.getElementById('noteTitleInput').value = note.title || '';
-            document.getElementById('noteContentInput').value = note.content || '';
+            document.getElementById('noteContentInput').innerHTML = note.content || '';
 
             // Load linked readings from note
             noteLinkedReadings = (note.linked_readings || []).map(lr => {
@@ -7099,7 +7180,7 @@ Type @ to link a reading."></textarea>
 
         async function saveNote() {
             const title = document.getElementById('noteTitleInput').value;
-            const content = document.getElementById('noteContentInput').value;
+            const content = document.getElementById('noteContentInput').innerHTML;
             // Use noteLinkedReadings array instead of parsing [[]] syntax
             const links = noteLinkedReadings.map(r => r.id);
 
@@ -7145,9 +7226,10 @@ Type @ to link a reading."></textarea>
 
         async function publishNote() {
             const title = document.getElementById('noteTitleInput').value;
-            const content = document.getElementById('noteContentInput').value;
+            const content = document.getElementById('noteContentInput').innerHTML;
+            const contentText = document.getElementById('noteContentInput').innerText.trim();
 
-            if (!title || !content) {
+            if (!title || !contentText) {
                 alert('Please add a title and content before publishing.');
                 return;
             }
@@ -7252,7 +7334,7 @@ Type @ to link a reading."></textarea>
             editingDraftId = id;
             document.getElementById('essayTitleInput').value = draft.title || '';
             document.getElementById('essaySubtitleInput').value = draft.subtitle || '';
-            document.getElementById('essayContentInput').value = draft.content || '';
+            document.getElementById('essayContentInput').innerHTML = draft.content || '';
 
             // Load linked readings from draft
             essayLinkedReadings = (draft.linked_readings || []).map(lr => {
@@ -7268,7 +7350,7 @@ Type @ to link a reading."></textarea>
             editingDraftId = null;
             document.getElementById('essayTitleInput').value = '';
             document.getElementById('essaySubtitleInput').value = '';
-            document.getElementById('essayContentInput').value = '';
+            document.getElementById('essayContentInput').innerHTML = '';
             // Clear linked readings
             essayLinkedReadings = [];
             renderLinkedReadings('essay');
@@ -7277,7 +7359,7 @@ Type @ to link a reading."></textarea>
         async function saveDraft() {
             const title = document.getElementById('essayTitleInput').value;
             const subtitle = document.getElementById('essaySubtitleInput').value;
-            const content = document.getElementById('essayContentInput').value;
+            const content = document.getElementById('essayContentInput').innerHTML;
             // Use essayLinkedReadings array instead of parsing [[]] syntax
             const links = essayLinkedReadings.map(r => r.id);
 
@@ -7325,9 +7407,10 @@ Type @ to link a reading."></textarea>
         async function publishEssay() {
             const title = document.getElementById('essayTitleInput').value;
             const subtitle = document.getElementById('essaySubtitleInput').value;
-            const content = document.getElementById('essayContentInput').value;
+            const content = document.getElementById('essayContentInput').innerHTML;
+            const contentText = document.getElementById('essayContentInput').innerText.trim();
 
-            if (!title || !content) {
+            if (!title || !contentText) {
                 alert('Please add a title and content before publishing.');
                 return;
             }
@@ -7396,7 +7479,7 @@ Type @ to link a reading."></textarea>
             // Clear editor
             document.getElementById('essayTitleInput').value = '';
             document.getElementById('essaySubtitleInput').value = '';
-            document.getElementById('essayContentInput').value = '';
+            document.getElementById('essayContentInput').innerHTML = '';
             essayLinkedReadings = [];
             renderLinkedReadings('essay');
 
@@ -7539,20 +7622,30 @@ Type @ to link a reading."></textarea>
                 addLinkedReading(target, reading);
             }
 
-            // Remove the @query from the textarea
-            const textarea = document.getElementById(target === 'note' ? 'noteContentInput' : 'essayContentInput');
-            if (textarea) {
-                const text = textarea.value;
-                const cursorPos = textarea.selectionStart;
-                const beforeCursor = text.substring(0, cursorPos);
-                const afterCursor = text.substring(cursorPos);
+            // Remove the @query from the contenteditable div
+            const editor = document.getElementById(target === 'note' ? 'noteContentInput' : 'essayContentInput');
+            if (editor) {
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    const textNode = range.startContainer;
+                    if (textNode.nodeType === Node.TEXT_NODE) {
+                        const text = textNode.textContent;
+                        const cursorPos = range.startOffset;
+                        const beforeCursor = text.substring(0, cursorPos);
 
-                // Find and remove the @query
-                const atMatch = beforeCursor.match(/@[\w\s]*$/);
-                if (atMatch) {
-                    const newBeforeCursor = beforeCursor.substring(0, beforeCursor.length - atMatch[0].length);
-                    textarea.value = newBeforeCursor + afterCursor;
-                    textarea.selectionStart = textarea.selectionEnd = newBeforeCursor.length;
+                        // Find and remove the @query
+                        const atMatch = beforeCursor.match(/@[\w\s]*$/);
+                        if (atMatch) {
+                            const newBeforeCursor = beforeCursor.substring(0, beforeCursor.length - atMatch[0].length);
+                            textNode.textContent = newBeforeCursor + text.substring(cursorPos);
+                            // Restore cursor position
+                            range.setStart(textNode, newBeforeCursor.length);
+                            range.setEnd(textNode, newBeforeCursor.length);
+                            selection.removeAllRanges();
+                            selection.addRange(range);
+                        }
+                    }
                 }
             }
 
@@ -7594,10 +7687,25 @@ Type @ to link a reading."></textarea>
             return false;
         }
 
-        // Detect @ trigger and show autocomplete
-        function handleTextareaInput(target, textarea) {
-            const text = textarea.value;
-            const cursorPos = textarea.selectionStart;
+        // Detect @ trigger and show autocomplete (works with contenteditable)
+        function handleTextareaInput(target, editor) {
+            const selection = window.getSelection();
+            if (!selection.rangeCount) {
+                hideAutocomplete(target);
+                return;
+            }
+
+            const range = selection.getRangeAt(0);
+            const textNode = range.startContainer;
+
+            // Only handle text nodes
+            if (textNode.nodeType !== Node.TEXT_NODE) {
+                hideAutocomplete(target);
+                return;
+            }
+
+            const text = textNode.textContent;
+            const cursorPos = range.startOffset;
             const beforeCursor = text.substring(0, cursorPos);
 
             // Check for @query pattern
@@ -8010,9 +8118,10 @@ Type @ to link a reading."></textarea>
 
         async function postWorkshopComment() {
             const input = document.getElementById('workshopCommentInput');
-            const content = input.value.trim();
+            const content = input.innerHTML.trim();
+            const contentText = input.innerText.trim();
 
-            if (!content) return;
+            if (!contentText) return;
 
             if (!currentUser) {
                 alert('Please sign in to post comments.');
@@ -8037,7 +8146,7 @@ Type @ to link a reading."></textarea>
                     if (!error && data?.[0]) {
                         workshopComments.push(data[0]);
                         allWorkshopComments.unshift(data[0]);  // Add to front (most recent)
-                        input.value = '';
+                        input.innerHTML = '';
                         renderWorkshopComments();
                         renderActivityStream();
                     }
