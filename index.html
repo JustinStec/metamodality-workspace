@@ -2185,28 +2185,31 @@
         /* Essay Reader Modal */
         .essay-reader-modal {
             max-width: 750px;
+            width: 90%;
             max-height: 90vh;
             display: flex;
             flex-direction: column;
             padding: 0;
             overflow: hidden;
+            position: relative;
         }
         .essay-reader-close {
             position: absolute;
-            top: 15px;
+            top: 20px;
             right: 20px;
-            background: none;
-            border: none;
-            font-size: 28px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            font-size: 24px;
             cursor: pointer;
             color: var(--text-muted);
             z-index: 10;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
+            line-height: 1;
         }
         .essay-reader-close:hover {
             background: var(--highlight);
@@ -2216,6 +2219,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 50px 60px;
+            padding-right: 80px; /* Space for close button */
         }
         .essay-reader-header {
             margin-bottom: 40px;
@@ -2224,18 +2228,19 @@
         }
         .essay-reader-header h1 {
             font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-            font-size: 36px;
+            font-size: 32px;
             font-weight: 600;
-            line-height: 1.2;
+            line-height: 1.3;
             color: var(--text-bright);
-            margin: 0 0 12px 0;
+            margin: 0 0 16px 0;
         }
         .essay-reader-subtitle {
             font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-            font-size: 20px;
+            font-size: 18px;
             color: var(--text-muted);
             margin: 0 0 20px 0;
             font-style: italic;
+            line-height: 1.4;
         }
         .essay-reader-meta {
             font-size: 14px;
@@ -2701,8 +2706,8 @@
         /* ========== WRITE VIEW ========== */
         .write-view {
             display: none;
-            height: 100%;
-            flex-direction: row;
+            flex-direction: column;
+            overflow-y: auto;
         }
         .write-view.active { display: flex; }
 
@@ -2891,7 +2896,7 @@
         .substack-editor {
             display: flex;
             width: 100%;
-            height: 100%;
+            min-height: 600px;
             background: var(--bg-secondary);
             padding: 30px 40px;
             gap: 25px;
@@ -3238,6 +3243,138 @@
         .draft-item-delete:hover {
             background: rgba(255,100,100,0.2);
             color: #ff6b6b;
+        }
+
+        /* ========== PUBLISHED ESSAYS INLINE SECTION ========== */
+        .published-essays-section {
+            margin-top: 30px;
+            padding: 0 40px 40px;
+        }
+        .published-essays-header {
+            margin-bottom: 20px;
+        }
+        .published-essays-header h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin: 0;
+        }
+        .published-essays-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .essay-card {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+        .essay-card:hover {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .essay-card-header {
+            padding: 20px 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        .essay-card-header:hover {
+            background: var(--highlight);
+        }
+        .essay-card-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .essay-card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin: 0 0 4px 0;
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+        }
+        .essay-card-subtitle {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin: 0 0 8px 0;
+            font-style: italic;
+        }
+        .essay-card-meta {
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .essay-card-author {
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .essay-card-preview {
+            font-size: 14px;
+            color: var(--text);
+            line-height: 1.6;
+            margin-top: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .essay-card-toggle {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 8px;
+            font-size: 18px;
+            transition: transform 0.3s, color 0.2s;
+            flex-shrink: 0;
+        }
+        .essay-card-toggle:hover {
+            color: var(--accent);
+        }
+        .essay-card.expanded .essay-card-toggle {
+            transform: rotate(180deg);
+        }
+        .essay-card-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+        }
+        .essay-card.expanded .essay-card-content {
+            max-height: 5000px;
+            transition: max-height 0.6s ease-in;
+        }
+        .essay-card-body {
+            padding: 0 24px 24px;
+            border-top: 1px solid var(--border);
+        }
+        .essay-card-body-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--text);
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+            padding-top: 20px;
+        }
+        .essay-card-body-content p {
+            margin: 0 0 1em 0;
+        }
+        .essay-card-your-badge {
+            font-size: 11px;
+            color: var(--accent);
+            background: rgba(99, 102, 241, 0.1);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .published-essays-empty {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
         }
 
         /* ========== READING LINK SYSTEM ========== */
@@ -4067,22 +4204,22 @@
                 <div class="substack-sidebar" id="draftsSidebar">
                     <div class="substack-sidebar-header">
                         <button class="sidebar-toggle" onclick="toggleDraftsSidebar()" title="Toggle sidebar" id="sidebarToggleBtn">&#x2630;</button>
-                        <div class="sidebar-tabs">
-                            <button class="sidebar-tab active" data-tab="drafts" onclick="switchSidebarTab('drafts')">My Drafts</button>
-                            <button class="sidebar-tab" data-tab="published" onclick="switchSidebarTab('published')">All Essays</button>
-                        </div>
+                        <span style="flex: 1; font-weight: 600;">My Drafts</span>
                         <button class="btn" onclick="newDraft()" style="padding: 4px 10px; font-size: 12px;">+ New</button>
                     </div>
-                    <div class="sidebar-tab-content active" id="draftsTabContent">
-                        <div class="drafts-list" id="draftsList">
-                            <!-- Populated by JS -->
-                        </div>
+                    <div class="drafts-list" id="draftsList">
+                        <!-- Populated by JS -->
                     </div>
-                    <div class="sidebar-tab-content" id="publishedTabContent">
-                        <div class="published-list" id="publishedList">
-                            <!-- All published essays from all users -->
-                        </div>
-                    </div>
+                </div>
+            </div>
+
+            <!-- Published Essays (Inline below composer) -->
+            <div class="published-essays-section" id="publishedEssaysSection">
+                <div class="published-essays-header">
+                    <h2>Published Essays</h2>
+                </div>
+                <div class="published-essays-list" id="publishedEssaysInline">
+                    <!-- Collapsible essay cards rendered here -->
                 </div>
             </div>
         </div>
@@ -5355,6 +5492,11 @@
             // Update last visit time when viewing content tabs
             if (['discuss', 'read'].includes(viewName)) {
                 updateLastVisit();
+            }
+
+            // Render published essays when switching to write view
+            if (viewName === 'write') {
+                renderPublishedList();
             }
         }
 
@@ -7232,25 +7374,13 @@
             btn.innerHTML = sidebar.classList.contains('collapsed') ? '&#x2630;' : '&#x2630;';
         }
 
-        // Switch sidebar tabs (Drafts / Published)
-        function switchSidebarTab(tab) {
-            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.sidebar-tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelector(`.sidebar-tab[data-tab="${tab}"]`).classList.add('active');
-            document.getElementById(tab === 'drafts' ? 'draftsTabContent' : 'publishedTabContent').classList.add('active');
-
-            if (tab === 'published') {
-                renderPublishedList();
-            }
-        }
-
-        // Render all published essays in sidebar (from all users)
+        // Render all published essays inline as collapsible cards
         function renderPublishedList() {
-            const container = document.getElementById('publishedList');
+            const container = document.getElementById('publishedEssaysInline');
             if (!container) return;
 
             if (posts.length === 0) {
-                container.innerHTML = '<div class="empty-state" style="padding: 30px; font-size: 13px;">No published essays yet.</div>';
+                container.innerHTML = '<div class="published-essays-empty">No published essays yet. Be the first to share your thoughts!</div>';
                 return;
             }
 
@@ -7258,15 +7388,43 @@
 
             container.innerHTML = sortedPosts.map(p => {
                 const isAuthor = currentUser && p.author_id === currentUser.id;
+                // Get text preview (strip HTML, limit to ~150 chars)
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = p.content || '';
+                const textContent = tempDiv.textContent || tempDiv.innerText || '';
+                const preview = textContent.substring(0, 150) + (textContent.length > 150 ? '...' : '');
+
                 return `
-                    <div class="published-item" onclick="openEssayReader('${p.id}')">
-                        <div class="published-item-title">${p.title || 'Untitled'}</div>
-                        <div class="published-item-author">${p.author_email?.split('@')[0] || 'Anonymous'}</div>
-                        <div class="published-item-date">${new Date(p.published_at).toLocaleDateString()}</div>
-                        ${isAuthor ? '<div class="published-item-badge">Your essay</div>' : ''}
+                    <div class="essay-card" id="essay-card-${p.id}">
+                        <div class="essay-card-header" onclick="toggleEssayCard('${p.id}')">
+                            <div class="essay-card-info">
+                                <h3 class="essay-card-title">${p.title || 'Untitled'}</h3>
+                                ${p.subtitle ? `<p class="essay-card-subtitle">${p.subtitle}</p>` : ''}
+                                <div class="essay-card-meta">
+                                    <span class="essay-card-author">${p.author_email?.split('@')[0] || 'Anonymous'}</span>
+                                    <span>${new Date(p.published_at).toLocaleDateString()}</span>
+                                    ${isAuthor ? '<span class="essay-card-your-badge">Your essay</span>' : ''}
+                                </div>
+                                <div class="essay-card-preview">${preview}</div>
+                            </div>
+                            <button class="essay-card-toggle" title="Expand/collapse">▼</button>
+                        </div>
+                        <div class="essay-card-content">
+                            <div class="essay-card-body">
+                                <div class="essay-card-body-content">${p.content || ''}</div>
+                            </div>
+                        </div>
                     </div>
                 `;
             }).join('');
+        }
+
+        // Toggle essay card expand/collapse
+        function toggleEssayCard(id) {
+            const card = document.getElementById('essay-card-' + id);
+            if (card) {
+                card.classList.toggle('expanded');
+            }
         }
 
         // View a published essay (load into editor for editing - only for author)
@@ -7285,9 +7443,6 @@
                 return allReadings.find(r => r.id === lr) || { id: lr, title: lr, week: '?' };
             });
             renderLinkedReadings('essay');
-
-            // Switch to drafts tab to show we're editing
-            switchSidebarTab('drafts');
         }
 
         // Open essay reader modal (read-only view for everyone)
@@ -8297,9 +8452,6 @@
                 renderDraftsList();
                 renderPublishedList();
                 renderFeed();
-
-                // Switch to Published tab to show the new essay
-                switchSidebarTab('published');
             }
         }
 
