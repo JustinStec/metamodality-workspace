@@ -3408,6 +3408,80 @@
         .essay-card-body {
             padding: 0;
             border-top: 1px solid var(--border);
+            display: flex;
+        }
+        .essay-card-body-main {
+            flex: 1;
+            min-width: 0;
+        }
+        .essay-card-comments {
+            width: 280px;
+            flex-shrink: 0;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+        .essay-card-comments-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .essay-card-comments-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            max-height: 400px;
+        }
+        .essay-comment {
+            background: var(--bg-panel);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            border: 1px solid var(--border);
+        }
+        .essay-comment-author {
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+        .essay-comment-text {
+            color: var(--text);
+            line-height: 1.5;
+        }
+        .essay-comment-date {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+        .essay-card-comments-input {
+            padding: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .essay-card-comments-input textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 13px;
+            resize: none;
+            height: 60px;
+            font-family: inherit;
+        }
+        .essay-card-comments-input button {
+            margin-top: 8px;
+            width: 100%;
+        }
+        .essay-comments-empty {
+            padding: 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
         }
         .essay-card-body-content {
             padding: 48px 64px 64px;
@@ -5111,6 +5185,22 @@
                     (payload) => {
                         console.log('Realtime draft update:', payload.eventType);
                         loadDrafts();
+                    }
+                )
+                .subscribe();
+
+            // Essay comments - refresh when changes occur
+            db.channel('realtime-essay-comments')
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'essay_comments' },
+                    (payload) => {
+                        console.log('Realtime essay comment update:', payload.eventType);
+                        // Reload comments for the affected essay
+                        if (payload.new && payload.new.essay_id) {
+                            loadEssayComments(payload.new.essay_id);
+                        } else if (payload.old && payload.old.essay_id) {
+                            loadEssayComments(payload.old.essay_id);
+                        }
                     }
                 )
                 .subscribe();
@@ -7715,7 +7805,19 @@
                         </div>
                         <div class="essay-card-content">
                             <div class="essay-card-body">
-                                <div class="essay-card-body-content">${formatEssayContent(p.content || '')}</div>
+                                <div class="essay-card-body-main">
+                                    <div class="essay-card-body-content">${formatEssayContent(p.content || '')}</div>
+                                </div>
+                                <div class="essay-card-comments">
+                                    <div class="essay-card-comments-header">Discussion</div>
+                                    <div class="essay-card-comments-list" id="essay-comments-${p.id}">
+                                        <div class="essay-comments-empty">No comments yet. Start the discussion.</div>
+                                    </div>
+                                    <div class="essay-card-comments-input">
+                                        <textarea id="essay-comment-input-${p.id}" placeholder="Add a comment..."></textarea>
+                                        <button class="btn btn-primary" onclick="postEssayComment('${p.id}')">Post</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -7757,7 +7859,126 @@
             const card = document.getElementById('essay-card-' + id);
             if (card) {
                 card.classList.toggle('expanded');
+                // Load comments when expanding
+                if (card.classList.contains('expanded')) {
+                    loadEssayComments(id);
+                }
             }
+        }
+
+        // =============================================
+        // ESSAY COMMENTS
+        // =============================================
+
+        // Store comments in memory
+        let essayComments = {};
+
+        // Load comments for an essay from Supabase
+        async function loadEssayComments(essayId) {
+            if (!db) return;
+
+            try {
+                const { data, error } = await db
+                    .from('essay_comments')
+                    .select('*')
+                    .eq('essay_id', essayId)
+                    .order('created_at', { ascending: true });
+
+                if (error) {
+                    console.warn('Failed to load essay comments:', error);
+                    return;
+                }
+
+                essayComments[essayId] = data || [];
+                renderEssayComments(essayId);
+            } catch (e) {
+                console.warn('Error loading essay comments:', e);
+            }
+        }
+
+        // Render comments for an essay
+        function renderEssayComments(essayId) {
+            const container = document.getElementById('essay-comments-' + essayId);
+            if (!container) return;
+
+            const comments = essayComments[essayId] || [];
+
+            if (comments.length === 0) {
+                container.innerHTML = '<div class="essay-comments-empty">No comments yet. Start the discussion.</div>';
+                return;
+            }
+
+            container.innerHTML = comments.map(c => `
+                <div class="essay-comment">
+                    <div class="essay-comment-author">${c.author_email?.split('@')[0] || 'Anonymous'}</div>
+                    <div class="essay-comment-text">${escapeHtml(c.content)}</div>
+                    <div class="essay-comment-date">${formatTimeAgo(new Date(c.created_at))}</div>
+                </div>
+            `).join('');
+
+            // Scroll to bottom to show newest
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Post a new comment on an essay
+        async function postEssayComment(essayId) {
+            if (!currentUser) {
+                alert('Please sign in to comment.');
+                return;
+            }
+
+            const input = document.getElementById('essay-comment-input-' + essayId);
+            if (!input) return;
+
+            const content = input.value.trim();
+            if (!content) return;
+
+            if (!db) {
+                // Fallback: store locally
+                if (!essayComments[essayId]) essayComments[essayId] = [];
+                essayComments[essayId].push({
+                    id: 'local-' + Date.now(),
+                    essay_id: essayId,
+                    author_id: currentUser.id,
+                    author_email: currentUser.email,
+                    content: content,
+                    created_at: new Date().toISOString()
+                });
+                renderEssayComments(essayId);
+                input.value = '';
+                return;
+            }
+
+            try {
+                const { data, error } = await db
+                    .from('essay_comments')
+                    .insert({
+                        essay_id: essayId,
+                        author_id: currentUser.id,
+                        author_email: currentUser.email,
+                        content: content
+                    })
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                // Add to local cache and re-render
+                if (!essayComments[essayId]) essayComments[essayId] = [];
+                essayComments[essayId].push(data);
+                renderEssayComments(essayId);
+                input.value = '';
+            } catch (e) {
+                console.error('Failed to post comment:', e);
+                alert('Failed to post comment. Please try again.');
+            }
+        }
+
+        // Helper to escape HTML in comments
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         // Track zoom levels for essays
