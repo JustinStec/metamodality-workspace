@@ -1796,6 +1796,27 @@
         .add-note-btn:hover {
             background: var(--accent-hover);
         }
+        .page-filter-btn {
+            margin-left: auto;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .page-filter-btn:hover {
+            background: var(--highlight);
+            color: var(--text);
+        }
+        .page-filter-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
         .annotations-list {
             flex: 1;
             overflow-y: auto;
@@ -1812,6 +1833,22 @@
             padding-left: 12px;
             border-left: 3px solid var(--accent);
             line-height: 1.5;
+            transition: background 0.15s;
+        }
+        .annotation-quote:hover {
+            background: var(--highlight);
+        }
+        .annotation-quote .page-indicator {
+            display: inline-block;
+            font-size: 10px;
+            font-style: normal;
+            font-weight: 600;
+            color: var(--accent);
+            background: var(--highlight);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 8px;
+            vertical-align: middle;
         }
         .annotation-comment {
             font-size: 13px;
@@ -3319,6 +3356,7 @@
                         <h3>Annotations</h3>
                         <span id="annotationsCount"></span>
                         <button class="add-note-btn" onclick="startPinnedNote()" title="Add a note without highlighting">+ Note</button>
+                        <button class="page-filter-btn" id="pageFilterBtn" onclick="togglePageFilter()" title="Show only annotations from current page">All</button>
                     </div>
                 <div class="annotations-list" id="annotationsList">
                     <div class="annotations-empty">
@@ -3922,6 +3960,8 @@ Type @ to link a reading."></textarea>
         let currentWeekNum = 1;
         let currentReading = null;
         let selectedText = '';
+        let selectedPageNum = null;
+        let showCurrentPageOnly = false;  // Toggle for filtering annotations by page
         let annotations = {};
         let notes = [];
         let posts = [];
@@ -5363,6 +5403,19 @@ Type @ to link a reading."></textarea>
             document.getElementById('annotationsPanel').classList.toggle('collapsed');
         }
 
+        function togglePageFilter() {
+            showCurrentPageOnly = !showCurrentPageOnly;
+            const btn = document.getElementById('pageFilterBtn');
+            if (showCurrentPageOnly) {
+                btn.textContent = 'Page';
+                btn.classList.add('active');
+            } else {
+                btn.textContent = 'All';
+                btn.classList.remove('active');
+            }
+            renderAnnotations();
+        }
+
         function toggleFullscreen() {
             const readView = document.getElementById('view-read');
             readView.classList.toggle('fullscreen');
@@ -5498,6 +5551,61 @@ Type @ to link a reading."></textarea>
             rerenderAllPages();
         }
 
+        // Scroll to a specific page in the PDF viewer
+        function goToPage(pageNum) {
+            if (!pageNum) return;
+            const pageContainer = document.getElementById('page-container-' + pageNum);
+            if (pageContainer) {
+                pageContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Brief highlight effect
+                pageContainer.style.outline = '3px solid var(--accent)';
+                setTimeout(() => {
+                    pageContainer.style.outline = '';
+                }, 1500);
+            }
+        }
+
+        // Track current visible page using IntersectionObserver
+        let pageObserver = null;
+        function setupPageTracking() {
+            if (pageObserver) pageObserver.disconnect();
+
+            const viewer = document.getElementById('pdfViewer');
+            if (!viewer) return;
+
+            pageObserver = new IntersectionObserver((entries) => {
+                // Find the most visible page
+                let mostVisible = null;
+                let maxRatio = 0;
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && entry.intersectionRatio > maxRatio) {
+                        maxRatio = entry.intersectionRatio;
+                        mostVisible = entry.target;
+                    }
+                });
+
+                if (mostVisible) {
+                    const pageNum = parseInt(mostVisible.dataset.pageNum);
+                    if (pageNum && pageNum !== window.currentPageNum) {
+                        window.currentPageNum = pageNum;
+                        document.getElementById('currentPage').textContent = pageNum;
+                        // Re-render annotations if filtering by page
+                        if (showCurrentPageOnly) {
+                            renderAnnotations();
+                        }
+                    }
+                }
+            }, {
+                root: viewer,
+                threshold: [0, 0.25, 0.5, 0.75, 1.0]
+            });
+
+            // Observe all page containers
+            document.querySelectorAll('.pdf-page-container').forEach(container => {
+                pageObserver.observe(container);
+            });
+        }
+
         async function rerenderAllPages() {
             if (!window.currentPdf) return;
             const pdf = window.currentPdf;
@@ -5516,6 +5624,9 @@ Type @ to link a reading."></textarea>
             for (let num = 1; num <= pdf.numPages; num++) {
                 await renderSinglePage(num, scale);
             }
+
+            // Set up page tracking after all pages are rendered
+            setupPageTracking();
         }
 
         // Track text layer status
@@ -5872,7 +5983,12 @@ Type @ to link a reading."></textarea>
 
         function renderAnnotations() {
             const list = document.getElementById('annotationsList');
-            const items = annotations[currentReading] || [];
+            let items = annotations[currentReading] || [];
+
+            // Filter by current page if toggle is on
+            if (showCurrentPageOnly && window.currentPageNum) {
+                items = items.filter(a => !a.page_num || a.page_num === window.currentPageNum);
+            }
 
             document.getElementById('annotationsCount').textContent = items.length > 0 ? `(${items.length})` : '';
 
@@ -5883,11 +5999,13 @@ Type @ to link a reading."></textarea>
 
             list.innerHTML = items.map((a, index) => {
                 const isAuthor = currentUser && (a.user_id === currentUser.id || a.author_email === currentUser.email);
+                const pageIndicator = a.page_num ? `<span class="page-indicator" title="Page ${a.page_num}">p.${a.page_num}</span>` : '';
+                const clickToNav = a.page_num ? `onclick="goToPage(${a.page_num})" style="cursor: pointer;" title="Click to go to page ${a.page_num}"` : '';
                 return `
                 <div class="annotation-item${a.pinned ? ' pinned' : ''}" data-id="${a.id}">
                     ${a.pinned
                         ? '<div class="annotation-quote">📌 Pinned note</div>'
-                        : `<div class="annotation-quote">${escapeHtml(a.quote)}</div>`
+                        : `<div class="annotation-quote" ${clickToNav}>${pageIndicator}${escapeHtml(a.quote)}</div>`
                     }
                     ${a.comment ? `<div class="annotation-comment">${a.comment}</div>` : ''}
                     <div class="annotation-meta">${a.author_email || 'Anonymous'} · ${new Date(a.created_at).toLocaleDateString()}</div>
@@ -6113,6 +6231,11 @@ Type @ to link a reading."></textarea>
 
                 if (text.length > 5 && currentReading && inPdfViewer) {
                     selectedText = text;
+
+                    // Capture the page number from the closest page container
+                    const pageContainer = e.target.closest('.pdf-page-container');
+                    selectedPageNum = pageContainer ? parseInt(pageContainer.dataset.pageNum) : null;
+
                     const popup = document.getElementById('selectionPopup');
                     popup.style.left = e.pageX + 'px';
                     popup.style.top = (e.pageY + 10) + 'px';
@@ -6285,6 +6408,7 @@ Type @ to link a reading."></textarea>
                 id: Date.now().toString(),
                 reading_id: currentReading,
                 quote: isPinnedNote ? '' : selectedText,
+                page_num: isPinnedNote ? null : selectedPageNum,  // Track which page the highlight is on
                 comment: comment,  // Now stores HTML
                 pinned: isPinnedNote,
                 replies: [],  // Initialize empty replies array
