@@ -4701,6 +4701,17 @@
                 )
                 .subscribe();
 
+            // Drafts - refresh when changes occur (user's own drafts)
+            db.channel('realtime-drafts')
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'drafts' },
+                    (payload) => {
+                        console.log('Realtime draft update:', payload.eventType);
+                        loadDrafts();
+                    }
+                )
+                .subscribe();
+
             console.log('Realtime subscriptions active');
         }
 
