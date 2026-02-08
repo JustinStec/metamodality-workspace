@@ -27,7 +27,7 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || 'your-service-k
 const readingsMeta = [
   { id: 'w01_parmenides', week: 1, title: 'Parmenides, "On Nature"', file: 'Week 1_Parmenides/Week 1_Parmenides.pdf' },
   { id: 'w01_kingsley', week: 1, title: 'Kingsley, In the Dark Places of Wisdom', file: 'Week 1_Parmenides/Week 1_Kingsley.pdf' },
-  { id: 'w02_meta', week: 2, title: 'Aristotle, Metaphysics Book Θ', file: 'Week 2_Aristotle/Week 2_Aristotle.pdf' },
+  { id: 'w02_aristotle', week: 2, title: 'Aristotle, De Interpretatione ch. 9 and Metaphysics Book Θ', file: 'Week 2_Aristotle/Week 2_Aristotle.pdf' },
   { id: 'w02_witt', week: 2, title: 'Witt, "The Priority of Actuality in Aristotle"', file: 'Week 2_Aristotle/Week 2_Witt.pdf' },
   { id: 'w03_avicenna', week: 3, title: 'Avicenna, The Metaphysics of The Healing', file: 'Week 3_Avicenna/Week 3_Avicenna.pdf' },
   { id: 'w03_adamson', week: 3, title: 'Adamson, "From the Necessary Existent to God"', file: 'Week 3_Avicenna/Week 3_Adamson.pdf' },
