@@ -5108,7 +5108,36 @@
         ];
 
         // State
-        let currentWeekNum = 1;
+        let currentWeekNum = (function() {
+            const weekDates = [
+                { num: 1,  start: new Date(2026, 1, 4) },
+                { num: 2,  start: new Date(2026, 1, 11) },
+                { num: 3,  start: new Date(2026, 1, 18) },
+                { num: 4,  start: new Date(2026, 1, 25) },
+                { num: 5,  start: new Date(2026, 2, 4) },
+                { num: 6,  start: new Date(2026, 2, 11) },
+                { num: 7,  start: new Date(2026, 2, 18) },
+                { num: 8,  start: new Date(2026, 2, 25) },
+                { num: 9,  start: new Date(2026, 3, 1) },
+                { num: 10, start: new Date(2026, 3, 8) },
+                { num: 11, start: new Date(2026, 3, 15) },
+                { num: 12, start: new Date(2026, 3, 22) },
+                { num: 13, start: new Date(2026, 3, 29) },
+                { num: 14, start: new Date(2026, 4, 6) },
+                { num: 15, start: new Date(2026, 4, 13) },
+                { num: 16, start: new Date(2026, 4, 20) }
+            ];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            let week = 1;
+            for (let i = weekDates.length - 1; i >= 0; i--) {
+                if (today >= weekDates[i].start) {
+                    week = weekDates[i].num;
+                    break;
+                }
+            }
+            return week;
+        })();
         let currentReading = null;
         let selectedText = '';
         let selectedPageNum = null;
@@ -6005,7 +6034,7 @@
         // =============================================
 
         function getCurrentWeek() {
-            // For now, default to week 1. Could be date-based later.
+            // currentWeekNum is now computed from the calendar at initialization.
             let week = null;
             for (const unit of schedule) {
                 for (const w of unit.weeks) {
