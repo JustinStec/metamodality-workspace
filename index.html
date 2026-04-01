@@ -4951,16 +4951,16 @@
         const tagCategories = {
             tradition: ['Greek', 'Islamic', 'Buddhist', 'Rationalist', 'Phenomenological', 'Pragmatist', 'Process', 'Contemplative', 'Neoplatonic', 'Kabbalistic'],
             concept: ['possibility', 'actuality', 'potentiality', 'essence', 'existence', 'nothingness', 'contingency', 'necessity', 'imagination', 'emanation', 'continuity', 'attention'],
-            thinker: ['Parmenides', 'Aristotle', 'Avicenna', 'Nāgārjuna', 'Leibniz', 'Du Châtelet', 'Kant', 'Ibn ʿArabī', 'Husserl', 'Derrida', 'Heidegger', 'Arendt', 'Eliot', 'Whitehead', 'Knausgaard', 'Marlowe', 'Rilke', 'Campagna', 'Marcus', 'Hamkins', 'Priest', 'Borges']
+            thinker: ['Parmenides', 'Aristotle', 'Avicenna', 'Nāgārjuna', 'Leibniz', 'Du Châtelet', 'Kant', 'Ibn ʿArabī', 'Husserl', 'Derrida', 'Heidegger', 'Arendt', 'Knausgaard', 'Marlowe', 'Rilke', 'Eliot', 'Whitehead', 'Levin', 'Campagna', 'Marcus', 'Hamkins', 'Priest', 'Borges']
         };
 
         // Workshop data
         const workshops = [
             { id: 1, unit: "Unit I", title: "Ancient and Medieval Foundations", dates: "Feb 26 or 27", weeks: [1, 2, 3, 4] },
             { id: 2, unit: "Unit II", title: "Rationalism, Transcendentalism, and the Imaginal", dates: "Mar 19 or 20", weeks: [5, 6, 7] },
-            { id: 3, unit: "Unit III", title: "Phenomenology, Pragmatism, and Nothingness", dates: "Apr 17 or 18", weeks: [8, 9, 10, 11] },
-            { id: 4, unit: "Unit IV", title: "Process, Contemplation, Emanation", dates: "May 7 or 8", weeks: [12, 13, 14] },
-            { id: 5, unit: "Unit V", title: "Mathematical and Formal Possibility", dates: "May 28 or 29", weeks: [15, 16, 17] }
+            { id: 3, unit: "Unit III", title: "Phenomenology, Pragmatism, and Nothingness", dates: "Apr 3 or 4", weeks: [8, 9] },
+            { id: 4, unit: "Unit IV", title: "Hell, or Absolute Possibility", dates: "Apr 23 or 24", weeks: [10, 11, 12] },
+            { id: 5, unit: "Unit V", title: "Forms of the Possible", dates: "May 28 or 29", weeks: [13, 14, 15, 16, 17] }
         ];
 
         const schedule = [
@@ -5041,50 +5041,51 @@
                       readings: [
                         { id: "w09_heid", title: `Heidegger, <em>Being and Time</em>, Division II ch. 1 (§§46–53)`, file: "readings/Week 9_Heidegger and Arendt/Week 9_Heidegger.pdf" },
                         { id: "w09_arendt", title: `Arendt, <em>The Human Condition</em>, ch. 5 §§24–26`, file: "readings/Week 9_Heidegger and Arendt/Week 9_Arendt.pdf" }
-                    ]},
-                    { num: 10, date: "Apr 7", title: "Immediate Experience",
-                      tags: ['Phenomenological', 'Eliot', 'possibility'],
-                      focus: "Eliot's dissertation argues that experience begins as an undifferentiated felt whole prior to any subject-object distinction. Feeling is not a representation of reality — it is reality, before the apparatus of knowledge separates knower from known.",
-                      readings: [
-                        { id: "w10_eliot", title: `Eliot, <em>Knowledge and Experience in the Philosophy of F.H. Bradley</em>, ch. 1–3`, file: "readings/Week 10_Eliot/Week 10_Eliot.pdf" }
-                    ]},
-                    { num: 11, date: "Apr 14", title: "Eternal Objects and Ingression",
-                      tags: ['Process', 'Whitehead', 'potentiality', 'actuality'],
-                      focus: "Eternal objects ingress into actual occasions as pure potentials. Whitehead's God functions as the primordial envisagement of possibility, a role that recalls Leibniz, and Peirce's categories find new form in this processual framework.",
-                      readings: [
-                        { id: "w11_white", title: `Whitehead, <em>Science and the Modern World</em>, ch. 11`, file: "readings/Week 12_Whitehead/Week 12_Whitehead.pdf" },
-                        { id: "w11_stengers", title: `Stengers, <em>Thinking with Whitehead</em>, selections`, file: "readings/Week 12_Whitehead/Week 12_Stengers (Thinking With Whitehead).pdf" }
                     ]}
                 ]
             },
             {
-                unit: "Unit IV: Process, Contemplation, Emanation",
+                unit: "Unit IV: Hell, or Absolute Possibility",
                 weeks: [
-                    { num: 12, date: "Apr 21", title: "<em>The School of Night</em>, Part I",
+                    { num: 10, date: "Apr 7", title: "<em>The School of Night</em>, Part I",
                       tags: ['Knausgaard', 'Marlowe', 'possibility', 'actuality'],
                       focus: "Hans, a Dutch artist who may or may not be the Devil, tells a young photographer that the first daguerreotype captured a figure from outside human temporality. His claims about mirrors, automata, and photography raise a question the novel never settles: are there entities that persist through surfaces the way eternal objects ingress into occasions — not as metaphor, but as a property of the medium itself?",
                       readings: [
-                        { id: "w12_knausgaard", title: `Knausgaard, <em>The School of Night</em>, Parts I–II`, file: "readings/Week 12_Knausgaard/Knausgaard_The_School_of_Night.pdf" },
-                        { id: "w12_marlowe", title: `Marlowe, <em>Doctor Faustus</em>, Act I scene 3 and Act V scene 2`, file: "readings/Week 12_Knausgaard/Week 12_Marlowe.pdf" }
+                        { id: "w10_knausgaard", title: `Knausgaard, <em>The School of Night</em>, Parts I–II`, file: "readings/Week 12_Knausgaard/Knausgaard_The_School_of_Night.pdf" },
+                        { id: "w10_marlowe", title: `Marlowe, <em>Doctor Faustus</em>, Act I scene 3 and Act V scene 2`, file: "readings/Week 12_Knausgaard/Week 10_Marlowe.pdf" }
                     ]},
-                    { num: 13, date: "Apr 28", title: "<em>The School of Night</em>, Part II",
+                    { num: 11, date: "Apr 14", title: "<em>The School of Night</em>, Part II",
                       tags: ['Knausgaard', 'Rilke', 'possibility', 'actuality'],
                       focus: "The novel jumps twenty-four years. Kristian's retrospective at MoMA marks the full actualization of his ambition, and the reckoning that follows reopens questions about the cost of individuation. Rilke's Orpheus, who moves between the realms of the living and the dead, offers the counterimage.",
                       readings: [
-                        { id: "w13_knausgaard", title: `Knausgaard, <em>The School of Night</em>, Parts III–IV`, file: "readings/Week 12_Knausgaard/Knausgaard_The_School_of_Night.pdf" },
-                        { id: "w13_rilke", title: `Rilke, <em>Sonnets to Orpheus</em> I.5, I.9, II.13`, file: "readings/Week 12_Knausgaard/Week 13_Rilke.pdf" }
+                        { id: "w11_knausgaard", title: `Knausgaard, <em>The School of Night</em>, Parts III–IV`, file: "readings/Week 12_Knausgaard/Knausgaard_The_School_of_Night.pdf" },
+                        { id: "w11_rilke", title: `Rilke, <em>Sonnets to Orpheus</em> I.5, I.9, II.13`, file: "readings/Week 12_Knausgaard/Week 11_Rilke.pdf" }
                     ]},
-                    { num: 14, date: "May 5", title: "Technic and Magic",
+                    { num: 12, date: "Apr 21", title: "<em>Technic and Magic</em>",
                       tags: ['Campagna', 'emanation', 'imagination'],
                       focus: "Campagna's two cosmogonies — Technic and Magic — emanate from opposing first principles: absolute language and the ineffable. Where Technic closes the system by denying any outside, Magic holds open a dimension of existence that can never be reduced to linguistic classification.",
                       readings: [
-                        { id: "w14_campagna", title: `Campagna, <em>Technic and Magic</em>, ch. 3–4: "Magic's Cosmogony" and "Magic's World"`, file: "readings/Week 14_Campagna/Week 14_Campagna.pdf" }
+                        { id: "w12_campagna", title: `Campagna, <em>Technic and Magic</em>, ch. 3–4: "Magic's Cosmogony" and "Magic's World"`, file: "readings/Week 14_Campagna/Week 12_Campagna.pdf" }
                     ]}
                 ]
             },
             {
-                unit: "Unit V: Mathematical and Formal Possibility",
+                unit: "Unit V: Forms of the Possible",
                 weeks: [
+                    { num: 13, date: "Apr 28", title: "The Half-Object",
+                      tags: ['Phenomenological', 'Eliot', 'possibility'],
+                      focus: "Eliot's dissertation argues that objects are never fully given. Every finite center of experience constitutes its objects perspectivally, carving them from a felt whole that exceeds any single point of view. This theory of half-objects opens the final sequence of the seminar: what are objects, how do they persist, and what produces the space of possible objects in the first place?",
+                      readings: [
+                        { id: "w13_eliot", title: `Eliot, <em>Knowledge and Experience in the Philosophy of F.H. Bradley</em>`, file: "readings/Week 13_Eliot/Week 13_Eliot.pdf" }
+                    ]},
+                    { num: 14, date: "May 5", title: "Eternal Objects and Ingression",
+                      tags: ['Process', 'Whitehead', 'Levin', 'potentiality', 'actuality'],
+                      focus: "Eternal objects ingress into actual occasions as pure potentials. Whitehead's God functions as the primordial envisagement of possibility, a role that recalls Leibniz. Levin's recent work makes literal causal claims about pattern spaces that ingress into biological matter — a test case for whether Whitehead's vocabulary describes something real.",
+                      readings: [
+                        { id: "w14_white", title: `Whitehead, <em>Science and the Modern World</em>, ch. 11`, file: "readings/Week 12_Whitehead/Week 12_Whitehead.pdf" },
+                        { id: "w14_stengers", title: `Stengers, <em>Thinking with Whitehead</em>, selections`, file: "readings/Week 12_Whitehead/Week 12_Stengers (Thinking With Whitehead).pdf" },
+                        { id: "w14_levin", title: `Levin, "Ingressing Minds" (2025)`, file: "readings/Week 12_Whitehead/Week 14_Levin.pdf" }
+                    ]},
                     { num: 15, date: "May 12", title: "Set-Theoretic Potentialism",
                       tags: ['Marcus', 'Hamkins', 'possibility', 'potentiality'],
                       focus: "Ruth Barcan Marcus founded quantified modal logic; her Barcan formula raises questions about the relation between possibility and existence. Hamkins's multiverse holds many distinct concepts of set, each instantiated in a corresponding universe.",
