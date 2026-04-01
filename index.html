@@ -4951,7 +4951,7 @@
         const tagCategories = {
             tradition: ['Greek', 'Islamic', 'Buddhist', 'Rationalist', 'Phenomenological', 'Pragmatist', 'Process', 'Contemplative', 'Neoplatonic', 'Kabbalistic'],
             concept: ['possibility', 'actuality', 'potentiality', 'essence', 'existence', 'nothingness', 'contingency', 'necessity', 'imagination', 'emanation', 'continuity', 'attention'],
-            thinker: ['Parmenides', 'Aristotle', 'Avicenna', 'Nāgārjuna', 'Leibniz', 'Du Châtelet', 'Kant', 'Ibn ʿArabī', 'Husserl', 'Derrida', 'Heidegger', 'Arendt', 'Peirce', 'Whitehead', 'Knausgaard', 'Plotinus', 'Conway', 'Weil', 'Marcus', 'Hamkins', 'Borges']
+            thinker: ['Parmenides', 'Aristotle', 'Avicenna', 'Nāgārjuna', 'Leibniz', 'Du Châtelet', 'Kant', 'Ibn ʿArabī', 'Husserl', 'Derrida', 'Heidegger', 'Arendt', 'Eliot', 'Whitehead', 'Knausgaard', 'Marlowe', 'Rilke', 'Campagna', 'Marcus', 'Hamkins', 'Priest', 'Borges']
         };
 
         // Workshop data
@@ -4960,7 +4960,7 @@
             { id: 2, unit: "Unit II", title: "Rationalism, Transcendentalism, and the Imaginal", dates: "Mar 19 or 20", weeks: [5, 6, 7] },
             { id: 3, unit: "Unit III", title: "Phenomenology, Pragmatism, and Nothingness", dates: "Apr 17 or 18", weeks: [8, 9, 10, 11] },
             { id: 4, unit: "Unit IV", title: "Process, Contemplation, Emanation", dates: "May 7 or 8", weeks: [12, 13, 14] },
-            { id: 5, unit: "Unit V", title: "Mathematical and Formal Possibility", dates: "May 21 or 22", weeks: [15, 16] }
+            { id: 5, unit: "Unit V", title: "Mathematical and Formal Possibility", dates: "May 28 or 29", weeks: [15, 16, 17] }
         ];
 
         const schedule = [
@@ -5042,12 +5042,11 @@
                         { id: "w09_heid", title: `Heidegger, <em>Being and Time</em>, Division II ch. 1 (§§46–53)`, file: "readings/Week 9_Heidegger and Arendt/Week 9_Heidegger.pdf" },
                         { id: "w09_arendt", title: `Arendt, <em>The Human Condition</em>, ch. 5 §§24–26`, file: "readings/Week 9_Heidegger and Arendt/Week 9_Arendt.pdf" }
                     ]},
-                    { num: 10, date: "Apr 7", title: "Firstness and Continuity",
-                      tags: ['Pragmatist', 'Peirce', 'possibility', 'continuity'],
-                      focus: "Firstness is pure qualitative possibility, prior to relation or resistance. Peirce's continuum allows possibility to grade into actuality.",
+                    { num: 10, date: "Apr 7", title: "Immediate Experience",
+                      tags: ['Phenomenological', 'Eliot', 'possibility'],
+                      focus: "Eliot's dissertation argues that experience begins as an undifferentiated felt whole prior to any subject-object distinction. Feeling is not a representation of reality — it is reality, before the apparatus of knowledge separates knower from known.",
                       readings: [
-                        { id: "w10_peirce", title: `Peirce, "A Guess at the Riddle"`, file: "readings/Week 10_Peirce/Week 10_Peirce.pdf" },
-                        { id: "w10_continuity", title: `"The Continuity of Life: On Peirce's Objective Idealism"`, file: "readings/Week 10_Peirce/Week 10_Ibri (On Peirce's Objective Idealism).pdf" }
+                        { id: "w10_eliot", title: `Eliot, <em>Knowledge and Experience in the Philosophy of F.H. Bradley</em>, ch. 1–3`, file: "readings/Week 10_Eliot/Week 10_Eliot.pdf" }
                     ]},
                     { num: 11, date: "Apr 14", title: "Eternal Objects and Ingression",
                       tags: ['Process', 'Whitehead', 'potentiality', 'actuality'],
@@ -5062,23 +5061,24 @@
                 unit: "Unit IV: Process, Contemplation, Emanation",
                 weeks: [
                     { num: 12, date: "Apr 21", title: "<em>The School of Night</em>, Part I",
-                      tags: ['Knausgaard', 'possibility', 'actuality'],
-                      focus: "Knausgaard's Faustian novel tracks a young photographer in 1985 London who will pay any price for artistic greatness. Through its reworking of Marlowe's Doctor Faustus, the novel asks what possibilities become available when nothing is held back, and what that willingness destroys.",
+                      tags: ['Knausgaard', 'Marlowe', 'possibility', 'actuality'],
+                      focus: "Hans, a Dutch artist who may or may not be the Devil, tells a young photographer that the first daguerreotype captured a figure from outside human temporality. His claims about mirrors, automata, and photography raise a question the novel never settles: are there entities that persist through surfaces the way eternal objects ingress into occasions — not as metaphor, but as a property of the medium itself?",
                       readings: [
-                        { id: "w12_knausgaard", title: `Knausgaard, <em>The School of Night</em>, first half`, file: "readings/Week 12_Knausgaard/Knausgaard_The_School_of_Night.pdf" }
+                        { id: "w12_knausgaard", title: `Knausgaard, <em>The School of Night</em>, Parts I–II`, file: "readings/Week 12_Knausgaard/Knausgaard_The_School_of_Night.pdf" },
+                        { id: "w12_marlowe", title: `Marlowe, <em>Doctor Faustus</em>, Act I scene 3 and Act V scene 2`, file: "readings/Week 12_Knausgaard/Week 12_Marlowe.pdf" }
                     ]},
                     { num: 13, date: "Apr 28", title: "<em>The School of Night</em>, Part II",
-                      tags: ['Knausgaard', 'possibility', 'actuality'],
-                      focus: "The novel jumps twenty-four years. Kristian's retrospective at MoMA marks the full actualization of his ambition, and the reckoning that follows reopens questions about the cost of individuation.",
+                      tags: ['Knausgaard', 'Rilke', 'possibility', 'actuality'],
+                      focus: "The novel jumps twenty-four years. Kristian's retrospective at MoMA marks the full actualization of his ambition, and the reckoning that follows reopens questions about the cost of individuation. Rilke's Orpheus, who moves between the realms of the living and the dead, offers the counterimage.",
                       readings: [
-                        { id: "w13_knausgaard", title: `Knausgaard, <em>The School of Night</em>, second half`, file: "readings/Week 12_Knausgaard/Knausgaard_The_School_of_Night.pdf" }
+                        { id: "w13_knausgaard", title: `Knausgaard, <em>The School of Night</em>, Parts III–IV`, file: "readings/Week 12_Knausgaard/Knausgaard_The_School_of_Night.pdf" },
+                        { id: "w13_rilke", title: `Rilke, <em>Sonnets to Orpheus</em> I.5, I.9, II.13`, file: "readings/Week 12_Knausgaard/Week 13_Rilke.pdf" }
                     ]},
-                    { num: 14, date: "May 5", title: "Emanation and Superabundance",
-                      tags: ['Neoplatonic', 'Kabbalistic', 'Plotinus', 'Conway', 'emanation'],
-                      focus: "Possibility flows from the One's inexhaustible superabundance. This emanationist framework shaped Avicenna and passed into German Idealism; it offers a counterpoint to the Aristotelian model of potentiality.",
+                    { num: 14, date: "May 5", title: "Technic and Magic",
+                      tags: ['Campagna', 'emanation', 'imagination'],
+                      focus: "Campagna's two cosmogonies — Technic and Magic — emanate from opposing first principles: absolute language and the ineffable. Where Technic closes the system by denying any outside, Magic holds open a dimension of existence that can never be reduced to linguistic classification.",
                       readings: [
-                        { id: "w14_plotinus", title: `Plotinus, <em>Enneads</em> V.1`, file: "readings/Week 14_Plotinus, Conway/Week 14_Plotinus.pdf" },
-                        { id: "w14_conway", title: `Conway, <em>Principles of the Most Ancient and Modern Philosophy</em>, selections`, file: "readings/Week 14_Plotinus, Conway/Week 14_Conway.pdf" }
+                        { id: "w14_campagna", title: `Campagna, <em>Technic and Magic</em>, ch. 3–4: "Magic's Cosmogony" and "Magic's World"`, file: "readings/Week 14_Campagna/Week 14_Campagna.pdf" }
                     ]}
                 ]
             },
@@ -5093,12 +5093,19 @@
                         { id: "w15_hamkins", title: `Hamkins, "The Set-Theoretic Multiverse"`, file: "readings/Week 15_Hamkins, Barcon Marcus/Week 15_Hamkins (multiverse).pdf" },
                         { id: "w15_linnebo", title: `Hamkins & Linnebo, "The Modal Logic of Set-Theoretic Potentialism"`, file: "readings/Week 15_Hamkins, Barcon Marcus/Week 15_Hamkins and Linnebo.pdf" }
                     ]},
-                    { num: 16, date: "May 19", title: "Producing the Possible",
+                    { num: 16, date: "May 19", title: "Contradiction and the Limits of Thought",
+                      tags: ['Priest', 'possibility', 'nothingness'],
+                      focus: "Priest's dialetheism holds that some contradictions are true — that the limits of thought generate paradoxes no consistent system can resolve. His reading of Nāgārjuna's catuṣkoṭi returns the seminar to questions raised in Week 4.",
+                      readings: [
+                        { id: "w16_priest_blt", title: `Priest, <em>Beyond the Limits of Thought</em>, ch. 1–2 and 16`, file: "readings/Week 16_Priest/Week 16_Priest.pdf" },
+                        { id: "w16_priest_cat", title: `Priest, "The Logic of the Catuskoti"`, file: "readings/Week 16_Priest/Week 16_Priest_Catuskoti.pdf" }
+                    ]},
+                    { num: 17, date: "May 26", title: "Producing the Possible",
                       tags: ['Borges', 'possibility'],
                       focus: "How do possibility spaces themselves get produced? Foster's work shows tradition constraining what becomes thinkable while furnishing materials for innovation, bringing the semester's philosophical questions into contact with computational and sociological methods. Borges's story explores the literary form of branching possibility.",
                       readings: [
-                        { id: "w16_metal", title: `Koch, Silvestro & Foster, "The Evolutionary Dynamics of Cultural Change (As Told Through the Birth and Brutal, Blackened Death of Metal Music)"`, file: "readings/Week 16_Foster/Week 16_Foster and Koch.pdf" },
-                        { id: "w16_borges", title: `Borges, "The Garden of Forking Paths"`, file: "readings/Week 16_Foster/Week 16_Borges.pdf" }
+                        { id: "w17_metal", title: `Koch, Silvestro & Foster, "The Evolutionary Dynamics of Cultural Change (As Told Through the Birth and Brutal, Blackened Death of Metal Music)"`, file: "readings/Week 17_Foster/Week 17_Foster and Koch.pdf" },
+                        { id: "w17_borges", title: `Borges, "The Garden of Forking Paths"`, file: "readings/Week 17_Foster/Week 17_Borges.pdf" }
                     ]}
                 ]
             }
@@ -5123,7 +5130,8 @@
                 { num: 13, start: new Date(2026, 3, 22) },
                 { num: 14, start: new Date(2026, 3, 29) },
                 { num: 15, start: new Date(2026, 4, 6) },
-                { num: 16, start: new Date(2026, 4, 13) }
+                { num: 16, start: new Date(2026, 4, 13) },
+                { num: 17, start: new Date(2026, 4, 20) }
             ];
             const today = new Date();
             today.setHours(0, 0, 0, 0);
